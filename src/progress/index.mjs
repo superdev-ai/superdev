@@ -564,6 +564,34 @@ export async function readiness(db, projectId) {
   const questions = await db.all("SELECT * FROM questions WHERE project_id = ?", projectId);
   const documents = await db.all("SELECT * FROM documents WHERE project_id = ?", projectId);
 
+  // What an accepted feature actually describes, counted per feature.
+  //
+  // Readiness counted capability areas, module completeness steps, questions and
+  // documents, and nothing else. So a project whose features were all accepted
+  // could report ninety-nine percent while its surfaces, data model, API and
+  // architecture were empty, and every one of those areas of the interface sat
+  // blank with nothing in the number to suggest anything was missing. A figure
+  // that cannot fall for a whole missing layer is not measuring the layer.
+  //
+  // Only accepted features are counted. A drafted one is not yet a promise, and
+  // holding readiness down for work nobody has agreed to is how a number stops
+  // being read.
+  const acceptedFeatures = await db.all(
+    "SELECT id, name, spec_depth FROM features WHERE project_id = ? AND status NOT IN ('draft','retired','superseded')",
+    projectId,
+  );
+  const described = { surfaces: 0, dataOrApi: 0, workflow: 0 };
+  for (const feature of acceptedFeatures) {
+    const has = async (table) => Number(
+      (await db.get(`SELECT COUNT(*) AS n FROM ${table} WHERE feature_id = ?`, feature.id))?.n ?? 0) > 0;
+    if (await has("surfaces")) described.surfaces += 1;
+    // Either satisfies it, the same way the depth gate treats them: a feature can
+    // be backed by stored data or by an operation, and demanding both would fail a
+    // feature that legitimately has one.
+    if (await has("data_entities") || await has("api_operations")) described.dataOrApi += 1;
+    if (await has("workflows")) described.workflow += 1;
+  }
+
   const areaCounts = { specified: 0, awaiting_decision: 0, deferred: 0, not_applicable: 0 };
   for (const area of areas) areaCounts[area.state] = (areaCounts[area.state] ?? 0) + 1;
 
@@ -591,6 +619,17 @@ export async function readiness(db, projectId) {
     comp("Documentation in sync", tally(
       documents.filter((d) => d.sync_status !== "retired"),
       (d) => d.sync_status === "generated" || d.sync_status === "accepted")),
+    // Four components rather than one, because "the architecture is described" is
+    // not a single fact: a product can have its screens worked out and no data
+    // model, and averaging that into one figure hides which half is missing.
+    // Absent when nothing is accepted yet, since there is nothing to describe.
+    ...(acceptedFeatures.length
+      ? [
+          comp("Accepted features with a surface", { done: described.surfaces, total: acceptedFeatures.length }),
+          comp("Accepted features with data or an API", { done: described.dataOrApi, total: acceptedFeatures.length }),
+          comp("Accepted features with a workflow", { done: described.workflow, total: acceptedFeatures.length }),
+        ]
+      : []),
   ];
 
   const unresolvedAreas = areas.filter(

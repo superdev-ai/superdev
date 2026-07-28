@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3481 hash=fe530608db710be145a91a5e41857e7a710d97779f03a621500ae980dddc0278 -->
+<!-- superdev:generated source=PRJ-0001 revision=3537 hash=5de458f3842e5934621bd25246bbee63e871cd8197b4ee6c5d0d1d282772f586 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,58 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3537 | 2026-07-28 | Change recorded: Eleven record types the product asked for and could not write now have authors, and readiness counts them | superdev |
+| 3536 | 2026-07-28 | Linked memory MEM-0106 to feature FEAT-0100 | superdev |
+| 3535 | 2026-07-28 | Linked memory MEM-0106 to task TASK-0038 | superdev |
+| 3534 | 2026-07-28 | Remembered outcome: TASK-0038 complete: Prove Author the rest of the product map meets its acceptanc | superdev |
+| 3533 | 2026-07-28 | Author the rest of the product map is complete: its contract is satisfied | superdev |
+| 3532 | 2026-07-28 | TASK-0038 completed, assignment released. | superdev |
+| 3531 | 2026-07-28 | Task TASK-0038 moved to complete | superdev |
+| 3530 | 2026-07-28 | Acceptance criterion AC-0117 is met, evidenced by EV-0162. | superdev |
+| 3529 | 2026-07-28 | Passing evidence recorded for TASK-0038: A value the schema will not accept is refused by name, listing what it accepts | superdev |
+| 3528 | 2026-07-28 | Acceptance criterion AC-0116 is met, evidenced by EV-0161. | superdev |
+| 3527 | 2026-07-28 | Passing evidence recorded for TASK-0038: Each record refuses what would make it meaningless, and names the remedy | superdev |
+| 3526 | 2026-07-28 | Acceptance criterion AC-0115 is met, evidenced by EV-0160. | superdev |
+| 3525 | 2026-07-28 | Passing evidence recorded for TASK-0038: A feature is accepted at standard depth, which no project could do before | superdev |
+| 3524 | 2026-07-28 | Task TASK-0038 moved to in progress | superdev |
+| 3523 | 2026-07-28 | TASK-0038 claimed. | superdev |
+| 3522 | 2026-07-28 | Derived tasks for FEAT-0100: 1 new, 0 updated, 0 superseded. | superdev |
+| 3521 | 2026-07-28 | Derived Prove Author the rest of the product map meets its acceptance criteria | superdev |
+| 3520 | 2026-07-28 | FEAT-0100 now serves No unmapped or disconnected implementation work | superdev |
+| 3519 | 2026-07-28 | Accepted Author the rest of the product map at microspec depth | superdev |
+| 3518 | 2026-07-28 | Edge case recorded for FEAT-0100: invalid_input | superdev |
+| 3517 | 2026-07-28 | Edge case recorded for FEAT-0100: duplication | superdev |
+| 3516 | 2026-07-28 | Acceptance criterion recorded for FEAT-0100 | superdev |
+| 3515 | 2026-07-28 | Acceptance criterion recorded for FEAT-0100 | superdev |
+| 3514 | 2026-07-28 | Acceptance criterion recorded for FEAT-0100 | superdev |
+| 3513 | 2026-07-28 | Primary flow recorded for FEAT-0100 | superdev |
+| 3512 | 2026-07-28 | Primary flow recorded for FEAT-0100 | superdev |
+| 3511 | 2026-07-28 | Primary flow recorded for FEAT-0100 | superdev |
+| 3510 | 2026-07-28 | Feature drafted in Product Model and Orchestration: Author the rest of the product map | superdev |
+| 3509 | 2026-07-28 | Linked memory MEM-0105 to feature FEAT-0099 | superdev |
+| 3508 | 2026-07-28 | Linked memory MEM-0105 to task TASK-0037 | superdev |
+| 3507 | 2026-07-28 | Remembered outcome: TASK-0037 complete: Prove Refuse a record type the interface shows and nothing c | superdev |
+| 3506 | 2026-07-28 | Refuse a record type the interface shows and nothing can write is complete: its contract is satisfied | superdev |
+| 3505 | 2026-07-28 | TASK-0037 completed, assignment released. | superdev |
+| 3504 | 2026-07-28 | Task TASK-0037 moved to complete | superdev |
+| 3503 | 2026-07-28 | Acceptance criterion AC-0114 is met, evidenced by EV-0159. | superdev |
+| 3502 | 2026-07-28 | Passing evidence recorded for TASK-0037: Adding a write path clears the finding without editing the validator | superdev |
+| 3501 | 2026-07-28 | Acceptance criterion AC-0113 is met, evidenced by EV-0158. | superdev |
+| 3500 | 2026-07-28 | Passing evidence recorded for TASK-0037: The validator names every record type the product asks for and cannot write | superdev |
+| 3496 | 2026-07-28 | Task TASK-0037 moved to in progress | superdev |
+| 3495 | 2026-07-28 | TASK-0037 claimed. | superdev |
+| 3494 | 2026-07-28 | Derived tasks for FEAT-0099: 1 new, 0 updated, 0 superseded. | superdev |
+| 3493 | 2026-07-28 | Derived Prove Refuse a record type the interface shows and nothing can write meets its acceptance criteria | superdev |
+| 3492 | 2026-07-28 | FEAT-0099 now serves No unmapped or disconnected implementation work | superdev |
+| 3491 | 2026-07-28 | Accepted Refuse a record type the interface shows and nothing can write at microspec depth | superdev |
+| 3490 | 2026-07-28 | Edge case recorded for FEAT-0099: versioning | superdev |
+| 3489 | 2026-07-28 | Edge case recorded for FEAT-0099: invalid_input | superdev |
+| 3488 | 2026-07-28 | Acceptance criterion recorded for FEAT-0099 | superdev |
+| 3487 | 2026-07-28 | Acceptance criterion recorded for FEAT-0099 | superdev |
+| 3486 | 2026-07-28 | Primary flow recorded for FEAT-0099 | superdev |
+| 3485 | 2026-07-28 | Primary flow recorded for FEAT-0099 | superdev |
+| 3484 | 2026-07-28 | Primary flow recorded for FEAT-0099 | superdev |
+| 3483 | 2026-07-28 | Feature drafted in Packaging and Distribution: Refuse a record type the interface shows and nothing can write | superdev |
 | 3481 | 2026-07-28 | Linked memory MEM-0104 to feature FEAT-0098 | superdev |
 | 3480 | 2026-07-28 | Linked memory MEM-0104 to task TASK-0036 | superdev |
 | 3479 | 2026-07-28 | Remembered outcome: TASK-0036 complete: Prove Prove a goal success criterion with evidence meets its | superdev |
@@ -155,55 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3315 | 2026-07-28 | TASK-0028 now implements acceptance_criterion AC-0016. | superdev |
 | 3314 | 2026-07-28 | Created task TASK-0028 | superdev |
 | 3312 | 2026-07-28 | Change recorded: A claim points the session at its task, so the record stops accusing tracked work of being untracked | superdev |
-| 3311 | 2026-07-28 | Linked memory MEM-0095 to feature FEAT-0088 | superdev |
-| 3310 | 2026-07-28 | Linked memory MEM-0095 to task TASK-0027 | superdev |
-| 3309 | 2026-07-28 | Remembered outcome: TASK-0027 complete: Point the session at the task it claimed, so tracked work st | superdev |
-| 3308 | 2026-07-28 | TASK-0027 completed, assignment released. | superdev |
-| 3307 | 2026-07-28 | Task TASK-0027 moved to complete | superdev |
-| 3306 | 2026-07-28 | Task TASK-0027 moved to in progress | superdev |
-| 3305 | 2026-07-28 | TASK-0027 now implements acceptance_criterion AC-0088. | superdev |
-| 3304 | 2026-07-28 | Passing evidence recorded for TASK-0027: Claiming a task now points the session at it, so work under a claim stops being reported as untracked | superdev |
-| 3302 | 2026-07-28 | TASK-0027 claimed. | superdev |
-| 3301 | 2026-07-28 | Created task TASK-0027 | superdev |
-| 3298 | 2026-07-28 | Change recorded: One answer path for a question, replacing three that disagreed | superdev |
-| 3297 | 2026-07-28 | Linked memory MEM-0094 to feature FEAT-0095 | superdev |
-| 3296 | 2026-07-28 | Linked memory MEM-0094 to task TASK-0026 | superdev |
-| 3295 | 2026-07-28 | Remembered outcome: TASK-0026 complete: Prove Answer a question by choosing from its options or typi | superdev |
-| 3294 | 2026-07-28 | Answer a question by choosing from its options or typing your own is complete: its contract is satisfied | superdev |
-| 3293 | 2026-07-28 | TASK-0026 completed, assignment released. | superdev |
-| 3292 | 2026-07-28 | Task TASK-0026 moved to complete | superdev |
-| 3290 | 2026-07-28 | Acceptance criterion AC-0103 is met, evidenced by EV-0140. | superdev |
-| 3289 | 2026-07-28 | Passing evidence recorded for TASK-0026: A typed answer is accepted alone or alongside an option, and the right half of it reaches the project field | superdev |
-| 3288 | 2026-07-28 | Acceptance criterion AC-0102 is met, evidenced by EV-0139. | superdev |
-| 3287 | 2026-07-28 | Passing evidence recorded for TASK-0026: One-answer questions refuse several options; many-answer questions accept them | superdev |
-| 3286 | 2026-07-28 | Acceptance criterion AC-0101 is met, evidenced by EV-0138. | superdev |
-| 3285 | 2026-07-28 | Passing evidence recorded for TASK-0026: The API carries each question's options, select mode, recommended options and why, and the control centre renders them as choices | superdev |
-| 3281 | 2026-07-28 | Task TASK-0026 moved to in progress | superdev |
-| 3280 | 2026-07-28 | TASK-0026 claimed. | superdev |
-| 3279 | 2026-07-28 | Derived tasks for FEAT-0095: 1 new, 0 updated, 0 superseded. | superdev |
-| 3278 | 2026-07-28 | Derived Prove Answer a question by choosing from its options or typing your own meets its acceptance criteria | superdev |
-| 3277 | 2026-07-28 | FEAT-0095 now serves Complete, structured product model | superdev |
-| 3276 | 2026-07-28 | Accepted Answer a question by choosing from its options or typing your own at microspec depth | superdev |
-| 3275 | 2026-07-28 | Edge case recorded for FEAT-0095: state_machine_violations | superdev |
-| 3274 | 2026-07-28 | Edge case recorded for FEAT-0095: invalid_input | superdev |
-| 3273 | 2026-07-28 | Acceptance criterion recorded for FEAT-0095 | superdev |
-| 3272 | 2026-07-28 | Acceptance criterion recorded for FEAT-0095 | superdev |
-| 3271 | 2026-07-28 | Acceptance criterion recorded for FEAT-0095 | superdev |
-| 3270 | 2026-07-28 | Primary flow recorded for FEAT-0095 | superdev |
-| 3269 | 2026-07-28 | Primary flow recorded for FEAT-0095 | superdev |
-| 3268 | 2026-07-28 | Primary flow recorded for FEAT-0095 | superdev |
-| 3267 | 2026-07-28 | Primary flow recorded for FEAT-0095 | superdev |
-| 3266 | 2026-07-28 | Feature drafted in Local Control Center: Answer a question by choosing from its options or typing your own | superdev |
-| 3265 | 2026-07-28 | Linked memory MEM-0093 to feature FEAT-0094 | superdev |
-| 3264 | 2026-07-28 | Linked memory MEM-0093 to task TASK-0025 | superdev |
-| 3263 | 2026-07-28 | Remembered outcome: TASK-0025 complete: Prove Resolve a capability area through a command meets its | superdev |
-| 3262 | 2026-07-28 | Resolve a capability area through a command is complete: its contract is satisfied | superdev |
-| 3261 | 2026-07-28 | TASK-0025 completed, assignment released. | superdev |
-| 3260 | 2026-07-28 | Task TASK-0025 moved to complete | superdev |
-| 3259 | 2026-07-28 | Acceptance criterion AC-0100 is met, evidenced by EV-0137. | superdev |
-| 3258 | 2026-07-28 | Passing evidence recorded for TASK-0025: No area is left awaiting a decision with no question raised | superdev |
-| 3257 | 2026-07-28 | Acceptance criterion AC-0099 is met, evidenced by EV-0136. | superdev |
-| 3256 | 2026-07-28 | Passing evidence recorded for TASK-0025: capability not-applicable records a reason, and refuses without one | superdev |
-| 3255 | 2026-07-28 | Acceptance criterion AC-0098 is met, evidenced by EV-0135. | superdev |
-| 3254 | 2026-07-28 | Passing evidence recorded for TASK-0025: capability specify settled the area doctor was warning about, and the warning cleared | superdev |
-| 3251 | 2026-07-28 | Task TASK-0025 moved to in progress | superdev |

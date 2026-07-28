@@ -202,6 +202,18 @@ Knowledge
   capability list      Readiness areas and stack slots, and what settled each
   capability specify <id>   Record what was chosen for an area
   capability not-applicable <id>  Record that an area does not apply, with why
+  surface record       Record a screen, panel or modal, and its actions
+  entity record        Record something the product stores
+  operation record     Record an operation something outside can call
+  workflow record      Record a workflow and its ordered steps
+  workflow step <id>   Add a step to a workflow
+  requirement record   Record a security, privacy, performance or observability
+                       requirement. This is where a security review is recorded
+  integration record   Record an outside service, and what happens when it is gone
+  test-plan record-new Record how something is tested, and how to run it
+  migration record     Record a schema change and how it is rolled back
+  states record        Record the states something moves through
+  term record          Record what a word means in this project
   scope record         Record what the product will not do, and why
   scope list           What is in scope, out of scope, and a non-goal
   scope remove <id>    Take a scope line back out
@@ -2868,6 +2880,205 @@ async function cmdCapabilityList(ctx) {
   };
 }
 
+// ------------------------------------------------- the rest of the product map
+//
+// Surfaces, data entities, operations, workflows, requirements and integrations.
+// Every one of these tables was readable, rendered, derived from and reported on,
+// and none of them could be written, which is what made standard and full spec
+// depth unreachable on every project.
+
+const architecture = () => import("./product/architecture.mjs");
+
+/** The shared shape: plan by default, apply on request, say what landed. */
+function landed(out, verb, planLine, doneLine) {
+  if (!out.applied) return planned(out, verb, R.wrap(planLine));
+  return { data: out, text: R.wrap(doneLine) };
+}
+
+async function cmdTestPlanRecordNew(ctx) {
+  const { recordTestPlan } = await architecture();
+  const out = await recordTestPlan(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A test plan needs a name."),
+    strategy: requireFlag(ctx.flags, "strategy", "Say what kind of testing this is and what it covers."),
+    howToRun: requireFlag(ctx.flags, "howToRun", 'Say how to run it: --how-to-run "<command or steps>". A plan nobody can run is a promise.'),
+    featureId: ctx.flags.feature ? String(ctx.flags.feature) : null,
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    passing: ctx.flags.passing ?? null,
+    cases: asList(ctx.flags.case),
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would record the test plan ${out.name}${out.cases?.length ? ` with ${countWord(out.cases.length, "case")}` : ""}.`,
+    `${out.plan.id} ${out.plan.name} is recorded with ${countWord(out.cases, "case")}. Accept it before it can satisfy a completion condition.`);
+}
+
+async function cmdMigrationRecord(ctx) {
+  const { recordMigration } = await architecture();
+  const out = await recordMigration(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A migration needs a name."),
+    forward: requireFlag(ctx.flags, "forward", "Say what the migration does."),
+    rollback: requireFlag(ctx.flags, "rollback",
+      "Say how it is rolled back. A migration with no way back is what turns a bad deploy into an outage."),
+    featureId: ctx.flags.feature ? String(ctx.flags.feature) : null,
+    compatibility: ctx.flags.compatibility ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would record the migration ${out.name}, with its rollback.`,
+    `${out.migration.id} ${out.migration.name} is recorded with its rollback, which is what full depth asks for.`);
+}
+
+async function cmdStatesRecord(ctx) {
+  const { recordStateMachine } = await architecture();
+  const out = await recordStateMachine(ctx.root, {
+    entity: requireFlag(ctx.flags, "entity", 'Say what moves through these states: --entity "<the thing>".'),
+    states: asList(ctx.flags.state),
+    featureId: ctx.flags.feature ? String(ctx.flags.feature) : null,
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    initial: ctx.flags.initial ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would record ${countWord(out.states?.length ?? 0, "state")} for ${out.entity}, starting at ${out.initial}.`,
+    `${out.machine.id} records ${countWord(out.states, "state")} for ${out.machine.entity_name} on ${out.module}.`);
+}
+
+async function cmdTermRecord(ctx) {
+  const { recordTerm } = await architecture();
+  const out = await recordTerm(ctx.root, {
+    term: requireFlag(ctx.flags, "term", "Say which word."),
+    meaning: requireFlag(ctx.flags, "meaning", "Say what it means here."),
+    source: ctx.flags.source ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would record ${out.term} as: ${out.meaning}`,
+    `${out.term.id} records what ${out.term.term} means here. One meaning per term.`);
+}
+
+async function cmdSurfaceRecord(ctx) {
+  const { recordSurface } = await architecture();
+  const out = await recordSurface(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A surface needs a name, which is what a person would call the screen."),
+    featureId: ctx.flags.feature ? String(ctx.flags.feature) : null,
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    surfaceType: ctx.flags.type ? String(ctx.flags.type) : "screen",
+    route: ctx.flags.route ?? null,
+    purpose: ctx.flags.purpose ?? null,
+    role: ctx.flags.role ?? null,
+    actions: asList(ctx.flags.action),
+    responsive: ctx.flags.responsive ?? null,
+    accessibility: ctx.flags.accessibility ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would record the ${out.surfaceType} ${out.name}${out.actions?.length ? ` with ${countWord(out.actions.length, "action")}` : ""}.`,
+    `${out.surface.id} ${out.surface.name} is recorded on ${out.module}${out.feature ? `, for ${out.feature}` : ""}. It counts toward what standard depth asks for.`);
+}
+
+async function cmdEntityRecord(ctx) {
+  const { recordEntity } = await architecture();
+  const out = await recordEntity(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A data entity needs a name, which is the thing it holds."),
+    featureId: ctx.flags.feature ? String(ctx.flags.feature) : null,
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    purpose: ctx.flags.purpose ?? null,
+    store: ctx.flags.store ?? null,
+    sensitivity: ctx.flags.sensitivity ?? null,
+    retention: ctx.flags.retention ?? null,
+    deletion: ctx.flags.deletion ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would record the data entity ${out.name}.`,
+    `${out.entity.id} ${out.entity.name} is recorded on ${out.module}. It counts toward what standard depth asks for.`);
+}
+
+async function cmdOperationRecord(ctx) {
+  const { recordOperation } = await architecture();
+  const out = await recordOperation(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "An operation needs a name, which is what it does."),
+    featureId: ctx.flags.feature ? String(ctx.flags.feature) : null,
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    style: ctx.flags.style ?? null,
+    method: ctx.flags.method ?? null,
+    path: ctx.flags.path ?? null,
+    purpose: ctx.flags.purpose ?? null,
+    auth: ctx.flags.auth ?? null,
+    permission: ctx.flags.permission ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would record the operation ${out.name}.`,
+    `${out.operation.id} ${out.operation.name} is recorded on ${out.module}. It counts toward what standard depth asks for.`);
+}
+
+async function cmdWorkflowRecord(ctx) {
+  const { recordWorkflow } = await architecture();
+  const out = await recordWorkflow(ctx.root, {
+    featureId: String(requireFlag(ctx.flags, "feature", "A workflow belongs to a feature: --feature <FEAT-id>.")),
+    name: requireFlag(ctx.flags, "name", "A workflow needs a name."),
+    purpose: ctx.flags.purpose ?? null,
+    trigger: ctx.flags.trigger ?? null,
+    steps: asList(ctx.flags.step),
+    completion: ctx.flags.completion ?? null,
+    observability: ctx.flags.observability ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would record the workflow ${out.name} with ${countWord(out.steps?.length ?? 0, "step")}.`,
+    `${out.workflow.id} ${out.workflow.name} is recorded on ${out.feature} with ${countWord(out.steps, "step")}. A workflow and its steps are what standard depth asks for.`);
+}
+
+async function cmdWorkflowStep(ctx) {
+  const id = requireWord(ctx.words, 2, 'Say which workflow: superdev workflow step <WF-id> --action "<what happens>".');
+  const { addWorkflowStep } = await architecture();
+  const out = await addWorkflowStep(ctx.root, id, {
+    action: requireFlag(ctx.flags, "action", "A step needs to say what happens."),
+    expected: ctx.flags.expected ?? null,
+    failure: ctx.flags.failure ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would add a step to ${id}: ${out.action}`,
+    `${out.workflow} now has ${countWord(out.total, "step")}.`);
+}
+
+async function cmdRequirementRecord(ctx) {
+  const { recordRequirement } = await architecture();
+  const out = await recordRequirement(ctx.root, {
+    category: requireFlag(ctx.flags, "category",
+      "Say what kind of requirement this is: security, privacy, performance, observability, accessibility. The depth gate reads this word."),
+    requirement: requireFlag(ctx.flags, "requirement", "Say what has to hold."),
+    featureId: ctx.flags.feature ? String(ctx.flags.feature) : null,
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    target: ctx.flags.target ?? null,
+    measurement: ctx.flags.measurement ?? null,
+    status: ctx.flags.status ? String(ctx.flags.status) : "unmeasured",
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would record a ${out.category} requirement: ${out.requirement}`,
+    `${out.requirement.id ?? ""} ${out.category ?? ""} requirement recorded. A security or privacy requirement is what full depth asks for, and an observability one is what standard depth asks for.`.trim());
+}
+
+async function cmdIntegrationRecord(ctx) {
+  const { recordIntegration } = await architecture();
+  const out = await recordIntegration(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "An integration needs the name of the service."),
+    featureId: ctx.flags.feature ? String(ctx.flags.feature) : null,
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    purpose: ctx.flags.purpose ?? null,
+    whenAbsent: requireFlag(ctx.flags, "whenAbsent",
+      'Say what happens when it is unavailable: --when-absent "<behaviour>". Failure behaviour invented during the first outage is what this record prevents.'),
+    auth: ctx.flags.auth ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it",
+    `Would record the integration ${out.name}, absent behaviour: ${out.whenAbsent}`,
+    `${out.integration.id} ${out.integration.name} is recorded on ${out.module}, with what happens when it is unavailable.`);
+}
+
 async function cmdScopeRecord(ctx) {
   const { recordScopeItem } = await import("./product/authoring.mjs");
   // --not is the same word here as in feature specify, and means the same thing.
@@ -3312,6 +3523,17 @@ const COMMANDS = {
   "capability list": cmdCapabilityList,
   "capability specify": cmdCapabilitySpecify,
   "capability not-applicable": cmdCapabilityNotApplicable,
+  "test-plan record-new": cmdTestPlanRecordNew,
+  "migration record": cmdMigrationRecord,
+  "states record": cmdStatesRecord,
+  "term record": cmdTermRecord,
+  "surface record": cmdSurfaceRecord,
+  "entity record": cmdEntityRecord,
+  "operation record": cmdOperationRecord,
+  "workflow record": cmdWorkflowRecord,
+  "workflow step": cmdWorkflowStep,
+  "requirement record": cmdRequirementRecord,
+  "integration record": cmdIntegrationRecord,
   "scope record": cmdScopeRecord,
   "scope remove": cmdScopeRemove,
   "scope list": cmdScopeList,
@@ -3328,6 +3550,7 @@ const COMMANDS = {
 };
 
 const GROUPS = new Set(["db", "task", "docs", "memory", "question", "decision", "category", "feature", "evidence",
+  "surface", "entity", "operation", "requirement", "migration", "states", "term",
   "module", "goal", "milestone", "workflow", "architecture", "schema", "api", "integration", "change", "assumption", "cloud"]);
 
 function resolveCommand(words) {

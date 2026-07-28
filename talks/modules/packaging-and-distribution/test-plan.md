@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0011 revision=3142 hash=751ffab653ab33e530b4bcde5fcfabb1535f57886689a13498e72619996ab25b -->
+<!-- superdev:generated source=MOD-0011 revision=3537 hash=5b0079427b7aaca6085858700e2138a7513d4c6938e4db2873ed6e2b6ae4c1ac -->
 # Packaging and Distribution - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -13,13 +13,15 @@
 | Synchronize with the cloud | superdev sync updates local and remote state to match | Run superdev sync and record what was observed. | Met |
 | Preview a sync | superdev sync --dry-run lists pending changes without applying them | Run superdev sync --dry-run and record what was observed. | Met |
 | Resolve sync conflicts | superdev sync --resolve applies conflict resolution and leaves local and remote consistent | Run superdev sync --resolve and record what was observed. | Met |
+| Refuse a record type the interface shows and nothing can write | A record type the depth gate requires with no writer fails the build | Run the validator against the current tree and read what it names | Met |
+| Refuse a record type the interface shows and nothing can write | Adding a writer clears that finding without editing the validator | Add a write path and re-run it | Met |
 
 ## Coverage map
 
 | Area | Level | Cases | Status |
 |---|---|---|---|
-| Happy paths per feature | command, manual_check | 5 | exists |
-| Applicable edge-case categories | command, manual_check | 12 | exists |
+| Happy paths per feature | command, manual_check | 6 | exists |
+| Applicable edge-case categories | command, manual_check | 14 | exists |
 | Permission boundaries | command, manual_check | 0 | missing |
 | State machines including illegal transitions | command, manual_check | 0 | missing |
 
@@ -38,3 +40,5 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | After the sync, the second copy held the first copy's five new records and the first copy held the second's, and both reported the same tracked base. Local and remote state matched. | manual_check | pass | - | Current |
 | sync --dry-run listed 55 going out and 0 coming in, and the directory and database were unchanged afterwards. The applied run then reported the same counts. | manual_check | pass | - | Current |
 | sync --resolve CONF-0001 --keep remote changed the local purpose to the remote value and marked the conflict resolved. The next sync on both copies reported zero conflicts, so they were left consistent. | manual_check | pass | - | Current |
+| The validator names every record type the product asks for and cannot write | manual_check | pass | - | Current |
+| Adding a write path clears the finding without editing the validator | manual_check | pass | - | Current |

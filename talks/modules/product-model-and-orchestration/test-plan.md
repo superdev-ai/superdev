@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3481 hash=8a2059f5fc459942e6015ad54be7b360491baa92c11dc5b5dd962fa1e90de166 -->
+<!-- superdev:generated source=MOD-0002 revision=3537 hash=e83a0bc6449996fb7d1e503307569e153b29adc593b461b4ca1e018c8a51459a -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -33,13 +33,16 @@
 | Prove a goal success criterion with evidence | Evidence against a goal success criterion is stored and marks it met | Record passing evidence against a GSC id and read the criterion and the goal | Met |
 | Prove a goal success criterion with evidence | A milestone exit condition can be marked met with its reading | Mark a condition met and read the milestone back | Met |
 | Prove a goal success criterion with evidence | An identifier the write cannot store is refused in the plan, naming what it is and what to do | Plan evidence against an identifier of the wrong kind | Met |
+| Author the rest of the product map | A feature can be accepted at standard depth | Record a surface, an entity, a workflow and an observability requirement against a feature at standard depth, then accept it | Met |
+| Author the rest of the product map | Each record refuses what would make it meaningless, naming the remedy | Record a workflow with no steps, an integration with no absence behaviour, and a migration with no rollback | Met |
+| Author the rest of the product map | A value the schema does not accept is refused by name, with the accepted values | Record a data entity with an invalid sensitivity class | Met |
 
 ## Coverage map
 
 | Area | Level | Cases | Status |
 |---|---|---|---|
-| Happy paths per feature | command, validator, manual_check | 19 | exists |
-| Applicable edge-case categories | command, validator, manual_check | 53 | exists |
+| Happy paths per feature | command, validator, manual_check | 20 | exists |
+| Applicable edge-case categories | command, validator, manual_check | 55 | exists |
 | Permission boundaries | command, validator, manual_check | 0 | missing |
 | State machines including illegal transitions | command, validator, manual_check | 0 | missing |
 
@@ -77,3 +80,6 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | Evidence against a goal success criterion is stored and marks it met, and a failure takes it back | manual_check | pass | - | Current |
 | A milestone condition can be marked met with the reading that decided it | manual_check | pass | - | Current |
 | An unstorable identifier is refused in the plan, and a driver failure is now a sentence | manual_check | pass | - | Current |
+| A feature is accepted at standard depth, which no project could do before | manual_check | pass | - | Current |
+| Each record refuses what would make it meaningless, and names the remedy | manual_check | pass | - | Current |
+| A value the schema will not accept is refused by name, listing what it accepts | manual_check | pass | - | Current |

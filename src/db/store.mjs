@@ -121,11 +121,33 @@ const AUTO = new Set(["created_at", "updated_at", "version"]);
  * the net underneath it, so the next one arrives as an explanation rather than as
  * driver noise.
  */
-async function explain(table, row, write) {
+async function explain(table, row, write, db = null) {
   try {
     return await write();
   } catch (err) {
-    if (/FOREIGN KEY constraint failed/i.test(String(err?.message ?? ""))) {
+    const message = String(err?.message ?? "");
+    // A CHECK failure arrives as the constraint's own SQL, truncated, with no column
+    // named and no list of what would have been accepted. Two of these came back as
+    // `('none', 'personal', 'financial', 'secret', 'regulated') (19)` and
+    // `'system', 'job', 'external') (19)`, which name neither the column nor the
+    // value that was rejected. The schema holds both, so they are read from it.
+    if (/CHECK constraint failed|constraint failed:/i.test(message) && !/FOREIGN KEY/i.test(message)) {
+      const allowed = db ? await enumeratedColumns(db, table).catch(() => new Map()) : new Map();
+      const offending = [...(allowed ?? new Map())].filter(([column, values]) => {
+        const value = row[column];
+        return value !== null && value !== undefined && !values.includes(String(value));
+      });
+      if (offending.length) {
+        throw new DbError(
+          "E_NOT_ALLOWED",
+          offending.map(([column, values]) =>
+            `${table}.${column} does not accept ${JSON.stringify(String(row[column]))}. It is one of: ${values.join(", ")}.`,
+          ).join(" "),
+          { table, offending: offending.map(([column]) => column) },
+        );
+      }
+    }
+    if (/FOREIGN KEY constraint failed/i.test(message)) {
       const pointers = Object.entries(row)
         .filter(([key, value]) => key.endsWith("_id") && value !== null && value !== undefined)
         .map(([key, value]) => `${key}=${value}`);
@@ -139,6 +161,21 @@ async function explain(table, row, write) {
     }
     throw err;
   }
+}
+
+/**
+ * Every column the schema pins to a fixed set, and the values it accepts.
+ *
+ * Read from the table's own definition, so a new enumerated column explains itself
+ * without anybody adding it to a list here. The last list of this kind went stale.
+ */
+async function enumeratedColumns(db, table) {
+  const sql = String(await db.value("SELECT sql FROM sqlite_master WHERE name = ?", table) ?? "");
+  const found = new Map();
+  for (const match of sql.matchAll(/(\w+)[^,]*?CHECK\s*\(\s*\w+\s+IN\s*\(([^)]*)\)/g)) {
+    found.set(match[1], match[2].split(",").map((v) => v.trim().replace(/^'|'$/g, "")));
+  }
+  return found;
 }
 
 /**
@@ -173,7 +210,7 @@ export async function create(db, kind, values, opts = {}) {
   await explain(table, row, () => db.run(
     `INSERT INTO ${table} (${cols.join(",")}) VALUES (${cols.map(() => "?").join(",")})`,
     ...cols.map((c) => row[c]),
-  ));
+  ), db);
 
   if (opts.projectId && opts.activity !== false) {
     await recordActivity(db, opts.projectId, {

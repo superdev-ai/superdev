@@ -31,11 +31,12 @@ import * as recordLinks from "./record-links.mjs";
 import * as skillCommands from "./skill-commands.mjs";
 import * as specification from "./specification.mjs";
 import * as packaging from "./packaging.mjs";
+import * as authorable from "./authorable.mjs";
 
 /** Declaration order is report order, so two runs read the same way. */
 export const VALIDATORS = [
   manifests, skills, docsTemplates, migrations, markdown,
-  style, privacy, imports, dependencies, noTests, footprint, dataModel, recordLinks, skillCommands, specification, packaging,
+  style, privacy, imports, dependencies, noTests, footprint, dataModel, recordLinks, skillCommands, specification, packaging, authorable,
 ];
 
 const USAGE = `Usage: node validate-all.mjs [--root <path>] [--only <name,...>] [--json] [--out <file>] [--help]
