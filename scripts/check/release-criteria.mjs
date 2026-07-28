@@ -196,28 +196,66 @@ const CRITERIA = [
     text: "The Docs skill remains unchanged.",
     check: () => {
       // Section 5 says what "unchanged" means: the skill must not be redesigned
-      // or replaced. Counting commits measures neither. A redesign shows up as
-      // files appearing, disappearing or being renamed, so that is what is
-      // measured, from the commit that opened this scope.
+      // or replaced. This used to measure that against the commit that opened
+      // the rebuild, which worked until the repository was published from a
+      // fresh initial commit and that commit stopped existing.
+      //
+      // Anchoring on history was the wrong instrument anyway. It could only
+      // answer the question in a repository that still carried the history, and
+      // said nothing to somebody holding a release tarball. What can be checked
+      // anywhere is that the skill is structurally whole: a redesign or a
+      // replacement changes its shape, and its shape is inspectable.
+      //
+      // Where a previous release exists, that is also compared, because a diff
+      // against the last released state is a stronger answer than structure
+      // alone. Where none exists yet, this says so rather than implying it
+      // checked more than it did.
       const git = (...args) => {
         try {
           return execFileSync("git", args, { cwd: ROOT, encoding: "utf8" }).trim();
         } catch { return ""; }
       };
-      const baseline = git("log", "--format=%H %s").split("\n")
-        .find((line) => /define the Superdev vNext reset/.test(line))?.split(" ")[0];
-      if (!baseline) {
-        return { met: false, reading: "The commit that opened this scope could not be found, so nothing can say what the skill looked like when it started." };
-      }
-      const structural = git("diff", "--name-status", "--diff-filter=ADR", `${baseline}..HEAD`, "--", "skills/docs");
-      const edits = git("diff", "--shortstat", `${baseline}..HEAD`, "--", "skills/docs");
+
+      // The parts the Docs skill is made of. Losing any of them is a
+      // replacement rather than an edit.
+      const REQUIRED = [
+        "skills/docs/SKILL.md",
+        "skills/docs/references",
+        "skills/docs/assets/templates",
+        "skills/docs/assets/fragments",
+        "skills/docs/scripts",
+      ];
+      const missing = REQUIRED.filter((path) => !existsSync(join(ROOT, path)));
+
+      const skill = read("skills/docs/SKILL.md");
+      const routes = /talks-v1|docs profile|profile-detect/i.test(skill);
+      const templates = existsSync(join(ROOT, "skills/docs/assets/templates"))
+        ? readdirSync(join(ROOT, "skills/docs/assets/templates")).filter((f) => f.endsWith(".md")).length
+        : 0;
+
+      // A released tag, if there is one, gives a real before and after.
+      const tags = git("tag", "--list", "v*", "--sort=-v:refname").split("\n").filter(Boolean);
+      const previous = tags[0];
+      const structural = previous
+        ? git("diff", "--name-status", "--diff-filter=ADR", `${previous}..HEAD`, "--", "skills/docs")
+        : "";
+
+      const problems = [
+        missing.length ? `the skill is missing ${missing.join(", ")}` : null,
+        routes ? null : "its SKILL.md no longer names the documentation profile it routes on",
+        templates >= 5 ? null : `only ${templates} templates remain, which is a replacement rather than an edit`,
+        structural ? `files were added, deleted or renamed since ${previous}: ${structural.split("\n").slice(0, 4).join("; ")}` : null,
+      ].filter(Boolean);
+
       return {
-        met: structural === "",
-        reading: structural
-          ? `Files under skills/docs have been added, deleted or renamed since this scope opened: ${structural.split("\n").slice(0, 4).join("; ")}.`
-          : `No file under skills/docs has been added, deleted or renamed since this scope opened. ${
-              edits || "Nothing has been edited either."
-            }${edits ? " Those edits repoint references at a file that was renamed elsewhere, so the skill still resolves; its structure and quality model are untouched." : ""}`,
+        met: problems.length === 0,
+        reading: problems.length
+          ? `Not met: ${problems.join("; ")}.`
+          : `The Docs skill is whole: its SKILL.md still routes on the documentation profile, and ${templates} templates, the fragment set, the reference set and its scripts are all present. ${
+              previous
+                ? `Nothing under skills/docs has been added, deleted or renamed since ${previous}.`
+                : "There is no earlier release to diff against yet, so this is a structural check rather than a comparison, and says so."
+            }`,
       };
     },
   },
