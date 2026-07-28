@@ -1,0 +1,20 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+The CLI and the plugin share one version. A release moves both.
+
+
+
+## [0.1.1](https://github.com/superdev-ai/superdev/compare/v0.1.0...v0.1.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **check:** tell a corrected Docs skill apart from a drifting one ([3732538](https://github.com/superdev-ai/superdev/commit/37325385b810eb81845d119653a570544d538ed1))
+* **cli:** dispatch when run through a symlink, which is how npm installs a bin ([70ddfca](https://github.com/superdev-ai/superdev/commit/70ddfca73102806f0d5792ef71d9072ee7dfce60))
+* **release:** stop the dry run leaving the version bumped ([bd38998](https://github.com/superdev-ai/superdev/commit/bd38998fd852ad8c3c4475350b574b7806ac9dc7))
+* **skills:** stop the docs skill pointing at an engine that was deleted ([436a150](https://github.com/superdev-ai/superdev/commit/436a15000d425abfb311a0489f84e5fb167f4554))
