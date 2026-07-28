@@ -9,6 +9,13 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+## [0.6.1](https://github.com/superdev-ai/superdev/compare/v0.6.0...v0.6.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* empty states and warnings name the command that fills them ([9bf9a38](https://github.com/superdev-ai/superdev/commit/9bf9a38ac0b9d6094870716ebaa3b72b7eaf94f7))
+
 # [0.6.0](https://github.com/superdev-ai/superdev/compare/v0.5.0...v0.6.0) (2026-07-28)
 
 
