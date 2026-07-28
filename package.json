@@ -56,7 +56,7 @@
     "release:patch": "npm run release:tooling && npx release-it patch",
     "release:minor": "npm run release:tooling && npx release-it minor",
     "release:major": "npm run release:tooling && npx release-it major",
-    "release:dry": "npm run release:tooling && npx release-it --dry-run",
+    "release:dry": "npm run release:tooling && npx release-it --dry-run; git checkout -- package.json package-lock.json 2>/dev/null; true",
     "version:sync": "node scripts/package/sync-version.mjs --apply",
     "check": "npm test && node scripts/validate/validate-all.mjs && node src/cli.mjs doctor && node scripts/check/release-criteria.mjs",
     "release:tooling": "npm install --no-save --silent release-it@19 @release-it/conventional-changelog@10",
