@@ -1,7 +1,6 @@
 {
   "name": "superdev-cli",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Local-first product-building control system for humans and coding agents.",
   "author": "Rahul Retnan",
@@ -40,6 +39,9 @@
     "CONTRIBUTING.md",
     "CODE_OF_CONDUCT.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@tursodatabase/database": "0.7.1"
   },
