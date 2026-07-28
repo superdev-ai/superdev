@@ -9,6 +9,13 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+# [0.7.0](https://github.com/superdev-ai/superdev/compare/v0.6.1...v0.7.0) (2026-07-28)
+
+
+### Features
+
+* convert a concept from the command line, and report the ones left behind ([4d33258](https://github.com/superdev-ai/superdev/commit/4d332583241c847caf9f8b964bd3bdd07a976083))
+
 ## [0.6.1](https://github.com/superdev-ai/superdev/compare/v0.6.0...v0.6.1) (2026-07-28)
 
 
