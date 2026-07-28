@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0088 revision=3408 hash=9511a0fb6b7348c7ddb8d8c5f7f1b85cdd911e9e05bbcd3b2e65807e04993472 -->
+<!-- superdev:generated source=FEAT-0088 revision=3452 hash=aa95421a2390cd567bba1b6b2bd30a044e2c76a917635bfd6a7d53387ccf8c68 -->
 # Feature: Detect work that maps to no task
 
 - **Status:** Complete
@@ -49,6 +49,7 @@
 | A task can no longer be in an active status that no session owns, by either route in | manual_check | pass | - |
 | verify now accepts a script anywhere inside the project, and refuses everything that leaves it | manual_check | pass | - |
 | A note that files moved no longer marks every generated document stale | manual_check | pass | - |
+| Regenerating documents no longer counts as the product changing without a task | manual_check | pass | - |
 
 ## Delivery state
 

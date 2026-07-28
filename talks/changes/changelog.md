@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3438 hash=bafd1a80b631950524857a8ebdc964413a42ee3e07417bd3d9cb7e8a80a3b493 -->
+<!-- superdev:generated source=PRJ-0001 revision=3452 hash=58e94575a3410550e1ac7da7a822114a044e91026c3b3b9cfc42a37c31848f21 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,17 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3452 | 2026-07-28 | Change recorded: Superdev regenerating its own documents is not the product changing untracked | superdev |
+| 3451 | 2026-07-28 | Linked memory MEM-0103 to feature FEAT-0088 | superdev |
+| 3450 | 2026-07-28 | Linked memory MEM-0103 to task TASK-0035 | superdev |
+| 3449 | 2026-07-28 | Remembered outcome: TASK-0035 complete: Do not count Superdev's own generated documents as untracked | superdev |
+| 3448 | 2026-07-28 | TASK-0035 completed, assignment released. | superdev |
+| 3447 | 2026-07-28 | Task TASK-0035 moved to complete | superdev |
+| 3446 | 2026-07-28 | Passing evidence recorded for TASK-0035: Regenerating documents no longer counts as the product changing without a task | superdev |
+| 3444 | 2026-07-28 | Task TASK-0035 moved to in progress | superdev |
+| 3443 | 2026-07-28 | TASK-0035 claimed. | superdev |
+| 3442 | 2026-07-28 | TASK-0035 now implements acceptance_criterion AC-0088. | superdev |
+| 3441 | 2026-07-28 | Created task TASK-0035 | superdev |
 | 3438 | 2026-07-28 | Linked memory MEM-0102 to feature FEAT-0097 | superdev |
 | 3437 | 2026-07-28 | Linked memory MEM-0102 to task TASK-0034 | superdev |
 | 3436 | 2026-07-28 | Remembered outcome: TASK-0034 complete: Prove Supersede a piece of evidence that no longer applies m | superdev |
@@ -196,14 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3225 | 2026-07-28 | Passing evidence recorded for TASK-0024: Scope was recorded, listed and removed through the CLI on a real project | superdev |
 | 3224 | 2026-07-28 | Acceptance criterion AC-0095 is met, evidenced by EV-0132. | superdev |
 | 3223 | 2026-07-28 | Passing evidence recorded for TASK-0024: A brief's out-of-scope line reached the generated Non-goals section, with its provenance | superdev |
-| 3222 | 2026-07-28 | Task TASK-0024 moved to in progress | superdev |
-| 3221 | 2026-07-28 | TASK-0024 claimed. | superdev |
-| 3220 | 2026-07-28 | Derived tasks for FEAT-0093: 1 new, 0 updated, 0 superseded. | superdev |
-| 3219 | 2026-07-28 | Derived Prove Record what the product deliberately does not do meets its acceptance criteria | superdev |
-| 3218 | 2026-07-28 | FEAT-0093 now serves No unmapped or disconnected implementation work | superdev |
-| 3217 | 2026-07-28 | Accepted Record what the product deliberately does not do at microspec depth | superdev |
-| 3216 | 2026-07-28 | Edge case recorded for FEAT-0093: duplication | superdev |
-| 3215 | 2026-07-28 | Edge case recorded for FEAT-0093: empty_states | superdev |
-| 3214 | 2026-07-28 | Acceptance criterion recorded for FEAT-0093 | superdev |
-| 3213 | 2026-07-28 | Acceptance criterion recorded for FEAT-0093 | superdev |
-| 3212 | 2026-07-28 | Acceptance criterion recorded for FEAT-0093 | superdev |

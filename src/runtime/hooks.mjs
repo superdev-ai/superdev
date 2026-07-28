@@ -491,10 +491,22 @@ async function postToolUse(root, payload) {
     // A command that looked like a write and changed nothing is not work.
     if (!changed.length) return EMPTY;
     const moved = movedSince(root, changed, readTouched(root).attributed);
-    fresh = moved.length > 0;
+    // A generated document that Superdev just rewrote is not the product changing.
+    //
+    // `docs generate` rewrites its own projection of its own database, so running it
+    // after finishing a task produced a marker saying the product had changed while
+    // no task was claimed. That is the same mistake as counting the runtime
+    // directory, and it blocked a release: doctor raised its only high-severity
+    // warning about Superdev regenerating its own files.
+    //
+    // Decided from the documents table rather than from a path prefix, because a
+    // file somebody wrote by hand under the same directory is not a generated
+    // document and should still count.
+    const product = await notGenerated(root, moved);
+    fresh = product.length > 0;
     markTouched(root, changed);
     attribute(root, moved);
-    file = file ?? changed[0];
+    file = product[0]?.[0] ?? file ?? changed[0];
   }
   markTouched(root, [file]);
   await flushTouched(root, { force: false });
@@ -599,6 +611,26 @@ export function movedSince(root, candidates, attributed) {
     if (stamp > (Number(attributed[path]) || 0)) moved.push([path, stamp]);
   }
   return moved;
+}
+
+/**
+ * The paths among these that are not registered generated documents.
+ *
+ * Reads the documents table, which is the only authority on what Superdev wrote:
+ * a hand-authored file sitting in the same directory is not a generated document,
+ * and a hand edit to one that is becomes a proposal through its own flow rather
+ * than passing through here. A database that cannot be read leaves every path in,
+ * because failing to notice real work is the worse mistake.
+ */
+export async function notGenerated(root, moved) {
+  if (!moved.length) return moved;
+  try {
+    const rows = await query(root, (db) => db.all("SELECT path FROM documents"));
+    const generated = new Set(rows.map((r) => r.path));
+    return moved.filter(([path]) => !generated.has(path));
+  } catch {
+    return moved;
+  }
 }
 
 /** Record that these paths are accounted for, at the state they are in now. */

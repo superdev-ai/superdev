@@ -16,7 +16,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
 
-import { movedSince } from "./hooks.mjs";
+import { movedSince, notGenerated } from "./hooks.mjs";
 
 /** A directory with one file in it, stamped at a known time. */
 function project(mtimeSeconds) {
@@ -65,5 +65,20 @@ describe("movedSince", () => {
     const [[path, stamp]] = movedSince(root, ["thing.txt"], {});
     assert.equal(path, "thing.txt");
     assert.equal(stamp, 1500 * 1000);
+  });
+});
+
+describe("notGenerated", () => {
+  it("keeps every path when there is no database to ask", async () => {
+    // A project with no database cannot say what it generated, and failing to
+    // notice real work is the worse mistake of the two.
+    const root = mkdtempSync(join(tmpdir(), "superdev-nogen-"));
+    const moved = [["src/thing.mjs", 1], ["talks/changes/changelog.md", 1]];
+    assert.deepEqual((await notGenerated(root, moved)).map((m) => m[0]),
+      ["src/thing.mjs", "talks/changes/changelog.md"]);
+  });
+
+  it("answers nothing for nothing, without asking the database", async () => {
+    assert.deepEqual(await notGenerated("/nowhere-at-all", []), []);
   });
 });
