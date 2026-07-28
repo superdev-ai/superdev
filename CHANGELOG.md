@@ -9,6 +9,18 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+# [0.5.0](https://github.com/superdev-ai/superdev/compare/v0.4.0...v0.5.0) (2026-07-28)
+
+
+### Bug Fixes
+
+* prove a goal success criterion with evidence, and reach a milestone ([79c3dcb](https://github.com/superdev-ai/superdev/commit/79c3dcb1c9a6e0ef57a6601aeba7286cc1112ebf))
+
+
+### Features
+
+* author the rest of the product map, and stop readiness flattering itself ([c123732](https://github.com/superdev-ai/superdev/commit/c1237320369b20acbdaf5fa8fdfce73314cafd79))
+
 # [0.4.0](https://github.com/superdev-ai/superdev/compare/v0.3.0...v0.4.0) (2026-07-28)
 
 
