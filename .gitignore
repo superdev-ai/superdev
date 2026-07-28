@@ -1,0 +1,29 @@
+node_modules/
+/dist/
+coverage/
+tmp/
+*.tmp
+*.log
+.DS_Store
+.env*
+.impeccable/
+.claude/
+.superdev/
+skill-observations/
+
+# Browser automation output, never part of the product
+.playwright-mcp/
+
+# Brand source art: carries camera and authoring metadata, so it is kept out of
+# the public tree until it is stripped and deliberately added.
+assets/brand/
+
+# Local verification artifacts: screenshots and scratch output, never product.
+# A screenshot taken while checking something is scratch. A screenshot the README
+# points at is documentation, so docs/images is an exception rather than a hole:
+# anything added there is deliberate, and the privacy scanner reads it as binary
+# it has been told about.
+.superdev-work/
+*.png
+!ui/src/assets/logo.png
+!docs/images/*.png

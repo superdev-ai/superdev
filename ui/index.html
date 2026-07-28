@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Superdev Control Center</title>
+    <script>
+      // Resolve the theme before first paint so switching never flashes.
+      // "system" is resolved here to a concrete light or dark value, which is
+      // why the stylesheet needs no prefers-color-scheme query.
+      (function () {
+        try {
+          var choice = localStorage.getItem("superdev.theme") || "system";
+          var dark =
+            choice === "dark" ||
+            (choice === "system" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+          document.documentElement.dataset.themeChoice = choice;
+        } catch (error) {
+          document.documentElement.dataset.theme = "dark";
+          document.documentElement.dataset.themeChoice = "system";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <p>
+        The Superdev control center needs JavaScript. Run
+        <code>superdev status</code> in your terminal for the same information as
+        text.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,2774 @@
+#!/usr/bin/env node
+// The command surface. Brief section 14.1.
+//
+// Two decisions shape the whole file. Modules are imported where they are used
+// rather than at the top, so that `--help` and a usage error never pay to open a
+// database driver, and one broken module cannot take every other command down
+// with it. And every handler returns data and text rather than printing, so
+// --json is one branch in one place instead of thirty scattered ones.
+//
+// Exit codes are part of the contract: 0 success, 1 a finding or a refusal,
+// 2 a usage error. A finding is a real answer, so `doctor` and `docs diff`
+// return 1 when they find something rather than pretending nothing is wrong.
+
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
+import * as R from "./cli/render.mjs";
+
+const nowIso = () => new Date().toISOString();
+
+class UsageError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "UsageError";
+    this.code = "E_USAGE";
+  }
+}
+
+class Refusal extends Error {
+  constructor(message, code = "E_REFUSED") {
+    super(message);
+    this.name = "Refusal";
+    this.code = code;
+  }
+}
+
+// ---------------------------------------------------------------- argument parsing
+
+// Flags that carry no value. Everything else must be given one, so that
+// `--reason --apply` fails loudly instead of silently recording "true" as the
+// reason a task is blocked.
+const BOOLEAN = new Set(["apply", "json", "help", "all", "enabling", "end", "reports", "partial", "adopt", "dryRun", "resolve", "version", "noUpdateCheck", "updateCheck"]);
+
+const camel = (name) => name.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
+
+function parseArgs(argv) {
+  const words = [];
+  const flags = {};
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i];
+    if (arg === "--") {
+      words.push(...argv.slice(i + 1));
+      break;
+    }
+    if (arg === "-h") {
+      flags.help = true;
+      continue;
+    }
+    if (!arg.startsWith("--")) {
+      words.push(arg);
+      continue;
+    }
+    const eq = arg.indexOf("=");
+    const raw = eq === -1 ? arg.slice(2) : arg.slice(2, eq);
+    const name = camel(raw);
+    let value = eq === -1 ? null : arg.slice(eq + 1);
+    if (value === null) {
+      if (BOOLEAN.has(name)) value = true;
+      else {
+        const next = argv[i + 1];
+        if (next === undefined || next.startsWith("--")) {
+          throw new UsageError(`--${raw} needs a value. Write --${raw} <value>.`);
+        }
+        value = next;
+        i += 1;
+      }
+    }
+    flags[name] = name in flags ? [].concat(flags[name], value) : value;
+  }
+  return { words, flags };
+}
+
+const asList = (value) => (value === undefined ? [] : [].concat(value).map(String));
+
+function requireFlag(flags, name, what) {
+  const value = flags[camel(name)];
+  if (value === undefined || value === true) throw new UsageError(`${what} Pass --${name} <value>.`);
+  return String(value);
+}
+
+function requireWord(words, index, what) {
+  const value = words[index];
+  if (!value) throw new UsageError(what);
+  return value;
+}
+
+// ------------------------------------------------------------------------ help
+
+const HELP = `superdev, a local-first control system for building products.
+
+Usage
+  superdev <command> [options]
+
+Getting started
+  init                 Plan a new project from an idea, a brief or a folder
+  adopt                Take on a codebase that already exists
+  plan                 The shape of the work, read only
+  status               Where the project is, how fresh that is, what is next
+  readiness            The production-readiness checklist, gap by gap
+  resume               Everything the next session needs to carry on
+  doctor               Health of the database, the docs and the record map
+
+Working
+  task list            Open tasks, oldest first
+  task show <id>       One task in full
+  task create          Create a task against a feature
+  task update <id>     Edit a task, or point it at what it implements
+  task claim <id>      Take a task for this developer, agent and branch
+  task start <id>      Move a task to In Progress
+  task release <id>    Hand a task back
+  task evidence <id>   Record what verifying it actually showed
+  test-plan list       How each feature and the product itself is verified
+  test-plan show <id>  One test plan, how to run it and what has run
+  test-plan run <id>   Run the plan and record what it produced
+  test-plan record <id>  Record a plan carried out by hand
+  verify               Re-run the checks the recorded evidence stands on
+  task cancel <id>     Stop work that should not continue, with a reason
+  task complete <id>   Finish a task once its verification passes
+  task block <id>      Record why a task cannot move
+  task unblock <id>    Put a blocked task back where it was
+  task reopen <id>     Reopen finished work, with a reason
+  derive [feature]     Turn accepted specifications into tasks
+
+Knowledge
+  docs generate        Write the Markdown projection of the database
+                       Add --reports for the summary, status and drift reports
+  docs diff [path]     What a hand edit changed
+  docs accept <path>   Take a hand edit into the database
+  docs reject <path>   Put the generated version back
+  memory search <text> Recall what earlier sessions recorded
+  memory show <id>     One memory with its provenance and verification
+  memory verify <id>   Check a memory against the current record
+  memory consolidate   Merge duplicates, mark contradictions, rebuild the index
+  memory supersede <id> Replace a memory that no longer holds
+  memory status        What memory holds, and what retrieval can and cannot do
+  memory benchmark     Measure retrieval against what section 15.12 requires
+  question list        Open questions, oldest first
+  change record        Record what moved in accepted scope, and why
+  change list          What has changed, newest first
+  change show <id>     One change and the records it moved
+  assumption record    Record a reversible answer and its review trigger
+  assumption list      Assumptions, the ones still holding first
+  assumption resolve <id> Say what an assumption turned out to be
+  question answer <id> Answer an open question
+Product map
+  module list          Modules and how many features each owns
+  module show <id>     One module, its features and the contracts it owns
+  goal list            Goals and whether their success criteria are met
+  goal show <id>       One goal, how it is measured, what serves it
+  milestone list       Delivery checkpoints and what is scheduled into them
+  milestone show <id>  One milestone, its exit conditions and its features
+  feature list         Every feature, its depth and its criteria
+  feature show <id>    One feature and the whole contract under it
+  workflow list        Workflows and how many steps each has
+  workflow show <id>   One workflow, step by step
+  architecture show    Runtime pieces, how they connect, integrations
+  schema show [entity] The data model, or one entity's fields
+  api show             Operations and the services that group them
+  integration list     Integrations and what happens when one is absent
+
+Knowledge
+  decision record      Record a decision, with what it governs
+  decision supersede   Replace a decision that no longer holds
+  decision list        Decisions and what they still govern
+  feature specify <id> Write the specification its depth requires
+  feature waive <id>   Set an acceptance criterion aside, with the reason
+  feature depth        Read what a depth requires, or set one
+  feature accept       Accept a feature, refused while its depth is unmet
+  category list        Task categories, what they mean, and how many use them
+  category add         Add a category of your own
+  category rename      Rename one
+  category describe    Say what a category means in this project
+  category retire      Take a category off the pickable list, keeping history
+  category restore     Put a retired category back
+
+Service and data
+  ui                   Open the control center
+  start / stop         Run or halt the local service
+  restart / services   Restart it, or list what is running
+  export / import      Move a project between machines
+  settings             What Superdev checks on its own, and how to stop it
+  db status            Schema version, integrity and row counts
+  db migrate           Apply pending schema migrations
+  db backup            Snapshot the database
+  db restore <file>    Replace the database with a snapshot
+
+Options
+  --root <path>        Project directory. Defaults to the working directory
+  --apply              Actually do it. Without this every command that would
+                       change something prints the plan and changes nothing
+  --json               Machine-readable output, and nothing else on stdout
+  --out <path>         Write this command's output to a file
+  --actor <name>       Who to record as responsible. Defaults to superdev
+  --help               This text
+
+Exit codes
+  0 it worked, 1 something was found or refused, 2 the command was misused`;
+
+// ------------------------------------------------------------------- utilities
+
+const store = () => import("./db/store.mjs");
+
+/**
+ * Turn "the database file is not there" into the one sentence that says what to
+ * do about it. Commands reach the database by many routes: some open it here,
+ * some through a module that opens it for them. Rather than guard each route,
+ * the translation happens once, around the handler, so a command added later
+ * cannot reintroduce a driver message about WAL coordination paths.
+ */
+async function withFriendlyMissingProject(ctx, fn) {
+  const { paths } = await store();
+  const missing = !existsSync(paths(ctx.root).db);
+  try {
+    return await fn();
+  } catch (err) {
+    if (missing && /failed to open database|entity not found/i.test(String(err?.message ?? ""))) {
+      throw new Refusal(
+        "This directory has no Superdev project yet. Run init to plan one, or adopt to take on a codebase that already exists.",
+        "E_NO_PROJECT",
+      );
+    }
+    throw err;
+  }
+}
+
+/** Read helper that refuses politely when the project was never initialized. */
+async function withProject(root, fn) {
+  const { query, currentProject, paths } = await store();
+  // The file check comes first. Opening a database that was never created fails
+  // inside the engine with a driver message about WAL coordination paths, which
+  // is not an answer anyone can act on.
+  if (!existsSync(paths(root).db)) {
+    throw new Refusal(
+      "This directory has no Superdev project yet. Run init to plan one, or adopt to take on a codebase that already exists.",
+      "E_NO_PROJECT",
+    );
+  }
+  return query(root, async (db) => {
+    const project = await currentProject(db);
+    if (!project) {
+      throw new Refusal(
+        "This directory has no Superdev project yet. Run init to plan one, or adopt to take on a codebase that already exists.",
+        "E_NO_PROJECT",
+      );
+    }
+    return fn(db, project);
+  });
+}
+
+/** The standard shape of a command that did nothing because --apply was absent. */
+const planned = (plan, what, text) => ({
+  data: { applied: false, plan },
+  text: `${text}${R.dryRunNote(what)}`,
+});
+
+const countWord = R.plural;
+
+/**
+ * A path the reader can act on. Inside the project it is relative, because an
+ * absolute machine path is wider than the terminal and says nothing extra.
+ */
+function here(root, path) {
+  if (!path) return path;
+  const rel = relative(root, String(path));
+  return rel && !rel.startsWith("..") ? rel : String(path);
+}
+
+/**
+ * Shorten every project path inside a report whose shape this file does not
+ * know. Reports from init, adopt, resume and the service carry absolute paths
+ * that are wider than the terminal and tell the reader nothing.
+ */
+function localize(value, root, depth = 0) {
+  if (value === root) return "this directory";
+  if (typeof value === "string") return value.startsWith(`${root}/`) ? here(root, value) : value;
+  if (!value || typeof value !== "object" || depth > 6) return value;
+  if (Array.isArray(value)) return value.map((entry) => localize(entry, root, depth + 1));
+  return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, localize(v, root, depth + 1)]));
+}
+
+// Values nobody needs to read and everybody would paste into a transcript. The
+// machine-readable output still carries them, because the control center needs
+// the instance token to talk to the service at all.
+const SECRET_KEY = /token|secret|password|key$/i;
+
+const maskSecrets = (value, depth = 0) => {
+  if (!value || typeof value !== "object" || depth > 6) return value;
+  if (Array.isArray(value)) return value.map((entry) => maskSecrets(entry, depth + 1));
+  return Object.fromEntries(
+    Object.entries(value).map(([k, v]) => [
+      k,
+      SECRET_KEY.test(k) && typeof v === "string" ? "held locally, not shown" : maskSecrets(v, depth + 1),
+    ]),
+  );
+};
+
+/** A report whose shape belongs to another module, rendered as an outline. */
+const report = (ctx, title, value) => R.renderReport(title, maskSecrets(localize(value, ctx.root)));
+
+// ------------------------------------------------------------------ init, adopt
+
+async function cmdInit(ctx) {
+  const { planInit, applyInit } = await import("./init/index.mjs");
+  // --brief and --notes used to be passed through under their own names, which
+  // nothing downstream reads, so a brief file was silently discarded and init
+  // still exited 0 reporting success. They map onto the two inputs that do
+  // exist: a source file is ingested as evidence, and notes become the project
+  // statement.
+  const brief = ctx.flags.brief ? String(ctx.flags.brief) : null;
+  if (brief && !existsSync(resolve(ctx.root, brief)) && !existsSync(brief)) {
+    throw new UsageError(`There is no file at ${brief}. --brief names a file to read the project from.`);
+  }
+  const options = {
+    idea: ctx.flags.idea ?? null,
+    sources: brief ? [brief] : [],
+    statement: ctx.flags.notes ?? null,
+    name: ctx.flags.name ?? null,
+    actor: ctx.actor,
+    // Existing documents normally mean adopt, because initializing over them
+    // would create a second source of truth. This says they are input rather
+    // than a projection, which is the case when initializing from a
+    // requirements document. Without it there was no way to say so, and the
+    // refusal named an internal function nobody could run.
+    adopt: Boolean(ctx.flags.adopt),
+  };
+  if (!ctx.apply) {
+    const plan = await planInit(ctx.root, options);
+    return planned(plan, "create the project", report(ctx, "Initialization plan", plan));
+  }
+  const result = await applyInit(ctx.root, options);
+  return { data: { applied: true, result }, text: report(ctx, "Project initialized", result) };
+}
+
+async function cmdAdopt(ctx) {
+  const { adoptProject } = await import("./init/index.mjs");
+  const result = await adoptProject(ctx.root, { apply: ctx.apply, actor: ctx.actor });
+  if (!ctx.apply) {
+    return planned(result, "adopt this codebase", report(ctx, "Adoption plan", result));
+  }
+  return { data: { applied: true, result }, text: report(ctx, "Codebase adopted", result) };
+}
+
+// ------------------------------------------------------------------------ plan
+
+/**
+ * Read only on purpose. It says what the work looks like and what deriving
+ * would create; `derive --apply` is the command that creates it. Two commands
+ * that both write the same tasks would be one command too many.
+ */
+async function cmdPlan(ctx) {
+  const { projectProgress, nextAction } = await import("./progress/index.mjs");
+  const { derivationDelta } = await import("./tasks/derive.mjs");
+
+  const view = await withProject(ctx.root, async (db, project) => {
+    const progress = await projectProgress(db, project.id);
+    const next = await nextAction(db, project.id);
+    const milestones = await db.all(
+      "SELECT id, name, status, target_date FROM milestones WHERE project_id = ? ORDER BY sequence, id",
+      project.id,
+    );
+    const modules = await db.all(
+      "SELECT id, name, status FROM modules WHERE project_id = ? ORDER BY sequence, id",
+      project.id,
+    );
+    const features = await db.all(
+      "SELECT id, name, status, module_id FROM features WHERE project_id = ? ORDER BY module_id, id",
+      project.id,
+    );
+    return { project, progress, next, milestones, modules, features };
+  });
+
+  const delta = await derivationDelta(ctx.root, ctx.words[1] ?? null);
+  const wouldCreate = delta.created?.length ?? delta.created ?? 0;
+
+  const text = R.stitch([
+    `${view.project.name} (${view.project.id})`,
+    "",
+    R.block("Progress", `Overall: ${R.completion(view.progress)}`),
+    "",
+    R.block("Milestones", view.milestones.length
+      ? R.table(["Id", "Status", "Target", "Name"],
+          view.milestones.map((m) => [m.id, R.status(m.status), m.target_date ?? "", m.name]))
+      : "  None recorded."),
+    "",
+    R.block("Modules and features", view.modules.length
+      ? view.modules.map((m) => R.stitch([
+          `${m.id}  ${m.name} (${R.status(m.status)})`,
+          R.bullets(view.features.filter((f) => f.module_id === m.id)
+            .map((f) => `${f.id} ${f.name} (${R.status(f.status)})`), "    "),
+        ])).join("\n")
+      : "  None recorded."),
+    "",
+    R.block("Deriving would", typeof wouldCreate === "number"
+      ? `  create ${countWord(wouldCreate, "task")} from accepted specifications. Run derive --apply to do it.`
+      : "  make no change."),
+    "",
+    R.block("Next", view.next ? `${view.next.title}\n${R.wrap(view.next.remedy ?? "", R.WIDTH, "  ")}` : ""),
+  ]);
+
+  return { data: { ...view, derivation: delta }, text };
+}
+
+// ---------------------------------------------------------------------- status
+
+async function cmdStatus(ctx) {
+  const { projectProgress, freshness, nextAction, alignmentWarnings } =
+    await import("./progress/index.mjs");
+
+  const view = await withProject(ctx.root, async (db, project) => ({
+    project,
+    progress: await projectProgress(db, project.id),
+    freshness: await freshness(db, project.id),
+    next: await nextAction(db, project.id),
+    warnings: await alignmentWarnings(db, project.id),
+  }));
+
+  return { data: view, text: R.renderStatus(view) };
+}
+
+async function cmdReadiness(ctx) {
+  const { readiness } = await import("./progress/index.mjs");
+  const report = await withProject(ctx.root, (db, project) => readiness(db, project.id));
+  return { data: report, text: R.renderReadiness(report) };
+}
+
+// ---------------------------------------------------------------------- resume
+
+async function cmdResume(ctx) {
+  if (ctx.flags.end) {
+    const { endSession, activeSession } = await import("./runtime/session.mjs");
+    if (!ctx.apply) {
+      const sessionId = ctx.flags.session ?? null;
+      return planned({ sessionId }, "end the session",
+        R.wrap(`Would end ${sessionId ? `session ${sessionId}` : "the active session"} and write its outcome.`));
+    }
+    // endSession takes the id positionally. Passing the options object in that
+    // slot meant every --end ever run reported "Session [object Object] does not
+    // exist", so this path has never worked. And --session is optional, so the
+    // null case has to resolve the live session rather than hand down a null.
+    const sessionId = ctx.flags.session ? String(ctx.flags.session) : (await activeSession(ctx.root))?.id ?? null;
+    if (!sessionId) {
+      throw new Refusal(
+        "There is no active session to end. Pass --session <SES-id> to name one.",
+        "E_NO_ACTIVE_SESSION",
+      );
+    }
+    const result = await endSession(ctx.root, sessionId, { actor: ctx.actor, note: ctx.flags.note ?? null });
+    return { data: { applied: true, result }, text: report(ctx, "Session ended", result) };
+  }
+
+  let started = null;
+  if (ctx.apply) {
+    const { startSession } = await import("./runtime/session.mjs");
+    started = await startSession(ctx.root, {
+      actor: ctx.actor,
+      objective: ctx.flags.objective ?? null,
+    });
+  }
+
+  const { resumeContext } = await import("./runtime/resume.mjs");
+  const context = await resumeContext(ctx.root, {
+    sessionId: ctx.flags.session ?? started?.id ?? started?.session?.id ?? null,
+  });
+
+  const text = R.stitch([
+    started ? "A work session was started for this run." : null,
+    report(ctx, "Where to carry on", context),
+    ctx.apply ? null : "\nNo session was started. Re-run with --apply to open one.",
+  ]);
+  return { data: { applied: Boolean(started), session: started, context }, text };
+}
+
+// ---------------------------------------------------------------------- doctor
+
+/**
+ * One place that answers "is anything wrong". Every check is a sentence with a
+ * verdict, and a failing check makes the command exit 1 so a hook can act on it.
+ */
+async function cmdDoctor(ctx) {
+  const { paths } = await store();
+  const { inspect } = await import("./db/migrate.mjs");
+  const { integrityCheck } = await import("./db/maintenance.mjs");
+  const { alignmentWarnings, freshness } = await import("./progress/index.mjs");
+  const { detectProposals } = await import("./docs/proposals.mjs");
+
+  const dbFile = paths(ctx.root).db;
+  const checks = [];
+
+  // First, because nothing below it can run without this. A Claude Code
+  // marketplace install copies the plugin into its own cache, and node_modules
+  // is git-ignored, so the copy arrives with no engine and every other command
+  // fails at the import with a stack trace instead of a sentence. Doctor exists
+  // to turn exactly that into an instruction.
+  // Reaching this line proves it: the engine is a static import inside
+  // src/db/connect.mjs, which store() above already pulled in, so a missing
+  // engine never gets here. It is reported anyway because "the engine is fine"
+  // is one of the things a person runs doctor to be told. The failing case is
+  // handled once, in run(), for every command rather than only this one.
+  checks.push({
+    name: "Storage engine",
+    ok: true,
+    detail: "Installed and loaded",
+  });
+
+  const migrations = await inspect(dbFile);
+
+  checks.push({
+    name: "Database",
+    ok: migrations.databaseExists,
+    detail: migrations.databaseExists
+      ? `Schema version ${migrations.version} of ${migrations.latest}, ${countWord(migrations.pending.length, "migration")} pending`
+      : "No database in this directory yet. Run init.",
+  });
+
+  if (!migrations.databaseExists) {
+    return { data: { ok: false, checks, migrations, findings: [] }, text: R.renderDoctor({ checks }), exit: 1 };
+  }
+
+  if (migrations.drift.length) {
+    checks.push({
+      name: "Migration history",
+      ok: false,
+      detail: migrations.drift.map((d) => `${d.version}: ${d.problem}`).join("; "),
+    });
+  }
+
+  const integrity = await integrityCheck(ctx.root);
+  checks.push({
+    name: "Integrity",
+    ok: integrity.ok,
+    detail: integrity.ok
+      ? "No page damage and no dangling references"
+      : `${integrity.integrity.filter((line) => line !== "ok").join("; ") || ""} ${countWord(integrity.foreignKeys.length, "dangling reference")}`.trim(),
+  });
+
+  const proposals = await detectProposals(ctx.root, { apply: false });
+  checks.push({
+    name: "Documentation",
+    ok: proposals.proposals.length === 0,
+    detail: proposals.proposals.length
+      ? `${countWord(proposals.proposals.length, "file")} waiting on a decision`
+      : proposals.scanned
+        ? `${countWord(proposals.scanned, "generated file")} match the database`
+        : "Nothing has been generated yet",
+  });
+
+  const view = await withProject(ctx.root, async (db, project) => ({
+    warnings: await alignmentWarnings(db, project.id),
+    freshness: await freshness(db, project.id),
+  }));
+
+  const high = view.warnings.filter((w) => w.severity === "high").length;
+  checks.push({
+    name: "Alignment",
+    ok: view.warnings.length === 0,
+    detail: view.warnings.length
+      ? `${countWord(view.warnings.length, "warning")}, ${high} of them high`
+      : "Every record maps to something that declares it",
+  });
+  checks.push({
+    name: "Freshness",
+    ok: !view.freshness.stale,
+    detail: view.freshness.stale ? view.freshness.reasons[0] : "Nothing is out of date",
+  });
+
+  // Provider readiness, checked and written down.
+  //
+  // providerReadiness() in the runtime hooks reads .superdev/runtime/providers.json
+  // and its own comment says doctor writes it. Nothing ever did, the file never
+  // existed, and so the readiness line could not fire and doctor reported nothing
+  // about providers at all, while the debug skill told agents to check readiness
+  // here. Detection ran once during init and was never kept.
+  //
+  // Nothing is installed. An absent provider stays absent until the owner asks
+  // for it; this only records what is present.
+  const providers = await recordProviderReadiness(ctx.root, paths);
+  if (providers) checks.push(providers);
+
+  // Evidence that nothing can re-run, reported without re-running anything:
+  // doctor stays a fast read, and superdev verify is where checks actually run.
+  const evidence = await withProject(ctx.root, (db) => db.get(
+    `SELECT COUNT(*) AS total,
+            SUM(CASE WHEN check_command IS NULL OR TRIM(check_command) = '' THEN 1 ELSE 0 END) AS manual,
+            SUM(CASE WHEN last_check_result = 'fail' THEN 1 ELSE 0 END) AS failing
+       FROM verification_evidence WHERE status = 'current'`));
+  checks.push({
+    name: "Evidence",
+    ok: (evidence?.failing ?? 0) === 0,
+    detail: evidence?.total
+      ? `${evidence.total - evidence.manual} of ${evidence.total} can be re-run${evidence.failing ? `, ${evidence.failing} last failed` : ""}. Run superdev verify.`
+      : "No evidence recorded yet",
+  });
+
+  const ok = checks.every((c) => c.ok);
+  return {
+    data: { ok, checks, migrations, integrity: { ok: integrity.ok, counts: integrity.counts }, findings: view.warnings },
+    text: R.renderDoctor({ checks, findings: view.warnings }),
+    exit: ok ? 0 : 1,
+  };
+}
+
+/**
+ * Detect the installed providers and write the report the session hook reads.
+ *
+ * Ids and states only. A provider's path or version detail names one machine,
+ * and this file is read at session start where that would leak into a prompt.
+ */
+async function recordProviderReadiness(root, paths) {
+  try {
+    const { detectAll } = await import("../scripts/providers/detect.mjs");
+    const report = detectAll({ rootReal: resolve(root) });
+    const rows = (report?.providers ?? []).map((p) => ({ id: p.id, state: p.state }));
+    const ready = rows.filter((p) => p.state === "available-and-ready");
+    const notReady = rows.filter((p) => p.state !== "available-and-ready" && p.state !== "not-applicable");
+
+    const dir = paths(root).runtime;
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      join(dir, "providers.json"),
+      JSON.stringify({ checkedAt: new Date().toISOString(), providers: rows }, null, 2) + "\n",
+    );
+
+    return {
+      name: "Providers",
+      // Not being installed is not a fault. The check exists to say which
+      // specialist passes will not run, not to demand that they can.
+      ok: true,
+      detail: rows.length
+        ? `${ready.length} of ${rows.length} ready${notReady.length ? `, not ready: ${notReady.map((p) => p.id).join(", ")}` : ""}`
+        : "No provider was detected",
+    };
+  } catch (error) {
+    return { name: "Providers", ok: true, detail: `Readiness could not be determined: ${String(error.message).slice(0, 80)}` };
+  }
+}
+
+// --------------------------------------------------------------------- service
+
+const service = () => import("./service/manage.mjs");
+
+// The service reports a state, not a boolean. Both spellings are accepted so a
+// later rename of one field cannot silently make `ui` claim nothing is running.
+const isRunning = (report) => report?.state === "running" || report?.running === true;
+
+async function cmdUi(ctx) {
+  const { serviceStatus, startService } = await service();
+  const current = await serviceStatus(ctx.root);
+  if (isRunning(current)) {
+    return {
+      data: { applied: false, service: current },
+      text: R.stitch([
+        "The control center is already running.",
+        R.pairs([["Address", current.url ?? `http://127.0.0.1:${current.port ?? ""}`], ["Process", current.pid]], ""),
+      ]),
+    };
+  }
+  if (!ctx.apply) {
+    return planned(current, "start the control center",
+      R.wrap("The control center is not running. Starting it opens one local process for this project and listens on the loopback address only."));
+  }
+  const started = await startService(ctx.root, { actor: ctx.actor });
+  return { data: { applied: true, service: started }, text: report(ctx, "Control center started", started) };
+}
+
+async function cmdStart(ctx) {
+  const { startService, serviceStatus } = await service();
+  if (!ctx.apply) {
+    return planned(await serviceStatus(ctx.root), "start the local service",
+      "Starting the service opens one local process for this project.");
+  }
+  const started = await startService(ctx.root, { actor: ctx.actor });
+  return { data: { applied: true, service: started }, text: report(ctx, "Service started", started) };
+}
+
+async function cmdStop(ctx) {
+  const { stopService, serviceStatus } = await service();
+  if (!ctx.apply) {
+    return planned(await serviceStatus(ctx.root), "stop the local service",
+      "Stopping the service ends the local process. Nothing recorded is lost.");
+  }
+  const stopped = await stopService(ctx.root, { actor: ctx.actor });
+  return { data: { applied: true, service: stopped }, text: report(ctx, "Service stopped", stopped) };
+}
+
+async function cmdRestart(ctx) {
+  const { restartService, serviceStatus } = await service();
+  if (!ctx.apply) {
+    return planned(await serviceStatus(ctx.root), "restart the local service",
+      "Restarting stops the local process and starts a fresh one.");
+  }
+  const result = await restartService(ctx.root, { actor: ctx.actor });
+  return { data: { applied: true, service: result }, text: report(ctx, "Service restarted", result) };
+}
+
+async function cmdServices(ctx) {
+  const { serviceStatus } = await service();
+  const state = await serviceStatus(ctx.root);
+  return { data: state, text: report(ctx, "Local service", state) };
+}
+
+// ------------------------------------------------------------- export, import
+
+async function cmdExport(ctx) {
+  const { exportProject } = await import("./db/maintenance.mjs");
+  const out = ctx.flags.out ? resolve(String(ctx.flags.out)) : null;
+  if (!ctx.apply) {
+    return planned({ out }, "write the export",
+      R.wrap(`Would write a portable snapshot of every record${out ? ` to ${here(ctx.root, out)}` : " into .superdev/exports"}.`));
+  }
+  const result = await exportProject(ctx.root, { out });
+  return {
+    data: { applied: true, ...result },
+    text: R.stitch([
+      R.wrap(`Wrote ${countWord(result.rows, "row")} to ${here(ctx.root, result.path)}.`),
+      R.table(["Table", "Rows"], result.tables.filter((t) => t.rows).map((t) => [t.table, String(t.rows)]), { flex: 0 }),
+    ]),
+    // The export file is the output, so --out must not be reused as a text sink.
+    consumedOut: true,
+  };
+}
+
+async function cmdImport(ctx) {
+  const { importProject } = await import("./db/maintenance.mjs");
+  const file = requireWord(ctx.words, 1, "Say which export file to read: superdev import <file>.");
+  const result = await importProject(ctx.root, resolve(file), { apply: ctx.apply });
+  if (!result.applied) {
+    return planned(result.plan, "load these records",
+      report(ctx, `Import plan for ${result.plan.project?.id ?? "this export"}`, result.plan));
+  }
+  return {
+    data: result,
+    text: R.wrap(`Loaded ${countWord(result.inserted, "new row")} of ${result.rows} in the export. Rows already present were left alone.`),
+  };
+}
+
+// ------------------------------------------------------------------- database
+
+async function cmdDbStatus(ctx) {
+  const { paths } = await store();
+  const { inspect } = await import("./db/migrate.mjs");
+  const { integrityCheck } = await import("./db/maintenance.mjs");
+  const dbFile = paths(ctx.root).db;
+  const migrations = await inspect(dbFile);
+  if (!migrations.databaseExists) {
+    return {
+      data: { migrations, integrity: null },
+      text: "This directory has no Superdev database yet. Run init to create one.",
+      exit: 1,
+    };
+  }
+  const integrity = await integrityCheck(ctx.root);
+  const counted = Object.entries(integrity.counts).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+  return {
+    data: { migrations, integrity },
+    text: R.stitch([
+      R.heading("Database"),
+      R.pairs([
+        // Relative on purpose: an absolute machine path is longer than the
+        // terminal and tells the reader nothing they did not already know.
+        ["Location", here(ctx.root, dbFile)],
+        ["Schema version", `${migrations.version} of ${migrations.latest}`],
+        ["Pending migrations", migrations.pending.length],
+        ["Integrity", integrity.ok ? "Sound" : "Damaged, run doctor"],
+        ["Drift", migrations.drift.length ? migrations.drift.map((d) => d.problem).join("; ") : "None"],
+      ]),
+      "",
+      R.block("Rows", R.table(["Table", "Rows"], counted.map(([t, n]) => [t, String(n)]), { flex: 0 })),
+    ]),
+    exit: integrity.ok && !migrations.drift.length ? 0 : 1,
+  };
+}
+
+async function cmdDbMigrate(ctx) {
+  const { paths } = await store();
+  const { migrate } = await import("./db/migrate.mjs");
+  // A running control centre holds read connections opened against the current
+  // schema, and they are pinned to the snapshot they opened on. Changing the
+  // schema underneath them is how a live interface starts answering with
+  // columns that no longer mean what it thinks. Same refusal as db restore.
+  if (ctx.apply) {
+    const { assertNoLiveService } = await import("./service/manage.mjs");
+    await assertNoLiveService(ctx.root);
+  }
+  const result = await migrate(paths(ctx.root).db, { apply: ctx.apply });
+  if (!ctx.apply) {
+    if (!result.pending.length) return { data: result, text: "The database schema is already up to date." };
+    return planned(result, "apply them", R.stitch([
+      `${countWord(result.pending.length, "migration")} would run, taking the schema from ${result.from} to ${result.to}.`,
+      R.table(["Version", "File", "Statements"],
+        result.pending.map((m) => [String(m.version), m.name, String(m.statements)]), { flex: 1 }),
+      "\nThe database is copied aside before anything runs.",
+    ]));
+  }
+  if (!result.applied.length) return { data: result, text: "The database schema was already up to date." };
+  return {
+    data: result,
+    text: R.stitch([
+      `Applied ${countWord(result.applied.length, "migration")}. The schema is now at version ${result.to}.`,
+      result.backup ? R.wrap(`The previous database was copied to ${here(ctx.root, result.backup)}.`) : null,
+    ]),
+  };
+}
+
+async function cmdDbBackup(ctx) {
+  const { backup, listBackups, KEEP_BACKUPS } = await import("./db/maintenance.mjs");
+  const label = ctx.flags.label ? String(ctx.flags.label) : "manual";
+  if (!ctx.apply) {
+    const existing = await listBackups(ctx.root);
+    return planned({ label, existing: existing.length }, "take the snapshot", R.stitch([
+      `Would write a complete snapshot labelled ${label} into .superdev/backups.`,
+      `${countWord(existing.length, "backup")} already there. The newest ${KEEP_BACKUPS} are kept.`,
+    ]));
+  }
+  const result = await backup(ctx.root, label);
+  const kept = await listBackups(ctx.root);
+  return {
+    data: { applied: true, ...result, backups: kept.length },
+    text: R.stitch([
+      R.wrap(`Wrote ${here(ctx.root, result.path)} (${result.bytes} bytes).`),
+      R.table(["When", "Size", "Name"], kept.map((b) => [R.shortDate(b.at), String(b.bytes), b.name])),
+    ]),
+  };
+}
+
+async function cmdDbRestore(ctx) {
+  const { restore, listBackups } = await import("./db/maintenance.mjs");
+  let file = ctx.words[2];
+  if (!file) {
+    const kept = await listBackups(ctx.root);
+    if (!kept.length) throw new Refusal("There is no backup to restore from.", "E_NO_BACKUP");
+    throw new UsageError(
+      `Say which backup to restore: superdev db restore <file>. The newest is ${here(ctx.root, kept[0].path)}.`,
+    );
+  }
+  // Passed through as written. A bare name is the name every command prints,
+  // and restore resolves it against the backups directory; resolving it here
+  // against the working directory turned the printed name into a file that
+  // does not exist.
+  const result = await restore(ctx.root, String(file), { apply: ctx.apply });
+  if (!result.applied) {
+    return planned(result.plan, "replace the database", R.stitch([
+      R.wrap(`Would replace the project database with ${here(ctx.root, result.plan.from)} (${result.plan.bytes} bytes).`),
+      R.wrap(result.plan.backsUpCurrent
+        ? "The current database is snapshotted first, so restoring the wrong file is itself recoverable."
+        : "There is no database here yet, so nothing is being replaced."),
+    ]));
+  }
+  return {
+    data: result,
+    text: R.stitch([
+      R.wrap(`Restored the database from ${here(ctx.root, result.plan.from)}.`),
+      result.safetyBackup
+        ? R.wrap(`The database that was there is kept at ${here(ctx.root, result.safetyBackup.path)}.`)
+        : null,
+    ]),
+  };
+}
+
+// ----------------------------------------------------------------------- tasks
+
+const lifecycle = () => import("./tasks/lifecycle.mjs");
+
+const OPEN_ONLY = ["draft", "ready", "in_progress", "in_review", "verifying", "blocked", "paused"];
+
+async function cmdTaskList(ctx) {
+  const { query } = await store();
+  const statuses = ctx.flags.status ? asList(ctx.flags.status).flatMap((s) => s.split(",")) : null;
+  const feature = ctx.flags.feature ? String(ctx.flags.feature) : null;
+  const limit = Number(ctx.flags.limit ?? 200);
+
+  const tasks = await query(ctx.root, async (db) => {
+    const where = [];
+    const params = [];
+    if (feature) {
+      where.push("feature_id = ?");
+      params.push(feature);
+    }
+    const wanted = statuses ?? (ctx.flags.all ? null : OPEN_ONLY);
+    if (wanted) {
+      where.push(`status IN (${wanted.map(() => "?").join(",")})`);
+      params.push(...wanted);
+    }
+    return db.all(
+      `SELECT * FROM tasks ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+        ORDER BY sequence, id LIMIT ${Math.max(1, Math.min(limit, 1000))}`,
+      ...params,
+    );
+  });
+
+  const title = ctx.flags.all ? "Every task" : "Open tasks";
+  return { data: { tasks }, text: R.renderTaskList(tasks, { title }) };
+}
+
+async function cmdTaskShow(ctx) {
+  const { query, json } = await store();
+  const id = requireWord(ctx.words, 2, "Say which task to show: superdev task show <id>.");
+
+  const detail = await query(ctx.root, async (db) => {
+    const task = await db.get("SELECT * FROM tasks WHERE id = ?", id);
+    if (!task) throw new Refusal(`There is no task ${id}. Run task list to see what exists.`, "E_NOT_FOUND");
+    const assignment = await db.get(
+      "SELECT * FROM task_assignments WHERE task_id = ? AND active = 1", id,
+    );
+    let holder = null;
+    if (assignment?.developer_id) {
+      holder = (await db.get("SELECT display_name FROM developers WHERE id = ?", assignment.developer_id))?.display_name ?? null;
+    }
+    return {
+      task,
+      feature: await db.get("SELECT id, name FROM features WHERE id = ?", task.feature_id),
+      links: await db.all("SELECT * FROM task_contract_links WHERE task_id = ? ORDER BY target_type, target_id", id),
+      dependencies: await db.all(
+        `SELECT t.id, t.name, t.status FROM task_dependencies d
+           JOIN tasks t ON t.id = d.depends_on_task_id
+          WHERE d.task_id = ? ORDER BY t.id`, id,
+      ),
+      subtasks: await db.all("SELECT id, name, status FROM tasks WHERE parent_task_id = ? ORDER BY sequence, id", id),
+      assignment: assignment ? { ...assignment, holder } : null,
+      evidence: await db.all(
+        "SELECT * FROM verification_evidence WHERE task_id = ? ORDER BY recorded_at DESC LIMIT 10", id,
+      ),
+      history: await db.all(
+        `SELECT * FROM status_history WHERE record_type = 'task' AND record_id = ?
+          ORDER BY sequence DESC LIMIT 10`, id,
+      ),
+      completionCriteria: json(task.completion_criteria_json, []),
+      verificationRequirements: json(task.verification_requirements_json, []),
+    };
+  });
+
+  return { data: detail, text: R.renderTaskDetail(detail) };
+}
+
+const parseLink = (value) => {
+  const [targetType, targetId] = String(value).split(":");
+  if (!targetType || !targetId) {
+    throw new UsageError(`--link takes type:id, for example --link acceptance_criterion:AC-0003. Got ${value}.`);
+  }
+  return { targetType, targetId };
+};
+
+async function cmdTaskCreate(ctx) {
+  const input = {
+    featureId: requireFlag(ctx.flags, "feature", "A task belongs to exactly one feature."),
+    name: requireFlag(ctx.flags, "name", "A task needs a name that states the outcome."),
+    description: ctx.flags.description ?? null,
+    expectedOutcome: ctx.flags.outcome ?? null,
+    whyNeeded: ctx.flags.why ?? null,
+    completionCriteria: asList(ctx.flags.criterion),
+    verificationRequirements: asList(ctx.flags.verify),
+    affectedBoundaries: asList(ctx.flags.boundary),
+    priority: ctx.flags.priority ? String(ctx.flags.priority) : "normal",
+    risk: ctx.flags.risk ?? null,
+    category: ctx.flags.category ?? null,
+    estimate: ctx.flags.estimate ?? null,
+    dueAt: ctx.flags.due ?? null,
+    parentTaskId: ctx.flags.parent ?? null,
+    enabling: Boolean(ctx.flags.enabling),
+    enabledFeatureId: ctx.flags.enabledFeature ?? null,
+    enablingRationale: ctx.flags.rationale ?? null,
+    links: asList(ctx.flags.link).map(parseLink),
+    dependsOn: asList(ctx.flags.dependsOn),
+    status: ctx.flags.status ? String(ctx.flags.status) : "draft",
+    actor: ctx.actor,
+  };
+
+  if (!ctx.apply) {
+    return planned(input, "create it", R.stitch([
+      `Would create a task against ${input.featureId}.`,
+      R.pairs([
+        ["Name", input.name],
+        ["Status", R.status(input.status)],
+        ["Priority", R.status(input.priority)],
+        ["Expected outcome", input.expectedOutcome],
+        ["Implements", input.links.map((l) => `${l.targetType} ${l.targetId}`).join(", ") || "nothing yet"],
+      ]),
+    ]));
+  }
+
+  const { createTask } = await lifecycle();
+  const task = await createTask(ctx.root, input);
+  return {
+    data: { applied: true, task },
+    text: R.wrap(`Created ${task.id} against ${task.feature_id}. It is ${R.status(task.status)}.`),
+  };
+}
+
+const TASK_FIELDS = [
+  ["name", "name"], ["description", "description"], ["outcome", "expectedOutcome"],
+  ["why", "whyNeeded"], ["priority", "priority"], ["risk", "risk"],
+  ["estimate", "estimate"], ["due", "dueAt"], ["parent", "parentTaskId"],
+  ["rationale", "enablingRationale"], ["enabledFeature", "enabledFeatureId"],
+];
+
+async function cmdTaskUpdate(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which task to update: superdev task update <id>.");
+  const values = {};
+  for (const [flag, field] of TASK_FIELDS) {
+    if (ctx.flags[flag] !== undefined) values[field] = String(ctx.flags[flag]);
+  }
+  if (ctx.flags.criterion !== undefined) values.completionCriteria = asList(ctx.flags.criterion);
+  if (ctx.flags.verify !== undefined) values.verificationRequirements = asList(ctx.flags.verify);
+  if (ctx.flags.boundary !== undefined) values.affectedBoundaries = asList(ctx.flags.boundary);
+  if (ctx.flags.status !== undefined) {
+    throw new UsageError(
+      "Status moves through its own commands so the change always leaves history. Use task claim, task block, task complete or task reopen.",
+    );
+  }
+  // A task that implements nothing cannot leave draft, and until now the only
+  // moment it could be given a contract was the moment it was created. A task
+  // created without one was therefore stuck forever, with the refusal naming a
+  // link no command could add. The engine always had linkContract; nothing
+  // reached it.
+  const links = asList(ctx.flags.link).map(parseLink);
+
+  if (!Object.keys(values).length && !links.length) {
+    throw new UsageError("Nothing to update. Pass at least one of --name, --description, --outcome, --why, --priority, --risk, --estimate, --due, --criterion, --verify or --link.");
+  }
+
+  if (!ctx.apply) {
+    return planned({ id, values, links }, "save it", R.stitch([
+      `Would update ${id}.`,
+      Object.keys(values).length
+        ? R.pairs(Object.entries(values).map(([k, v]) => [k, Array.isArray(v) ? v.join("; ") : v]))
+        : null,
+      links.length ? R.wrap(`It would implement ${links.map((l) => `${l.targetType} ${l.targetId}`).join(", ")}.`) : null,
+    ]));
+  }
+  const { updateTask, linkContract } = await lifecycle();
+  let task = null;
+  if (Object.keys(values).length) task = await updateTask(ctx.root, id, values, { actor: ctx.actor });
+  for (const link of links) task = await linkContract(ctx.root, id, link, { actor: ctx.actor });
+  return {
+    data: { applied: true, task, links },
+    text: links.length
+      ? `Updated ${id}. It now implements ${links.map((l) => `${l.targetType} ${l.targetId}`).join(", ")}.`
+      : `Updated ${task.id}.`,
+  };
+}
+
+async function cmdTaskClaim(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which task to claim: superdev task claim <id>.");
+  const who = {
+    developerId: ctx.flags.developer ?? null,
+    agentId: ctx.flags.agent ?? null,
+    branchId: ctx.flags.branch ?? null,
+    sessionId: ctx.flags.session ?? null,
+    actor: ctx.actor,
+  };
+  if (!ctx.apply) {
+    return planned({ id, ...who }, "claim it",
+      R.wrap(`Would claim ${id} for ${ctx.actor}. A task can be held by one session at a time.`));
+  }
+  const { claimTask } = await lifecycle();
+  const task = await claimTask(ctx.root, id, who);
+  return { data: { applied: true, task }, text: `${task.id} is now claimed. It is ${R.status(task.status)}.` };
+}
+
+async function cmdTaskRelease(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which task to release: superdev task release <id>.");
+  const reason = ctx.flags.reason ? String(ctx.flags.reason) : null;
+  if (!ctx.apply) {
+    return planned({ id, reason }, "release it",
+      R.wrap(`Would hand ${id} back. Its status does not change, only the claim ends.`));
+  }
+  const { releaseTask } = await lifecycle();
+  const task = await releaseTask(ctx.root, id, { actor: ctx.actor, reason });
+  return {
+    data: { applied: true, task },
+    text: R.wrap(`${task.id} is free to be claimed again. It is still ${R.status(task.status)}.`),
+  };
+}
+
+/**
+ * Not in the brief's list, but a task that can be blocked and never started or
+ * unblocked is a dead end: `reopen` refuses work that is still open, so without
+ * these two the listed commands cannot get a task back out of blocked.
+ */
+async function cmdTaskStart(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which task to start: superdev task start <id>.");
+  if (!ctx.apply) {
+    return planned({ id }, "start it",
+      R.wrap(`Would move ${id} to In Progress. Anything still blocking it is recorded rather than refused.`));
+  }
+  const { startTask } = await lifecycle();
+  const task = await startTask(ctx.root, id, {
+    actor: ctx.actor, sessionId: ctx.flags.session ?? null, note: ctx.flags.note ?? null,
+  });
+  return { data: { applied: true, task }, text: `${task.id} is In Progress.` };
+}
+
+async function cmdTaskUnblock(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which task to unblock: superdev task unblock <id>.");
+  const to = ctx.flags.to ? String(ctx.flags.to) : null;
+  if (!ctx.apply) {
+    return planned({ id, to }, "unblock it",
+      R.wrap(`Would move ${id} back to ${to ? R.status(to) : "whatever it was doing before it blocked"}.`));
+  }
+  const { unblockTask } = await lifecycle();
+  const task = await unblockTask(ctx.root, id, { actor: ctx.actor, to, note: ctx.flags.note ?? null });
+  return { data: { applied: true, task }, text: `${task.id} is ${R.status(task.status)} again.` };
+}
+
+/**
+ * Record what verifying the task actually showed.
+ *
+ * Completion is refused without this, so before it existed no task could be
+ * finished through the product's own interface: the engine could record
+ * evidence but nothing reachable called it.
+ *
+ * A result is never assumed. --result defaults to pass because that is the
+ * common case, but a failing or inconclusive run is recorded just as readily,
+ * and a failure retracts any acceptance criterion it had been the proof for.
+ */
+/**
+ * Record a decision.
+ *
+ * Nothing could write one before this: the table, its transitions, its
+ * supersession chain and every report built on them existed, and the only way a
+ * row ever appeared was a script reading the ADR files.
+ */
+// ------------------------------------------------------------- product map
+//
+// Section 12.4 names fifteen read commands and none existed, so a terminal
+// session could write the product model and never read it back.
+
+const productMap = () => import("./cli/product-map.mjs");
+const said = (result) => ({ data: result.data, text: result.text });
+
+async function cmdModuleList(ctx) { return said(await (await productMap()).moduleList(ctx.root)); }
+async function cmdModuleShow(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which module: superdev module show <MOD-id>.");
+  return said(await (await productMap()).moduleShow(ctx.root, id));
+}
+async function cmdGoalList(ctx) { return said(await (await productMap()).goalList(ctx.root)); }
+async function cmdGoalShow(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which goal: superdev goal show <GOAL-id>.");
+  return said(await (await productMap()).goalShow(ctx.root, id));
+}
+async function cmdMilestoneList(ctx) { return said(await (await productMap()).milestoneList(ctx.root)); }
+async function cmdMilestoneShow(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which milestone: superdev milestone show <MS-id>.");
+  return said(await (await productMap()).milestoneShow(ctx.root, id));
+}
+async function cmdFeatureList(ctx) {
+  return said(await (await productMap()).featureList(ctx.root, {
+    module: ctx.flags.module ? String(ctx.flags.module) : null,
+    status: ctx.flags.status ? String(ctx.flags.status) : null,
+  }));
+}
+async function cmdFeatureShow(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which feature: superdev feature show <FEAT-id>.");
+  return said(await (await productMap()).featureShow(ctx.root, id));
+}
+async function cmdWorkflowList(ctx) { return said(await (await productMap()).workflowList(ctx.root)); }
+async function cmdWorkflowShow(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which workflow: superdev workflow show <WF-id>.");
+  return said(await (await productMap()).workflowShow(ctx.root, id));
+}
+async function cmdArchitectureShow(ctx) { return said(await (await productMap()).architectureShow(ctx.root)); }
+async function cmdSchemaShow(ctx) {
+  return said(await (await productMap()).schemaShow(ctx.root, { entity: ctx.words[2] ?? null }));
+}
+async function cmdApiShow(ctx) { return said(await (await productMap()).apiShow(ctx.root)); }
+async function cmdIntegrationList(ctx) { return said(await (await productMap()).integrationList(ctx.root)); }
+
+// ------------------------------------------------------------------- memory
+
+async function cmdMemoryShow(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which memory: superdev memory show <MEM-id>.");
+  const { query } = await store();
+  const found = await query(ctx.root, async (db) => {
+    const entry = await db.get("SELECT * FROM memory_entries WHERE id = ?", id);
+    if (!entry) return null;
+    return {
+      entry,
+      links: await db.all("SELECT target_type, target_id, relationship FROM memory_links WHERE memory_id = ?", id),
+    };
+  });
+  if (!found) throw new UsageError(`There is no memory ${id}.`);
+  const { entry, links } = found;
+  return {
+    data: found,
+    text: R.stitch([
+      R.heading(`${entry.title ?? entry.id}  ${entry.id}`),
+      R.pairs([
+        ["Kind", R.status(entry.kind)],
+        ["How well known", R.status(entry.epistemic_status)],
+        ["Recorded", entry.created_at],
+        ["Source", entry.source_ref ?? "Not recorded"],
+        ["Superseded by", entry.superseded_by ?? "Still current"],
+      ]),
+      "",
+      R.wrap(entry.content ?? ""),
+      links.length ? R.block("It concerns", R.bullets(links.map((l) => `${l.target_type} ${l.target_id} (${l.relationship})`))) : null,
+      "",
+      R.wrap("Memory is recall, not authority. Check it against the current specification, decisions and evidence before acting on it."),
+    ]),
+  };
+}
+
+async function cmdMemoryVerify(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which memory: superdev memory verify <MEM-id>.");
+  const { verifyRecall } = await import("./memory/index.mjs");
+  const report = await verifyRecall(ctx.root, id);
+  return { data: report, text: R.renderReport(`Verification of ${id}`, report) };
+}
+
+async function cmdMemoryConsolidate(ctx) {
+  const { consolidate } = await import("./memory/consolidate.mjs");
+  const report = await consolidate(ctx.root, { apply: ctx.apply });
+  const lines = [
+    R.heading("Memory consolidation"),
+    R.pairs([
+      ["Live memories", String(report.live)],
+      ["Duplicates merged", String(report.duplicatesMerged)],
+      ["Contradictions found", String(report.contradictionsFound)],
+      ["Noise discarded", String(report.noiseDiscarded)],
+      ["Search terms rebuilt", String(report.retrievalTermsRebuilt)],
+      ["Dangling links removed", String(report.danglingLinksRemoved)],
+    ]),
+  ];
+  if (report.contradictions.length) {
+    lines.push("", R.block("Statements that contradict each other", R.bullets(
+      report.contradictions.map((c) => `${c.earlier} against ${c.later}, both about ${c.about}`))));
+    lines.push(R.wrap("Both are kept. The earlier one is marked contradicted so recall warns rather than picking a side."));
+  }
+  lines.push("", R.wrap(ctx.apply ? "Applied." : "Nothing has changed. Re-run with --apply to consolidate."));
+  return { data: report, text: R.stitch(lines) };
+}
+
+async function cmdMemorySupersede(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which memory is replaced: superdev memory supersede <MEM-id>.");
+  const by = requireFlag(ctx.flags, "by", "Say which memory replaces it: --by <MEM-id>.");
+  if (!ctx.apply) {
+    return planned({ id, by }, "record it", R.wrap(`Would mark ${id} superseded by ${by}. Both are kept: a memory that was believed and turned out wrong is worth knowing.`));
+  }
+  const { supersede } = await import("./memory/index.mjs");
+  const result = await supersede(ctx.root, id, String(by), { actor: ctx.actor });
+  return { data: { applied: true, result }, text: `${id} is superseded by ${by}.` };
+}
+
+/**
+ * Measure retrieval quality.
+ *
+ * Section 15.12 lists eleven measurements required before Claude Mem can be
+ * dropped, and none had ever been taken, so DEC-TBD-002 could not be answered
+ * even in principle. This measures and does not decide: what counts as good
+ * enough is the owner's call.
+ */
+async function cmdMemoryBenchmark(ctx) {
+  const { benchmark } = await import("./memory/benchmark.mjs");
+  const r = await benchmark(ctx.root, { limit: ctx.flags.limit ? Number(ctx.flags.limit) : 40 });
+  if (!r.measurable) {
+    return { data: r, text: R.stitch([R.heading("Retrieval benchmark"), R.wrap(r.why)]) };
+  }
+  return {
+    data: r,
+    text: R.stitch([
+      R.heading("Retrieval benchmark"),
+      R.wrap(`${r.corpus.queries} questions drawn from ${r.corpus.entries} memories. Each question is the most distinctive word in one memory's title, and that memory is the answer it should find.`),
+      "",
+      R.pairs([
+        ["Recall", `${r.recall.value} (${r.recall.says})`],
+        ["Precision", String(r.precision.value)],
+        ["Noise", String(r.noise.value)],
+        ["Ranking", `${r.ranking.value} mean reciprocal rank`],
+        ["Token reduction", String(r.tokenReduction.value)],
+        ["Latency", `${r.latencyMs.median} ms median, ${r.latencyMs.worst} ms worst`],
+        ["Index size", `${r.storageGrowth.searchTerms} terms over ${r.storageGrowth.entries} memories`],
+        ["Superseded", String(r.staleDetection.superseded)],
+        ["Contradictions marked", String(r.contradictionDetection.marked)],
+      ]),
+      "",
+      R.block("Not measurable by a query", R.bullets([
+        r.resumeAccuracy.says,
+        r.handoffAccuracy.says,
+      ])),
+      R.wrap("These are the measurements section 15.12 asks for. What threshold is good enough is DEC-TBD-002 and stays open."),
+    ]),
+  };
+}
+
+async function cmdMemoryStatus(ctx) {
+  const { memoryStatus } = await import("./memory/consolidate.mjs");
+  const s = await memoryStatus(ctx.root);
+  return {
+    data: s,
+    text: R.stitch([
+      R.heading("Memory"),
+      R.pairs([
+        ["Held", String(s.total)],
+        ["Current", String(s.live)],
+        ["Superseded", String(s.superseded)],
+        ["Findable by search", `${s.indexed} of ${s.live}`],
+        ["Links to records", String(s.links)],
+      ]),
+      s.byKind.length ? R.block("By kind", R.bullets(s.byKind.map((k) => `${k.n} ${k.kind}`))) : null,
+      s.byStatus.length ? R.block("By how well known", R.bullets(s.byStatus.map((k) => `${k.n} ${k.epistemic_status}`))) : null,
+      "",
+      R.block("How retrieval works", R.bullets(s.retrieval.stages)),
+      R.wrap(`Semantic retrieval: ${s.retrieval.semantic}`),
+      s.notIndexedForSearch > 0
+        ? R.wrap(`${s.notIndexedForSearch} memories carry no search terms and cannot be found lexically. Run superdev memory consolidate --apply to index them.`)
+        : null,
+    ]),
+  };
+}
+
+// --------------------------------------------------------- questions, changes
+
+async function cmdQuestionList(ctx) {
+  const { query, json } = await store();
+  const rows = await query(ctx.root, (db) => db.all(
+    `SELECT * FROM questions ${ctx.flags.all ? "" : "WHERE status = 'open'"} ORDER BY created_at`));
+  if (!rows.length) {
+    return { data: { questions: [] }, text: R.wrap(ctx.flags.all ? "No question has been recorded." : "No question is open.") };
+  }
+  return {
+    data: { questions: rows },
+    text: R.stitch([
+      R.heading(`Questions (${rows.length})`),
+      // Section 8.4 says a material question carries a recommendation and the
+      // tradeoffs. Storing them and not showing them leaves the reader doing
+      // the research the question was supposed to have done for them.
+      rows.map((q) => {
+        const alternatives = json(q.alternatives_json, []);
+        return R.stitch([
+          `${q.id}  [${R.status(q.status)}]`,
+          R.wrap(q.question, R.WIDTH, "  "),
+          R.wrap(`Why it matters: ${q.why_it_matters}`, R.WIDTH, "  "),
+          q.recommendation ? R.wrap(`Recommended: ${q.recommendation}`, R.WIDTH, "  ") : null,
+          alternatives.length
+            ? R.stitch(["  Options:", R.bullets(alternatives.map((a) => String(a)), "    ")])
+            : null,
+          q.answer ? R.wrap(`Answered: ${q.answer}`, R.WIDTH, "  ") : null,
+        ]);
+      }).join("\n\n"),
+    ]),
+  };
+}
+
+async function cmdChangeRecord(ctx) {
+  const summary = requireFlag(ctx.flags, "summary", "Say what moved: --summary <what changed>.");
+  const reason = requireFlag(ctx.flags, "reason", "Say why. Without it nobody can tell later whether the product was steered or drifted.");
+  const targets = asList(ctx.flags.target);
+  const input = {
+    summary, reason, targets,
+    changeType: ctx.flags.type ? String(ctx.flags.type) : "scope_changed",
+    decisionId: ctx.flags.decision ?? null,
+    taskId: ctx.flags.task ?? null,
+    requestedBy: ctx.flags.requestedBy ?? null,
+    actor: ctx.actor,
+    sessionId: ctx.flags.session ?? null,
+  };
+  if (!ctx.apply) {
+    return planned(input, "record it", R.stitch([
+      `Would record: ${summary}`,
+      R.pairs([["Because", reason], ["Moves", targets.join(", ") || "nothing named yet"]]),
+    ]));
+  }
+  const { recordChange } = await import("./product/changes.mjs");
+  const row = await recordChange(ctx.root, input);
+  return { data: { applied: true, change: row }, text: `${row.id} recorded: ${summary}` };
+}
+
+async function cmdChangeList(ctx) {
+  const { listChanges } = await import("./product/changes.mjs");
+  const rows = await listChanges(ctx.root, { limit: ctx.flags.limit ? Number(ctx.flags.limit) : 50 });
+  if (!rows.length) return { data: { changes: [] }, text: R.wrap("No change to accepted scope has been recorded.") };
+  return {
+    data: { changes: rows },
+    text: R.stitch([
+      R.heading(`Changes (${rows.length})`),
+      rows.map((c) => R.stitch([
+        `${c.id}  ${R.shortDate(c.created_at)}  ${R.status(c.change_type)}`,
+        R.wrap(c.summary, R.WIDTH, "  "),
+        R.wrap(`Because: ${c.reason}`, R.WIDTH, "  "),
+        R.wrap(`Moved: ${c.targets.map((t) => `${t.target_type} ${t.target_id}`).join(", ")}`, R.WIDTH, "  "),
+      ])).join("\n\n"),
+    ]),
+  };
+}
+
+async function cmdChangeShow(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which change: superdev change show <CHG-id>.");
+  const { showChange } = await import("./product/changes.mjs");
+  const c = await showChange(ctx.root, id);
+  return {
+    data: c,
+    text: R.stitch([
+      R.heading(`${c.summary}  ${c.id}`),
+      R.pairs([
+        ["Kind", R.status(c.change_type)],
+        ["Recorded", c.created_at],
+        ["Because", c.reason],
+        ["Decided by", c.decided_by ?? "Not recorded"],
+        ["Under decision", c.decision ? `${c.decision.id} ${c.decision.title}` : "None"],
+      ]),
+      "",
+      R.block("Records it moved", R.bullets(c.targets.map((t) =>
+        `${t.target_type} ${t.target_id}${t.what_changed ? `: ${t.what_changed}` : ""}`))),
+    ]),
+  };
+}
+
+// -------------------------------------------------------------- assumptions
+
+async function cmdAssumptionRecord(ctx) {
+  const statement = requireFlag(ctx.flags, "statement", "Say what is being assumed: --statement <what>.");
+  const why = requireFlag(ctx.flags, "why", "Say why this is assumed rather than decided: --why <reason>.");
+  const trigger = requireFlag(ctx.flags, "trigger", "Say what would make this worth revisiting: --trigger <what>. Without one it is never reviewed.");
+  const input = {
+    statement, whyAssumed: why, reviewTrigger: trigger,
+    consequenceIfWrong: ctx.flags.consequence ?? null,
+    scopeType: ctx.flags.scopeType ?? null,
+    scopeId: ctx.flags.scopeId ?? null,
+    questionId: ctx.flags.question ?? null,
+    actor: ctx.actor,
+  };
+  if (!ctx.apply) {
+    return planned(input, "record it", R.stitch([
+      `Would assume: ${statement}`,
+      R.pairs([["Because", why], ["Revisit when", trigger]]),
+    ]));
+  }
+  const { recordAssumption } = await import("./product/assumptions.mjs");
+  const row = await recordAssumption(ctx.root, input);
+  return { data: { applied: true, assumption: row }, text: `${row.id} recorded: ${statement}` };
+}
+
+async function cmdAssumptionList(ctx) {
+  const { listAssumptions } = await import("./product/assumptions.mjs");
+  const rows = await listAssumptions(ctx.root, { status: ctx.flags.status ? String(ctx.flags.status) : null });
+  if (!rows.length) return { data: { assumptions: [] }, text: R.wrap("No assumption has been recorded.") };
+  return {
+    data: { assumptions: rows },
+    text: R.stitch([
+      R.heading(`Assumptions (${rows.length})`),
+      rows.map((a) => R.stitch([
+        `${a.id}  [${R.status(a.status)}]`,
+        R.wrap(a.statement, R.WIDTH, "  "),
+        R.wrap(`Assumed because: ${a.why_assumed}`, R.WIDTH, "  "),
+        R.wrap(`Revisit when: ${a.review_trigger}`, R.WIDTH, "  "),
+        a.resolution ? R.wrap(`Turned out: ${a.resolution}`, R.WIDTH, "  ") : null,
+      ])).join("\n\n"),
+    ]),
+  };
+}
+
+async function cmdAssumptionResolve(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which assumption: superdev assumption resolve <ASM-id>.");
+  const to = requireFlag(ctx.flags, "to", "Say what it turned out to be: --to confirmed, overturned or expired.");
+  const resolution = requireFlag(ctx.flags, "resolution", "Say what the answer actually is.");
+  if (!ctx.apply) {
+    return planned({ id, to, resolution }, "record it", R.wrap(`Would mark ${id} ${to}: ${resolution}`));
+  }
+  const { resolveAssumption } = await import("./product/assumptions.mjs");
+  const row = await resolveAssumption(ctx.root, id, { to: String(to), resolution: String(resolution), actor: ctx.actor });
+  return { data: { applied: true, assumption: row }, text: `${id} is ${to}.` };
+}
+
+// -------------------------------------------------------------------- cloud
+//
+// Section 12.9 lists these four commands and says cloud synchronization is not
+// required for the local plugin to function. They refused for as long as
+// DEC-TBD-006, 007 and 008 were open, which was right: a merge policy invented
+// by whoever wrote the code is a policy nobody agreed to.
+//
+// Those decisions are recorded now, so these do what the decisions say and
+// nothing beyond them. Local stays authoritative, nothing leaves unencrypted,
+// nothing leaves that DEC-TBD-007 keeps local, and the only transport is a
+// directory on this machine. Nothing here reaches the network.
+
+/**
+ * Say if a newer version exists, then look again if it is time to.
+ *
+ * The notice comes from what the previous check wrote, so this never delays a
+ * command. The refresh runs in a detached child that this process does not
+ * wait for, because an unawaited fetch still holds the event loop open and made
+ * the first command of the day pay for the round trip. Whatever the child
+ * learns is read by the next run.
+ */
+async function announceUpdates(ctx) {
+  if (ctx.json || ctx.flags.out) return;
+  try {
+    const { pendingNotice, startRefresh, checkingEnabled } = await import("./runtime/version.mjs");
+    if (!checkingEnabled(ctx.root)) return;
+    const notice = pendingNotice(ctx.root);
+    if (notice) process.stderr.write(`\n${notice}\n`);
+    // A detached child, so this process exits without waiting for a round trip.
+    startRefresh(ctx.root, { pluginVersion: pluginVersionOf() });
+  } catch {
+    // An update courtesy must never be the reason a command looks broken.
+  }
+}
+
+/** The installed plugin's own version, when this is running as one. */
+function pluginVersionOf() {
+  const root = process.env.CLAUDE_PLUGIN_ROOT;
+  if (!root) return null;
+  try {
+    return JSON.parse(readFileSync(join(root, ".claude-plugin", "plugin.json"), "utf8")).version ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Report and change what Superdev checks on its own.
+ *
+ * There is exactly one such thing, and it is the only outbound request this
+ * product makes, so it gets a command rather than a buried configuration file.
+ * Somebody who wants it off should be able to find how in one place.
+ */
+/**
+ * Run a lifecycle hook. Called by the plugin's hooks.json, not by people.
+ *
+ * This exists so the plugin needs no executable code of its own. Before it, the
+ * hooks ran `node "${CLAUDE_PLUGIN_ROOT}/src/runtime/hooks.mjs"`, which meant
+ * the plugin had to ship the whole runtime and its native storage engine, and a
+ * plugin distributed by git arrived without the engine and could not run at all.
+ *
+ * Now the plugin ships skills, a hooks manifest and metadata, all of it text.
+ * The executable half comes from the CLI, which npm installs properly.
+ *
+ * It delegates to the hook runner's own entry point rather than reimplementing
+ * it, because that entry point carries things worth keeping: the payload is read
+ * from stdin the way the harness sends it, the work is raced against a time
+ * budget so a slow database cannot hold the harness open, the response is
+ * written in the protocol's shape rather than Superdev's, and the process exits
+ * hard so an interrupted write rolls back instead of half committing.
+ */
+async function cmdHook(ctx) {
+  const event = requireWord(ctx.words, 1, "Say which lifecycle event: superdev hook <event>.");
+  const { main } = await import("./runtime/hooks.mjs");
+  // main reads argv[2] as the event, reads stdin itself, emits, and exits.
+  await main([process.execPath, "hook", event]);
+  return { data: {}, text: "", consumedOut: true, exit: 0 };
+}
+
+async function cmdSettings(ctx) {
+  const { checkingEnabled, setChecking, self, pendingNotice } = await import("./runtime/version.mjs");
+  const me = self();
+
+  const wanted = ctx.flags.noUpdateCheck ? false : ctx.flags.updateCheck ? true : null;
+  if (wanted !== null) {
+    if (!ctx.apply) {
+      return planned({ updateCheck: wanted }, wanted ? "turn it on" : "turn it off",
+        R.wrap(wanted
+          ? "Would turn the update check back on. It asks the npm registry and the plugin manifest for their latest versions, at most once a day, and never blocks a command."
+          : "Would turn the update check off. Nothing would leave this machine at all after that, and you would find out about new versions yourself."));
+    }
+    setChecking(ctx.root, wanted);
+    return {
+      data: { updateCheck: wanted },
+      text: R.wrap(wanted
+        ? "Update checking is on. At most one request a day, after a command has already answered, and it fails silently."
+        : "Update checking is off. Superdev now makes no outbound request of any kind."),
+    };
+  }
+
+  const on = checkingEnabled(ctx.root);
+  return {
+    data: { version: me.version, package: me.name, updateCheck: on },
+    text: R.stitch([
+      R.heading("Settings"),
+      R.pairs([
+        ["Version", `${me.name} ${me.version}`],
+        ["Update check", on ? "On" : "Off"],
+      ]),
+      R.wrap(on
+        ? "The update check is the only outbound request Superdev makes. It asks the npm registry for the CLI's latest version and reads the plugin manifest from the repository, at most once a day, after a command has already produced its output. It fails silently and never blocks. Turn it off with superdev settings --no-update-check --apply, or set SUPERDEV_NO_UPDATE_CHECK in the environment."
+        : "Nothing leaves this machine. Turn the check back on with superdev settings --update-check --apply."),
+      pendingNotice(ctx.root) ?? null,
+    ]),
+  };
+}
+
+async function cmdCloudStatus(ctx) {
+  const { status } = await import("./cloud/sync.mjs");
+  const { count } = await import("./model/vocabulary.mjs");
+  const state = await status(ctx.root);
+
+  if (!state.connected && !state.location) {
+    return {
+      data: state,
+      text: R.stitch([
+        R.heading("No remote is configured"),
+        R.wrap(state.why),
+        R.wrap(`Connect one with superdev cloud connect <directory>. ${count(state.shared, "table")} would be shared and ${count(state.withheld, "table")} never leave this machine.`),
+      ]),
+      exit: 0,
+    };
+  }
+
+  return {
+    data: state,
+    text: R.stitch([
+      R.heading(`Remote ${state.alias}`),
+      R.pairs([
+        ["Transport", state.transport],
+        ["Location", state.location],
+        ["Reachable", state.reachable ? "Yes" : "No, so a sync would have nothing to talk to"],
+        ["Key fingerprint", state.keyFingerprint],
+        ["Last synced", state.lastSyncedAt ? R.shortDate(state.lastSyncedAt) : "Never"],
+        ["Records tracked", String(state.trackedRecords)],
+        ["Open conflicts", String(state.conflicts.length)],
+      ]),
+      state.conflicts.length
+        ? R.block(`Conflicts waiting (${state.conflicts.length})`, R.bullets(state.conflicts.map(
+            (c) => `${c.id}  ${c.recordType} ${c.recordId}, found ${R.shortDate(c.detectedAt)}`)))
+        : null,
+      state.leases.length
+        ? R.block(`Leases (${state.leases.length})`, R.bullets(state.leases.map(
+            (l) => `${l.task_id} held by ${l.lease_holder}${l.lease_expires_at ? ` until ${R.shortDate(l.lease_expires_at)}` : ""}`)))
+        : null,
+      R.wrap(`${count(state.shared, "table")} are shared. ${count(state.withheld, "table")} never leave this machine, including memory, the activity trail, sessions and every identity.`),
+    ]),
+    exit: 0,
+  };
+}
+
+async function cmdCloudConnect(ctx) {
+  const location = ctx.words[2] ?? ctx.flags.location;
+  const { connect } = await import("./cloud/sync.mjs");
+  const out = await connect(ctx.root, {
+    location: location ? String(location) : null,
+    alias: ctx.flags.alias ? String(ctx.flags.alias) : null,
+    transport: ctx.flags.transport ? String(ctx.flags.transport) : "directory",
+    apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out.plan, "connect", R.stitch([
+      R.wrap(`Would connect this project to the ${out.plan.transport} at ${out.plan.location}.`),
+      R.wrap(out.plan.createsKey
+        ? "An encryption key would be created for this project and kept here. It is never transmitted, and a remote copy is unreadable without it."
+        : "This project already has an encryption key, which would be reused."),
+      R.wrap("Connecting sends nothing. The first sync is a separate command."),
+    ]));
+  }
+  return {
+    data: out,
+    text: R.stitch([
+      R.wrap(`Connected as ${out.alias} to the ${out.transport} at ${out.location}.`),
+      R.wrap(`${out.createdKey ? "An encryption key was created" : "The existing encryption key is used"}, fingerprint ${out.keyFingerprint}. It stays on this machine and a remote copy cannot be read without it.`),
+      R.wrap("Nothing has been sent. Run superdev sync --dry-run to see what would go, and superdev sync --apply to send it."),
+    ]),
+  };
+}
+
+/**
+ * One synchronization, or a preview of it.
+ *
+ * The preview and the run share every line that decides anything, so what is
+ * described is what would happen. --resolve settles conflicts instead.
+ */
+async function cmdSync(ctx) {
+  const { synchronize, openConflicts, resolveConflict } = await import("./cloud/sync.mjs");
+  const { count } = await import("./model/vocabulary.mjs");
+
+  if (ctx.flags.resolve !== undefined) {
+    const which = typeof ctx.flags.resolve === "string" && ctx.flags.resolve !== "true"
+      ? String(ctx.flags.resolve)
+      : ctx.words[1] && ctx.words[1].startsWith("CONF") ? ctx.words[1] : null;
+    const waiting = await openConflicts(ctx.root);
+    if (!waiting.length) {
+      return { data: { conflicts: [] }, text: R.wrap("No conflict is waiting. Nothing to settle.") };
+    }
+    if (!which) {
+      return {
+        data: { conflicts: waiting },
+        text: R.stitch([
+          R.heading(`Conflicts waiting (${waiting.length})`),
+          waiting.map((c) => R.stitch([
+            `${c.id}  ${c.record_type} ${c.record_id}`,
+            R.wrap(`Both copies changed it since they last agreed. Settle it with superdev sync --resolve ${c.id} --keep local, --keep remote, or --keep merged.`, R.WIDTH, "  "),
+          ])).join("\n\n"),
+        ]),
+      };
+    }
+    const choice = ctx.flags.keep ? String(ctx.flags.keep) : "local";
+    const out = await resolveConflict(ctx.root, which, { choice, apply: ctx.apply, actor: ctx.actor });
+    if (!out.applied) {
+      return planned(out.plan, "settle it", R.stitch([
+        R.wrap(`Would settle ${which} on ${out.plan.recordType} ${out.plan.recordId} by keeping ${choice}.`),
+        out.plan.fields.length ? R.wrap(`The copies disagree on: ${out.plan.fields.join(", ")}.`) : null,
+      ]));
+    }
+    return {
+      data: out,
+      text: R.wrap(`${which} settled by keeping ${choice}. The settled value is now what both sides agree on, so the next sync will not raise it again.`),
+    };
+  }
+
+  const out = await synchronize(ctx.root, { apply: ctx.apply });
+  const body = R.stitch([
+    R.pairs([
+      ["Remote", `${out.peer} at ${out.location}`],
+      ["Other copies found", String(out.peersFound)],
+      ["Coming in", String(out.incoming)],
+      ["Going out", String(out.outgoing)],
+      ["Conflicts", String(out.conflicts)],
+    ]),
+    out.leases.length
+      ? R.block(`Held elsewhere (${out.leases.length})`, R.bullets(out.leases.map(
+          (l) => `${l.taskId} by ${l.holder}${l.expiresAt ? ` until ${R.shortDate(l.expiresAt)}` : ""}`)))
+      : null,
+    out.unreadable.length
+      ? R.block("Could not be read", R.bullets(out.unreadable))
+      : null,
+    R.wrap(`${count(out.withheldTables, "table")} were withheld, including memory, the activity trail, sessions and every identity. Nothing left this machine unencrypted.`),
+  ]);
+
+  if (!out.applied) {
+    return planned(out, "synchronize", R.stitch([
+      R.heading("What a sync would do"),
+      body,
+      out.conflicts
+        ? R.wrap(`${count(out.conflicts, "record")} changed in both copies since they last agreed. A sync records each as a conflict and leaves the local value alone; settle them with superdev sync --resolve.`)
+        : null,
+    ]));
+  }
+  return {
+    data: out,
+    text: R.stitch([
+      R.heading("Synchronized"),
+      body,
+      R.wrap(`${count(out.taken ?? 0, "record")} taken in. ${
+        out.conflicts
+          ? `${count(out.conflicts, "conflict")} recorded and left for you: the local value stands until you settle it with superdev sync --resolve.`
+          : "No conflict was found."
+      }`),
+    ]),
+  };
+}
+
+
+async function cmdDecisionRecord(ctx) {
+  const title = requireFlag(ctx.flags, "title", "A decision needs a title, in plain language, so it can be found again.");
+  const decision = requireFlag(ctx.flags, "decision", "Say what was decided. A title alone records that a choice happened, not what it was.");
+  const input = {
+    title, decision,
+    context: ctx.flags.context ?? null,
+    rationale: ctx.flags.rationale ?? null,
+    verification: ctx.flags.verification ?? null,
+    scopeType: ctx.flags.scopeType ?? null,
+    scopeId: ctx.flags.scopeId ?? null,
+    status: ctx.flags.status ? String(ctx.flags.status) : "proposed",
+    acceptedBy: ctx.flags.acceptedBy ?? null,
+    expiresAt: ctx.flags.expires ?? null,
+    governs: asList(ctx.flags.governs),
+    evidence: asList(ctx.flags.evidence),
+    criteria: asList(ctx.flags.criterion),
+    options: asList(ctx.flags.option),
+    risks: asList(ctx.flags.risk),
+    enforcement: asList(ctx.flags.enforcement),
+    revisitTriggers: asList(ctx.flags.revisit),
+    actor: ctx.actor,
+    sessionId: ctx.flags.session ?? null,
+  };
+  if (!ctx.apply) {
+    return planned(input, "record it", R.stitch([
+      `Would record "${title}" as ${R.status(input.status)}.`,
+      R.pairs([["Decided", decision], ["Governs", input.governs.join(", ") || "nothing yet"]]),
+    ]));
+  }
+  const { recordDecision } = await import("./decisions/record.mjs");
+  const row = await recordDecision(ctx.root, input);
+  return { data: { applied: true, decision: row }, text: `${row.id} recorded: ${title}` };
+}
+
+/** Replace a decision that no longer holds, in one transaction. */
+async function cmdDecisionSupersede(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which decision is being replaced: superdev decision supersede <id>.");
+  const title = requireFlag(ctx.flags, "title", "The replacement needs a title.");
+  const decision = requireFlag(ctx.flags, "decision", "Say what is decided instead.");
+  const partial = Boolean(ctx.flags.partial);
+  const scopeDelta = ctx.flags.scopeDelta ? String(ctx.flags.scopeDelta) : "";
+  if (partial && !scopeDelta) {
+    throw new UsageError("A partial supersession has to say which part stops applying. Pass --scopeDelta <what no longer holds>.");
+  }
+  const input = {
+    title, decision, partial, scopeDelta,
+    context: ctx.flags.context ?? null,
+    rationale: ctx.flags.rationale ?? null,
+    governs: asList(ctx.flags.governs),
+    actor: ctx.actor,
+  };
+  if (!ctx.apply) {
+    return planned({ supersedes: id, ...input }, "record it", R.stitch([
+      `Would record "${title}" and mark ${id} ${partial ? "partially superseded" : "superseded"}.`,
+      partial ? R.wrap(`What stops applying: ${scopeDelta}`) : null,
+    ]));
+  }
+  const { supersedeDecision } = await import("./decisions/record.mjs");
+  const row = await supersedeDecision(ctx.root, id, input);
+  return {
+    data: { applied: true, decision: row },
+    text: `${row.id} replaces ${id}, which is now ${partial ? "partially superseded" : "superseded"}.`,
+  };
+}
+
+/**
+ * Re-run the checks recorded evidence stands on.
+ *
+ * Without --apply nothing changes, which is the mode worth reaching for: it
+ * answers whether what the project believes is still true, without altering the
+ * answer.
+ */
+async function cmdVerify(ctx) {
+  const { verifyEvidence } = await import("./verify/index.mjs");
+  const report = await verifyEvidence(ctx.root, {
+    apply: ctx.apply,
+    taskId: ctx.flags.task ? String(ctx.flags.task) : null,
+    limit: ctx.flags.limit ? Number(ctx.flags.limit) : null,
+  });
+
+  const lines = [
+    R.heading("Verification"),
+    R.pairs([
+      ["Evidence in force", String(report.evidenceCurrent)],
+      ["Carries a command", String(report.withCommand)],
+      ["Checked by hand only", String(report.manualOnly)],
+      ["Re-ran", String(report.checked)],
+      ["Still passing", String(report.stillPassing)],
+      ["No longer passing", String(report.noLongerPassing)],
+      ["Could not run", String(report.couldNotRun)],
+    ]),
+  ];
+  if (report.failing.length) {
+    lines.push("", R.block("No longer passing", R.bullets(report.failing.map((f) =>
+      `${f.task ?? f.evidence} (${R.status(f.taskStatus ?? "unknown")}): ${f.command}. ${f.detail}`))));
+  }
+  if (report.unrunnable.length) {
+    lines.push("", R.block("Could not run", R.bullets(report.unrunnable.slice(0, 8).map((f) =>
+      `${f.task ?? f.evidence}: ${f.why}`))));
+  }
+  lines.push("", R.wrap(ctx.apply
+    ? `${report.noLongerPassing} piece(s) of evidence marked stale. The tasks that stood on them are named above and are not reopened automatically.`
+    : "Nothing has changed. Re-run with --apply to mark failing evidence stale."));
+
+  return { data: report, text: R.stitch(lines), exit: report.noLongerPassing > 0 ? 1 : 0 };
+}
+
+async function cmdTaskEvidence(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which task was verified: superdev task evidence <id>.");
+  const summary = requireFlag(ctx.flags, "summary",
+    "Evidence needs a one-line summary of what was actually observed, not just a result.");
+  const result = ctx.flags.result ? String(ctx.flags.result) : "pass";
+  if (!["pass", "fail", "inconclusive"].includes(result)) {
+    throw new UsageError(`A result is pass, fail or inconclusive, not ${result}.`);
+  }
+  const evidence = {
+    summary,
+    result,
+    evidenceType: ctx.flags.type ? String(ctx.flags.type) : "manual_check",
+    reference: ctx.flags.reference ? String(ctx.flags.reference) : null,
+    acceptanceCriterionId: ctx.flags.criterion ? String(ctx.flags.criterion) : null,
+    checkCommand: ctx.flags.command ? String(ctx.flags.command) : null,
+    testPlanId: ctx.flags.plan ? String(ctx.flags.plan) : null,
+    actor: ctx.actor,
+    sessionId: ctx.flags.session ?? null,
+  };
+  if (!ctx.apply) {
+    return planned({ id, ...evidence }, "record it", R.stitch([
+      `Would record ${result === "pass" ? "passing" : result === "fail" ? "failing" : "inconclusive"} evidence for ${id}: ${summary}`,
+      evidence.acceptanceCriterionId
+        ? R.wrap(`It is attached to acceptance criterion ${evidence.acceptanceCriterionId}, which ${result === "pass" ? "this marks met" : "this leaves unmet"}.`)
+        : null,
+      evidence.testPlanId
+        ? R.wrap(`It is recorded as a run of test plan ${evidence.testPlanId}${result === "pass" ? ", which satisfies it for the work it covers." : ", which leaves it unsatisfied."}`)
+        : null,
+    ]));
+  }
+  const { attachEvidence } = await lifecycle();
+  const task = await attachEvidence(ctx.root, id, evidence);
+  return {
+    data: { applied: true, task },
+    text: `${task.evidence.id} recorded against ${task.id}: ${summary}`,
+  };
+}
+
+/**
+ * How the product is verified, and whether that verification has been run.
+ *
+ * Section 9.3 makes the accepted test plan a completion condition, so the
+ * question a reader has is never only what the plan says: it is whether anyone
+ * has run it since. Both are answered here, because a plan without its last
+ * result is a promise rather than a report.
+ */
+async function cmdTestPlanList(ctx) {
+  const { listPlans } = await import("./product/test-plans.mjs");
+  const { count } = await import("./model/vocabulary.mjs");
+  const plans = await listPlans(ctx.root);
+  if (!plans.length) {
+    return { data: { plans: [] }, text: R.wrap("No test plan has been recorded. A feature without one cannot say what proving it means.") };
+  }
+  const unrun = plans.filter((p) => p.status === "accepted" && !p.satisfied);
+  return {
+    data: { plans },
+    text: R.stitch([
+      R.heading(`Test plans (${plans.length})`),
+      plans.map((p) => R.stitch([
+        `${p.id}  [${R.status(p.status)}]  ${p.name}`,
+        R.wrap(`Covers: ${p.feature_id ?? p.workflow_id ?? p.module_id ?? "the whole product"}`, R.WIDTH, "  "),
+        R.wrap(`Run: ${p.how_to_run}`, R.WIDTH, "  "),
+        R.wrap(`Passes when: ${p.passing_condition}`, R.WIDTH, "  "),
+        R.wrap(p.satisfied
+          ? `${count(p.passing_runs, "passing run")} recorded.`
+          : `No passing run recorded, so any task it covers cannot complete. ${
+              p.runnable ? `Run it with superdev test-plan run ${p.id} --apply.` : `It cannot run unattended, so record what you saw with superdev test-plan record ${p.id}.`}`,
+          R.WIDTH, "  "),
+      ])).join("\n\n"),
+      unrun.length
+        ? R.wrap(`${count(unrun.length, "accepted plan")} without a passing run. Until each has one, no task it covers can complete.`)
+        : R.wrap("Every accepted plan carries a passing run."),
+    ]),
+  };
+}
+
+async function cmdTestPlanShow(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which test plan: superdev test-plan show <TP-id>.");
+  const { showPlan } = await import("./product/test-plans.mjs");
+  const { plan: p, runs } = await showPlan(ctx.root, id);
+  return {
+    data: { plan: p, runs },
+    text: R.stitch([
+      R.heading(`${p.name}  ${p.id}`),
+      R.pairs([
+        ["Status", R.status(p.status)],
+        ["Covers", p.feature_id ?? p.workflow_id ?? p.module_id ?? "The whole product"],
+        ["Run", p.how_to_run],
+        ["Passes when", p.passing_condition],
+        ["Runs unattended", p.runnable ? "Yes" : `No. ${p.why_not_runnable}`],
+      ]),
+      R.heading("Strategy"),
+      R.wrap(p.strategy),
+      R.heading("Runs recorded"),
+      runs.length
+        ? R.bullets(runs.map((r) =>
+            `${R.shortDate(r.recorded_at)}  ${R.status(r.last_check_result ?? r.result)}  ${r.summary}${r.task_id ? ` (${r.task_id})` : ""}`))
+        : R.wrap("None. Until this plan is run, every task it covers is refused at completion."),
+    ]),
+  };
+}
+
+/** Run the plan's own command and record whatever it produced. */
+async function cmdTestPlanRun(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which test plan to run: superdev test-plan run <TP-id>.");
+  const { runPlan } = await import("./product/test-plans.mjs");
+  const out = await runPlan(ctx.root, id, {
+    actor: ctx.actor,
+    sessionId: ctx.flags.session ?? null,
+    taskId: ctx.flags.task ? String(ctx.flags.task) : null,
+    apply: ctx.apply,
+  });
+  const headline = `${id} ${out.result === "pass" ? "passed" : out.result === "fail" ? "failed" : "was inconclusive"}: ${out.detail || "no output"}`;
+  if (!out.applied) {
+    return planned({ id, ...out, plan: undefined }, "record the result", R.stitch([
+      R.wrap(headline),
+      R.wrap("The command was run. Nothing has been recorded yet."),
+    ]));
+  }
+  return {
+    data: { applied: true, id, result: out.result, evidence: out.evidence?.id ?? null },
+    text: R.stitch([
+      R.wrap(headline),
+      R.wrap(`Recorded as ${out.evidence?.id ?? "evidence"}.${out.result === "pass" ? "" : " A failing run does not satisfy the plan, so the tasks it covers stay blocked."}`),
+    ]),
+  };
+}
+
+/** Record a plan that was carried out rather than run. */
+async function cmdTestPlanRecord(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which test plan was carried out: superdev test-plan record <TP-id>.");
+  const summary = requireFlag(ctx.flags, "summary",
+    "Say what was actually observed when the plan was carried out, not only whether it passed.");
+  const { recordPlanRun } = await import("./product/test-plans.mjs");
+  const out = await recordPlanRun(ctx.root, id, {
+    summary,
+    result: ctx.flags.result ? String(ctx.flags.result) : "pass",
+    reference: ctx.flags.reference ? String(ctx.flags.reference) : null,
+    taskId: ctx.flags.task ? String(ctx.flags.task) : null,
+    actor: ctx.actor,
+    sessionId: ctx.flags.session ?? null,
+    apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned({ id, result: out.result, summary }, "record it",
+      R.wrap(`Would record ${out.result === "pass" ? "a passing" : out.result === "fail" ? "a failing" : "an inconclusive"} run of ${id}: ${summary}`));
+  }
+  return {
+    data: { applied: true, id, evidence: out.evidence?.id ?? null },
+    text: R.wrap(`${out.evidence?.id ?? "The run"} recorded against ${id}: ${summary}`),
+  };
+}
+
+/**
+ * Stop work that should not continue.
+ *
+ * Cancelling is a status move like any other, so it leaves history and takes a
+ * reason: a cancelled task with no reason is indistinguishable from one that
+ * was quietly dropped.
+ */
+async function cmdTaskCancel(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which task to cancel: superdev task cancel <id>.");
+  const reason = requireFlag(ctx.flags, "reason",
+    "A cancelled task needs the reason, in plain language, so nobody re-derives it by accident.");
+  if (!ctx.apply) {
+    return planned({ id, reason }, "cancel it", R.wrap(`Would cancel ${id} because: ${reason}`));
+  }
+  const { cancelTask } = await lifecycle();
+  const task = await cancelTask(ctx.root, id, { actor: ctx.actor, reason });
+  return { data: { applied: true, task }, text: `${task.id} is cancelled.` };
+}
+
+async function cmdTaskComplete(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which task to complete: superdev task complete <id>.");
+  if (!ctx.apply) {
+    return planned({ id }, "complete it", R.stitch([
+      `Would complete ${id}.`,
+      R.wrap("It is refused unless its verification evidence passes, the acceptance criteria it verifies are met, and no subtask is still open."),
+    ]));
+  }
+  const { completeTask } = await lifecycle();
+  const task = await completeTask(ctx.root, id, { actor: ctx.actor, note: ctx.flags.note ?? null });
+  return { data: { applied: true, task }, text: `${task.id} is complete and its claim was released.` };
+}
+
+async function cmdTaskBlock(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which task is blocked: superdev task block <id>.");
+  const reason = requireFlag(ctx.flags, "reason", "A blocked task needs the reason, in plain language, so the next person can unblock it.");
+  if (!ctx.apply) {
+    return planned({ id, reason }, "record it", R.wrap(`Would mark ${id} blocked because: ${reason}`));
+  }
+  const { blockTask } = await lifecycle();
+  const task = await blockTask(ctx.root, id, { reason, actor: ctx.actor });
+  return { data: { applied: true, task }, text: `${task.id} is Blocked. The reason is on the record.` };
+}
+
+async function cmdTaskReopen(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which task to reopen: superdev task reopen <id>.");
+  const reason = requireFlag(ctx.flags, "reason", "Reopening finished work needs a reason, because the record already said it was done.");
+  const to = ctx.flags.to ? String(ctx.flags.to) : null;
+  if (!ctx.apply) {
+    return planned({ id, reason, to }, "reopen it",
+      R.wrap(`Would reopen ${id}${to ? ` as ${R.status(to)}` : ""} because: ${reason}`));
+  }
+  const { reopenTask } = await lifecycle();
+  const task = await reopenTask(ctx.root, id, { reason, to, actor: ctx.actor });
+  return { data: { applied: true, task }, text: `${task.id} is open again and is ${R.status(task.status)}.` };
+}
+
+// ---------------------------------------------------------------------- derive
+
+async function cmdDerive(ctx) {
+  const { deriveTasks, deriveAll } = await import("./tasks/derive.mjs");
+  // The feature is positional. Written as --feature it swallows the identifier
+  // as the flag's value, leaving no positional, and deriving one feature
+  // silently becomes deriving every accepted feature: fifty-two tasks where one
+  // was meant. Refusing is the only safe reading of that.
+  if (ctx.flags.feature !== undefined) {
+    throw new UsageError(
+      `The feature is positional here: superdev derive ${ctx.flags.feature}. Written as --feature it is read as a value and every accepted feature is derived instead.`,
+    );
+  }
+  const featureId = ctx.words[1] ?? null;
+  const result = featureId
+    ? await deriveTasks(ctx.root, featureId, { apply: ctx.apply, actor: ctx.actor })
+    : await deriveAll(ctx.root, { apply: ctx.apply, actor: ctx.actor });
+
+  const created = result.created?.length ?? result.created ?? 0;
+  const updated = result.updated?.length ?? result.updated ?? 0;
+  const superseded = result.superseded?.length ?? result.superseded ?? 0;
+  const summary = `${countWord(created, "task")} to create, ${updated} to update, ${superseded} to supersede`;
+
+  if (!ctx.apply) {
+    return planned(result, "create them", R.stitch([
+      featureId ? `Deriving ${featureId}: ${summary}.` : `Deriving every accepted feature: ${summary}.`,
+      Array.isArray(result.created) && result.created.length
+        ? R.bullets(result.created.map((c) => c.name ?? c.item?.name ?? c.id ?? "a task"))
+        : null,
+    ]));
+  }
+  return {
+    data: result,
+    text: `Derivation finished: ${created} created, ${updated} updated, ${superseded} superseded.`,
+  };
+}
+
+// ------------------------------------------------------------------------ docs
+
+async function cmdDocsGenerate(ctx) {
+  const { generate } = await import("./docs/render.mjs");
+  const only = ctx.flags.only ? String(ctx.flags.only) : null;
+  const result = await generate(ctx.root, { apply: ctx.apply, only , includeReports: Boolean(ctx.flags.reports) });
+  const summary = R.stitch([
+    `${countWord(result.written.length, "file")} to write, ${result.unchanged.length} already correct, ${result.proposals.length} held back by a hand edit.`,
+    result.written.length ? R.bullets(result.written) : null,
+    result.proposals.length
+      ? R.block("Held back", R.bullets(result.proposals.map((p) => `${p.path} was edited by hand`)))
+      : null,
+    result.skipped.length
+      ? R.block("No longer applicable", R.bullets(result.skipped.map((s) => `${s.path} (${s.reason})`)))
+      : null,
+  ]);
+  if (!ctx.apply) return planned(result, "write them", summary);
+  return {
+    data: result,
+    text: R.stitch([
+      `Wrote ${countWord(result.written.length, "file")}. ${countWord(result.unchanged.length, "file")} ${result.unchanged.length === 1 ? "was" : "were"} already correct.`,
+      result.proposals.length
+        ? R.wrap(`${countWord(result.proposals.length, "file")} ${result.proposals.length === 1 ? "was" : "were"} left alone because someone edited ${result.proposals.length === 1 ? "it" : "them"}. Run docs diff to see what changed.`)
+        : null,
+    ]),
+    exit: result.proposals.length ? 1 : 0,
+  };
+}
+
+async function cmdDocsDiff(ctx) {
+  const { detectProposals, diffProposal } = await import("./docs/proposals.mjs");
+  const path = ctx.words[2] ?? null;
+  if (!path) {
+    const report = await detectProposals(ctx.root, { apply: false });
+    return {
+      data: report,
+      text: R.renderProposals(report),
+      exit: report.proposals.length ? 1 : 0,
+    };
+  }
+  const diff = await diffProposal(ctx.root, path);
+  const differs = diff.added > 0 || diff.removed > 0;
+  return { data: diff, text: R.renderDiff(diff), exit: differs ? 1 : 0 };
+}
+
+// An unmapped edit is {section, reason}. Both matter: the person needs to know
+// which part of the file has nowhere to go and why.
+const unmappedLine = (entry) =>
+  typeof entry === "string" ? entry : `${entry.section ?? entry.heading ?? "the preamble"}: ${entry.reason ?? "nothing in the database holds this"}`;
+
+async function cmdDocsAccept(ctx) {
+  const { acceptProposal } = await import("./docs/proposals.mjs");
+  const path = requireWord(ctx.words, 2, "Say which document to accept: superdev docs accept <path>.");
+  const result = await acceptProposal(ctx.root, path, { apply: ctx.apply, actor: ctx.actor });
+  if (!ctx.apply) {
+    return planned(result, "write the edit into the database", R.stitch([
+      R.wrap(`Accepting ${result.path} would take the hand-edited text into the records it came from.`),
+      result.message ? R.wrap(result.message, R.WIDTH, "  ") : null,
+      result.unmapped?.length
+        ? R.block("Nothing to map these onto", R.bullets(result.unmapped.map(unmappedLine)))
+        : null,
+    ]));
+  }
+  return {
+    data: result,
+    text: R.stitch([
+      R.wrap(result.resolved
+        ? `Accepted the edits to ${result.path} into the database.`
+        : `Part of ${result.path} has nowhere to go in the database, so the proposal is still open.`),
+      result.message ? R.wrap(result.message, R.WIDTH, "  ") : null,
+    ]),
+    exit: result.resolved ? 0 : 1,
+  };
+}
+
+async function cmdDocsReject(ctx) {
+  const { rejectProposal } = await import("./docs/proposals.mjs");
+  const path = requireWord(ctx.words, 2, "Say which document to reject: superdev docs reject <path>.");
+  if (!ctx.apply) {
+    return planned({ path }, "put the generated version back", R.stitch([
+      R.wrap(`Rejecting ${path} writes the generated version back over the file.`),
+      R.wrap("The discarded text is recorded first, so a rejection can be read back afterwards."),
+    ]));
+  }
+  const result = await rejectProposal(ctx.root, path, { apply: true, actor: ctx.actor });
+  return { data: result, text: R.wrap(`Wrote the generated version of ${result.path ?? path} back.`) };
+}
+
+// ---------------------------------------------------------------------- memory
+
+async function cmdMemorySearch(ctx) {
+  const { recall } = await import("./memory/index.mjs");
+  const text = ctx.words.slice(2).join(" ") || (ctx.flags.text ? String(ctx.flags.text) : "");
+  if (!text) throw new UsageError("Say what to look for: superdev memory search <text>.");
+  const entries = await recall(ctx.root, {
+    text,
+    limit: Number(ctx.flags.limit ?? 10),
+    kinds: ctx.flags.kind ? asList(ctx.flags.kind) : undefined,
+    taskId: ctx.flags.task ?? undefined,
+    featureId: ctx.flags.feature ?? undefined,
+  });
+  if (!entries.length) {
+    return { data: { entries: [] }, text: `Nothing recorded matches "${text}".` };
+  }
+  return {
+    data: { entries },
+    text: R.stitch([
+      R.heading(`Recalled ${countWord(entries.length, "entry", "entries")}`),
+      entries.map((e) => R.stitch([
+        `${e.id}  ${R.status(e.kind)}  ${R.shortDate(e.createdAt ?? e.created_at)}`,
+        R.wrap(e.summary ?? e.content ?? "", R.WIDTH, "    "),
+      ])).join("\n"),
+      "",
+      R.wrap("Recall is a memory, not an authority. Check anything load bearing against the records before acting on it.", R.WIDTH, ""),
+    ]),
+  };
+}
+
+// -------------------------------------------------------- questions, decisions
+
+async function cmdQuestionAnswer(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which question to answer: superdev question answer <id> --answer <text>.");
+  const answer = ctx.flags.answer !== undefined
+    ? String(ctx.flags.answer)
+    : ctx.words.slice(3).join(" ");
+  if (!answer) throw new UsageError("An answer needs text. Pass --answer <text>.");
+
+  const { query, mutate, patch, setStatus } = await store();
+  const question = await query(ctx.root, (db) => db.get("SELECT * FROM questions WHERE id = ?", id));
+  if (!question) throw new Refusal(`There is no question ${id}.`, "E_NOT_FOUND");
+  if (question.status === "answered") {
+    throw new Refusal(`${id} was already answered: ${question.answer}`, "E_ALREADY_ANSWERED");
+  }
+
+  if (!ctx.apply) {
+    return planned({ id, answer }, "record it", R.stitch([
+      `Would answer ${id}: ${question.question}`,
+      R.wrap(`Answer: ${answer}`, R.WIDTH, "  "),
+      question.recommendation ? R.wrap(`The recommendation on file was: ${question.recommendation}`, R.WIDTH, "  ") : null,
+    ]));
+  }
+
+  const row = await mutate(ctx.root, async (db) => {
+    const current = await db.get("SELECT * FROM questions WHERE id = ?", id);
+    await patch(db, "question", id, current.version, {
+      answer,
+      answered_by: ctx.actor,
+      answered_at: nowIso(),
+    }, { projectId: current.project_id, actor: ctx.actor, activitySummary: `Answered ${id}: ${question.question}` });
+    return setStatus(db, "question", id, "answered", {
+      projectId: current.project_id, actor: ctx.actor, note: answer,
+    });
+  });
+
+  return { data: { applied: true, question: row }, text: `${id} is answered.` };
+}
+
+async function cmdDecisionList(ctx) {
+  const { json } = await store();
+  const decisions = await withProject(ctx.root, async (db, project) => {
+    const rows = await db.all(
+      `SELECT * FROM decisions WHERE project_id = ?
+        ${ctx.flags.all ? "" : "AND status NOT IN ('rejected','superseded','deprecated')"}
+        ORDER BY created_at DESC`,
+      project.id,
+    );
+    // What a decision governs is the question this command exists to answer, and
+    // it lived only in the control centre's own read model. Reading a decision
+    // without its links says which decisions exist, never which one binds the
+    // module in front of you.
+    for (const d of rows) {
+      d.links = await db.all(
+        "SELECT target_type, target_id, relationship, scope_note FROM decision_links WHERE decision_id = ?",
+        d.id,
+      );
+    }
+    return rows;
+  });
+  if (!decisions.length) {
+    return { data: { decisions: [] }, text: "No decision has been recorded yet." };
+  }
+  return {
+    data: { decisions },
+    text: R.stitch([
+      R.heading(`Decisions (${decisions.length})`),
+      R.table(["Id", "Status", "Expires", "Title"],
+        decisions.map((d) => [d.id, R.status(d.status), d.expires_at ? R.shortDate(d.expires_at) : "", d.title])),
+      "",
+      R.block("What they govern", R.bullets(decisions.slice(0, 8).map((d) => {
+        const binds = (d.links ?? []).filter((l) => l.relationship === "governs").map((l) => l.target_id);
+        return `${d.id}: ${binds.length ? `binds ${binds.join(", ")}. ` : ""}${d.decision ?? d.title}`;
+      }))),
+    ]),
+  };
+}
+
+// -------------------------------------------------------------------- dispatch
+
+
+// ---------------------------------------------------------------- categories
+
+async function cmdCategoryList(ctx) {
+  const { listCategories } = await import("./tasks/categories.mjs");
+  const rows = await listCategories(ctx.root);
+  if (!rows.length) {
+    return { data: { categories: [] }, text: "This project has no task categories yet. Run superdev init, or add one with superdev category add." };
+  }
+  const active = rows.filter((c) => c.active);
+  const retired = rows.filter((c) => !c.active);
+  return {
+    data: { categories: rows },
+    text: R.stitch([
+      R.heading(`Task categories (${active.length} in use${retired.length ? `, ${retired.length} retired` : ""})`),
+      R.table(["Id", "Category", "Origin", "Tasks", "Means"],
+        active.map((c) => [c.id, c.name, c.system ? "seeded" : "yours", String(c.task_count), c.description ?? ""])),
+      retired.length ? "" : null,
+      retired.length ? R.block("Retired", R.bullets(retired.map((c) =>
+        `${c.name} (${c.id}), still carried by ${c.task_count} task(s). Restore with superdev category restore ${c.id}.`))) : null,
+    ].filter((x) => x !== null)),
+  };
+}
+
+async function cmdCategoryAdd(ctx) {
+  const name = ctx.words.slice(2).join(" ");
+  if (!name) throw new UsageError("Say what to call it: superdev category add <name> [--description <text>]");
+  const { createCategory } = await import("./tasks/categories.mjs");
+  if (!ctx.apply) {
+    return { data: { plan: { name } }, text: `Would add the task category ${name}. Re-run with --apply to create it.` };
+  }
+  const row = await createCategory(ctx.root, { name, description: ctx.flags.description ?? null, actor: ctx.actor });
+  return { data: { category: row }, text: `Added the task category ${row.name} (${row.id}).` };
+}
+
+async function cmdCategoryRename(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which one and what to call it: superdev category rename <id> <new name>.");
+  const name = ctx.words.slice(3).join(" ");
+  if (!name) throw new UsageError("Say what to call it: superdev category rename <id> <new name>.");
+  const { updateCategory } = await import("./tasks/categories.mjs");
+  if (!ctx.apply) {
+    return { data: { plan: { id, name } }, text: `Would rename ${id} to ${name}. Re-run with --apply.` };
+  }
+  const row = await updateCategory(ctx.root, id, { name, description: ctx.flags.description, actor: ctx.actor });
+  return { data: { category: row }, text: `${row.id} is now ${row.name}.` };
+}
+
+async function cmdCategoryDescribe(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which one: superdev category describe <id> <what it means>.");
+  const description = ctx.words.slice(3).join(" ");
+  if (!description) throw new UsageError("Say what it means: superdev category describe <id> <what it means>.");
+  const { updateCategory } = await import("./tasks/categories.mjs");
+  if (!ctx.apply) {
+    return { data: { plan: { id, description } }, text: `Would describe ${id} as: ${description}. Re-run with --apply.` };
+  }
+  const row = await updateCategory(ctx.root, id, { description, actor: ctx.actor });
+  return { data: { category: row }, text: `${row.name} now reads: ${row.description}` };
+}
+
+async function cmdCategoryRetire(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which one: superdev category retire <id>.");
+  const { setCategoryActive } = await import("./tasks/categories.mjs");
+  if (!ctx.apply) {
+    return { data: { plan: { id } }, text: `Would retire ${id}. Tasks already filed under it keep it. Re-run with --apply.` };
+  }
+  const row = await setCategoryActive(ctx.root, id, false, ctx.actor);
+  return { data: { category: row }, text: `${row.name} is retired. It is off the pickable list; tasks that already carry it are untouched.` };
+}
+
+async function cmdCategoryRestore(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which one: superdev category restore <id>.");
+  const { setCategoryActive } = await import("./tasks/categories.mjs");
+  if (!ctx.apply) {
+    return { data: { plan: { id } }, text: `Would restore ${id}. Re-run with --apply.` };
+  }
+  const row = await setCategoryActive(ctx.root, id, true, ctx.actor);
+  return { data: { category: row }, text: `${row.name} is available again.` };
+}
+
+
+// ------------------------------------------------------------ feature depth
+
+async function cmdFeatureAccept(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which feature: superdev feature accept <id>.");
+  const { acceptFeature } = await import("./features/acceptance.mjs");
+  const report = await acceptFeature(ctx.root, id, { apply: ctx.apply, actor: ctx.actor });
+  return {
+    data: report,
+    text: report.applied
+      ? `${report.name} is accepted at ${report.depth} depth, with all ${report.required} requirements recorded.`
+      : R.stitch([
+          R.heading(`${report.name} is ready to accept at ${report.depth} depth`),
+          R.table(["Requirement", "State"], report.components.map((c) => [c.says, c.met ? "recorded" : "missing"])),
+          "",
+          "Re-run with --apply to accept it.",
+        ]),
+  };
+}
+
+/**
+ * Write the specification the depth gate asks for.
+ *
+ * Section 12.4 names no command for this and the depth gate names a database
+ * record for every gap, so the two only meet if something can write one. Until
+ * this existed, `feature depth` reported six missing covers and no command
+ * could close any of them.
+ */
+/** Set an acceptance criterion aside, with the reason on the record. */
+async function cmdFeatureWaive(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which acceptance criterion: superdev feature waive <AC-id>.");
+  const reason = requireFlag(ctx.flags, "reason",
+    "Say why this criterion is being set aside. A waiver without a reason reads the same as forgetting.");
+  const { waiveCriterion } = await import("./features/specify.mjs");
+  const out = await waiveCriterion(ctx.root, id, {
+    reason, actor: ctx.actor, sessionId: ctx.flags.session ?? null, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "waive it",
+      R.wrap(`Would waive ${id} on ${out.feature ?? "its feature"}: ${out.criterion}. Because: ${out.reason}`));
+  }
+  return {
+    data: out,
+    text: R.wrap(`${id} is waived on ${out.feature}: ${out.criterion}. The reason is on the record, and tasks verifying it are no longer held by it.`),
+  };
+}
+
+async function cmdFeatureSpecify(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which feature to specify: superdev feature specify <FEATURE-id>.");
+  const { specifyFeature } = await import("./features/specify.mjs");
+  const { EDGE_CASE_CATEGORIES } = await import("./model/vocabulary.mjs");
+
+  // --edge takes category:behavior, and a behavior beginning with "not
+  // applicable" records the category as deliberately out rather than unwritten.
+  const edgeCases = asList(ctx.flags.edge).map((value) => {
+    const text = String(value);
+    const at = text.indexOf(":");
+    if (at < 1) {
+      throw new UsageError(`--edge takes category:behavior, for example --edge empty_states:"The list says no notes yet." Categories: ${EDGE_CASE_CATEGORIES.join(", ")}.`);
+    }
+    const behavior = text.slice(at + 1).trim();
+    return {
+      category: text.slice(0, at).trim(),
+      behavior,
+      applicability: /^not[ _]applicable\b/i.test(behavior) ? "not_applicable" : "applicable",
+    };
+  });
+
+  // --criterion takes the criterion, optionally with how it is verified after a
+  // double bar, because the depth gate asks for both at standard depth.
+  const criteria = asList(ctx.flags.criterion).map((value) => {
+    const [criterion, verification] = String(value).split("||").map((x) => x.trim());
+    return { criterion, verification: verification || null };
+  });
+
+  const input = {
+    purpose: ctx.flags.purpose ? String(ctx.flags.purpose) : null,
+    userStatement: ctx.flags.user ? String(ctx.flags.user) : null,
+    scopeIn: asList(ctx.flags.in).map(String),
+    scopeOut: asList(ctx.flags.out).map(String),
+    flow: asList(ctx.flags.flow).map(String),
+    criteria,
+    edgeCases,
+  };
+
+  const out = await specifyFeature(ctx.root, id, input, {
+    actor: ctx.actor, sessionId: ctx.flags.session ?? null, apply: ctx.apply,
+  });
+
+  const written = [
+    out.purpose ? "its purpose" : null,
+    out.userStatement ? "who wants it" : null,
+    out.scopeIn ? `${out.scopeIn} in scope` : null,
+    out.scopeOut ? `${out.scopeOut} out of scope` : null,
+    out.flow ? `a ${out.flow} step flow` : null,
+    out.criteria ? `${out.criteria} acceptance criteria` : null,
+    out.edgeCases ? `${out.edgeCases} edge cases` : null,
+  ].filter(Boolean).join(", ");
+
+  if (!out.applied) {
+    return planned({ id, ...input }, "write it", R.wrap(`Would record for ${id}: ${written}.`));
+  }
+  const { depthReadiness } = await import("./features/acceptance.mjs");
+  const { query } = await store();
+  const report = await query(ctx.root, (db) => depthReadiness(db, id));
+  return {
+    data: { applied: true, ...out, readiness: report },
+    text: R.stitch([
+      R.wrap(`Recorded for ${id}: ${written}.`),
+      R.wrap(report.acceptable
+        ? `${id} now carries everything ${report.depth} depth promises. Accept it with superdev feature accept ${id} --apply.`
+        : `${id} still lacks ${report.missing.map((m) => m.says).join(", ")}.`),
+    ]),
+  };
+}
+
+async function cmdFeatureDepth(ctx) {
+  const { depthReadiness, depthGaps } = await import("./features/acceptance.mjs");
+  const id = ctx.words[2];
+  // Section 12.4 specifies `feature depth <FEATURE-id> <depth>`, which sets it.
+  // Only the report existed, so the depth a feature declared could be read and
+  // never changed, and a feature drafted at one depth was stuck at it.
+  const wanted = ctx.words[3];
+  if (id && wanted) {
+    const { setDepth } = await import("./features/specify.mjs");
+    const out = await setDepth(ctx.root, id, wanted, { actor: ctx.actor, apply: ctx.apply });
+    if (out.unchanged) return { data: out, text: R.wrap(`${id} is already at ${wanted} depth.`) };
+    if (!out.applied) {
+      return planned(out, "change the depth",
+        R.wrap(`Would move ${id} from ${out.from} to ${wanted} depth, which changes what it must carry before it can be accepted.`));
+    }
+    return { data: out, text: R.wrap(`${id} is now ${wanted} depth, was ${out.from}. Run superdev feature depth ${id} to see what that now requires.`) };
+  }
+  if (id) {
+    const { query } = await store();
+    const report = await query(ctx.root, (db) => depthReadiness(db, id));
+    return {
+      data: report,
+      text: R.stitch([
+        R.heading(`${report.name}, declared ${report.depth} depth`),
+        R.pairs([["Recorded", `${report.met} of ${report.required}`]]),
+        "",
+        R.table(["Requirement", "State", "What closes it"],
+          report.components.map((c) => [c.says, c.met ? "recorded" : "missing", c.met ? "" : c.fix])),
+      ]),
+    };
+  }
+  const gaps = await depthGaps(ctx.root);
+  if (!gaps.length) {
+    return { data: { gaps: [] }, text: "Every accepted feature carries what its declared depth promises." };
+  }
+  return {
+    data: { gaps },
+    text: R.stitch([
+      R.heading(`Accepted features thinner than they claim (${gaps.length})`),
+      R.table(["Feature", "Depth", "Recorded", "Missing"],
+        gaps.map((g) => [g.name, g.depth, `${g.met} of ${g.required}`, g.missing.map((m) => m.says).join("; ")])),
+      "",
+      "Record what is missing, or lower the depth so the record matches the feature.",
+    ]),
+  };
+}
+
+const COMMANDS = {
+  init: cmdInit,
+  adopt: cmdAdopt,
+  plan: cmdPlan,
+  status: cmdStatus,
+  readiness: cmdReadiness,
+  resume: cmdResume,
+  doctor: cmdDoctor,
+  ui: cmdUi,
+  start: cmdStart,
+  stop: cmdStop,
+  restart: cmdRestart,
+  services: cmdServices,
+  export: cmdExport,
+  import: cmdImport,
+  derive: cmdDerive,
+  "db status": cmdDbStatus,
+  "db migrate": cmdDbMigrate,
+  "db backup": cmdDbBackup,
+  "db restore": cmdDbRestore,
+  "task list": cmdTaskList,
+  "task show": cmdTaskShow,
+  "task create": cmdTaskCreate,
+  "task update": cmdTaskUpdate,
+  "task claim": cmdTaskClaim,
+  "task start": cmdTaskStart,
+  "task unblock": cmdTaskUnblock,
+  "task release": cmdTaskRelease,
+  verify: cmdVerify,
+  "task evidence": cmdTaskEvidence,
+  "task cancel": cmdTaskCancel,
+  "task complete": cmdTaskComplete,
+  "task block": cmdTaskBlock,
+  "task reopen": cmdTaskReopen,
+  "docs generate": cmdDocsGenerate,
+  "docs diff": cmdDocsDiff,
+  "docs accept": cmdDocsAccept,
+  "docs reject": cmdDocsReject,
+  "memory search": cmdMemorySearch,
+  "question answer": cmdQuestionAnswer,
+  settings: cmdSettings,
+  hook: cmdHook,
+  "cloud status": cmdCloudStatus,
+  "cloud connect": cmdCloudConnect,
+  sync: cmdSync,
+  "module list": cmdModuleList,
+  "module show": cmdModuleShow,
+  "goal list": cmdGoalList,
+  "goal show": cmdGoalShow,
+  "milestone list": cmdMilestoneList,
+  "milestone show": cmdMilestoneShow,
+  "feature list": cmdFeatureList,
+  "feature show": cmdFeatureShow,
+  "workflow list": cmdWorkflowList,
+  "workflow show": cmdWorkflowShow,
+  "architecture show": cmdArchitectureShow,
+  "schema show": cmdSchemaShow,
+  "api show": cmdApiShow,
+  "integration list": cmdIntegrationList,
+  "memory show": cmdMemoryShow,
+  "memory verify": cmdMemoryVerify,
+  "memory consolidate": cmdMemoryConsolidate,
+  "memory supersede": cmdMemorySupersede,
+  "memory status": cmdMemoryStatus,
+  "memory benchmark": cmdMemoryBenchmark,
+  "question list": cmdQuestionList,
+  "change record": cmdChangeRecord,
+  "test-plan list": cmdTestPlanList,
+  "test-plan show": cmdTestPlanShow,
+  "test-plan run": cmdTestPlanRun,
+  "test-plan record": cmdTestPlanRecord,
+  "change list": cmdChangeList,
+  "change show": cmdChangeShow,
+  "assumption record": cmdAssumptionRecord,
+  "assumption list": cmdAssumptionList,
+  "assumption resolve": cmdAssumptionResolve,
+  "decision record": cmdDecisionRecord,
+  "decision supersede": cmdDecisionSupersede,
+  "decision list": cmdDecisionList,
+  "feature accept": cmdFeatureAccept,
+  "feature depth": cmdFeatureDepth,
+  "feature specify": cmdFeatureSpecify,
+  "feature waive": cmdFeatureWaive,
+  "category list": cmdCategoryList,
+  "category add": cmdCategoryAdd,
+  "category rename": cmdCategoryRename,
+  "category describe": cmdCategoryDescribe,
+  "category retire": cmdCategoryRetire,
+  "category restore": cmdCategoryRestore,
+};
+
+const GROUPS = new Set(["db", "task", "docs", "memory", "question", "decision", "category", "feature",
+  "module", "goal", "milestone", "workflow", "architecture", "schema", "api", "integration", "change", "assumption", "cloud"]);
+
+function resolveCommand(words) {
+  if (!words.length) return null;
+  const two = `${words[0]} ${words[1] ?? ""}`.trim();
+  if (COMMANDS[two]) return { name: two, handler: COMMANDS[two] };
+  if (GROUPS.has(words[0])) {
+    const known = Object.keys(COMMANDS)
+      .filter((k) => k.startsWith(`${words[0]} `))
+      .map((k) => k.split(" ")[1]);
+    throw new UsageError(
+      words[1]
+        ? `There is no ${two} command. ${words[0]} takes: ${known.join(", ")}.`
+        : `${words[0]} needs a subcommand: ${known.join(", ")}.`,
+    );
+  }
+  if (COMMANDS[words[0]]) return { name: words[0], handler: COMMANDS[words[0]] };
+  return null;
+}
+
+// Piping into head or less closes the pipe early. That is the reader's choice,
+// not a failure of the command. Registered once, because run() is callable more
+// than once in a process.
+let pipeGuarded = false;
+function guardPipe() {
+  if (pipeGuarded) return;
+  pipeGuarded = true;
+  process.stdout.on("error", (err) => {
+    if (err?.code !== "EPIPE") throw err;
+  });
+}
+
+/** Write output where it was asked for. `--out` is a file, otherwise stdout. */
+function emit(text, out) {
+  if (!out) {
+    guardPipe();
+    process.stdout.write(`${text}\n`);
+    return;
+  }
+  const file = resolve(String(out));
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, `${text}\n`, "utf8");
+}
+
+export async function run(argv = process.argv.slice(2)) {
+  let parsed;
+  try {
+    parsed = parseArgs(argv);
+  } catch (err) {
+    process.stderr.write(`${err.message}\n`);
+    return 2;
+  }
+  const { words, flags } = parsed;
+
+  if (flags.version) {
+    const { self } = await import("./runtime/version.mjs");
+    const me = self();
+    process.stdout.write(flags.json
+      ? `${JSON.stringify({ ok: true, command: "version", data: me }, null, 2)}\n`
+      : `${me.name} ${me.version}\n`);
+    return 0;
+  }
+  if (flags.help) {
+    process.stdout.write(`${HELP}\n`);
+    return 0;
+  }
+  if (!words.length) {
+    // Nothing was asked for, which is a misuse rather than an answer, so the
+    // help goes to stdout and the exit code still says the command was wrong.
+    process.stdout.write(`${HELP}\n`);
+    return 2;
+  }
+
+  let resolved;
+  try {
+    resolved = resolveCommand(words);
+  } catch (err) {
+    process.stderr.write(`${err.message}\n`);
+    return 2;
+  }
+  if (!resolved) {
+    process.stderr.write(`There is no ${words.join(" ")} command. Run superdev --help for the list.\n`);
+    return 2;
+  }
+
+  const ctx = {
+    root: resolve(String(flags.root ?? process.cwd())),
+    apply: Boolean(flags.apply),
+    json: Boolean(flags.json),
+    actor: flags.actor ? String(flags.actor) : "superdev",
+    flags,
+    words,
+    command: resolved.name,
+  };
+
+  try {
+    const result = await withFriendlyMissingProject(ctx, () => resolved.handler(ctx));
+    const out = result.consumedOut ? null : flags.out;
+    if (ctx.json) {
+      emit(JSON.stringify({ ok: true, command: resolved.name, data: result.data ?? null }, null, 2), out);
+    } else {
+      emit(String(result.text ?? "").replace(/\n{3,}/g, "\n\n").trimEnd(), out);
+      // After the answer, never before it, and never in JSON: a machine reading
+      // --json is parsing a contract, and a courtesy about versions is not part
+      // of it. This reads a file the last check wrote, so it cannot wait.
+      await announceUpdates(ctx);
+    }
+    return result.exit ?? 0;
+  } catch (err) {
+    const usage = err instanceof UsageError || err?.code === "E_USAGE";
+    // The engine is a static import inside src/db/connect.mjs, so when it is
+    // absent every command dies at module load with a resolver message naming a
+    // package the reader never asked for. This is the one place that sees all of
+    // them. The case is common rather than exotic: a Claude Code marketplace
+    // install copies the plugin into its own cache, and node_modules is
+    // git-ignored, so the copy arrives with no engine at all.
+    if (/Cannot find (package|module) '@tursodatabase\/database'/.test(String(err?.message ?? ""))) {
+      err = new Refusal(
+        "Superdev's storage engine is not installed, so it cannot open a database. " +
+          "Run npm install in the Superdev plugin directory, the one holding its package.json, " +
+          "then run this again. If Superdev was installed from a marketplace, that copy lives in " +
+          "the harness's plugin cache and needs the install run there.",
+        "E_ENGINE_MISSING",
+      );
+    }
+    const payload = {
+      ok: false,
+      command: resolved.name,
+      error: { code: err?.code ?? "E_FAILED", message: err?.message ?? String(err) },
+    };
+    if (ctx.json) process.stdout.write(`${JSON.stringify(payload, null, 2)}\n`);
+    else process.stderr.write(`${R.wrap(err?.message ?? String(err), R.WIDTH, "")}\n`);
+    return usage ? 2 : 1;
+  }
+}
+
+// Only dispatch when this file is the program. Imported (by a hook, or by a
+// test of the parser) it stays inert.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  process.exitCode = await run();
+}

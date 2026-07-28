@@ -1,0 +1,27 @@
+{
+  "name": "superdev",
+  "version": "0.1.0",
+  "description": "Describe a product in ordinary language and get a living map of goals, features, workflows, tasks, integrations, UI surfaces, decisions and evidence, plus a self-contained visual dashboard.",
+  "author": {
+    "name": "Rahul Retnan"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Superdev",
+    "shortDescription": "Turn a plain-language product idea into a tracked, verified, visible project.",
+    "longDescription": "Tell Superdev what you want to build. It asks the few questions that change the product, then maintains a living map of goals, features, workflows, tasks, integrations, technologies, UI surfaces, decisions, blockers and evidence as human-readable records in your repository. Progress is counted from declared deliverables and attached verification, never asserted, and a feature cannot be complete while a criterion lacks evidence. Work that drifts from the goal, such as an unmapped task, a feature supporting no goal, or a request contradicting an accepted decision, becomes a visible warning rather than a silent change. Specialist work is routed to external providers, whose readiness is reported for the harness you are actually in. A self-contained HTML dashboard shows the whole project, including a pannable product canvas, the critical path, plan versus actual, and timeline playback. On Codex, lifecycle hooks require explicit per-hook trust; until trusted, ask for project status directly ,  it reconciles from the canonical records either way.",
+    "developerName": "Rahul Retnan",
+    "category": "developer-tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": "Show me this project's status, or tell me what you want to build."
+  },
+  "homepage": "https://github.com/superdev-ai/superdev",
+  "repository": "https://github.com/superdev-ai/superdev",
+  "requires": {
+    "cli": "0.1.0"
+  }
+}

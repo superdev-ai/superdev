@@ -1,0 +1,63 @@
+{
+  "name": "superdev-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first product-building control system for humans and coding agents.",
+  "author": "Rahul Retnan",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/superdev-ai/superdev.git"
+  },
+  "homepage": "https://github.com/superdev-ai/superdev#readme",
+  "bugs": {
+    "url": "https://github.com/superdev-ai/superdev/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "superdev": "src/cli.mjs"
+  },
+  "files": [
+    "src/",
+    "!src/**/*.test.mjs",
+    "skills/",
+    "references/",
+    "hooks/",
+    "scripts/validate/",
+    "!scripts/**/*.test.mjs",
+    "scripts/doctor/",
+    "scripts/privacy/",
+    ".claude-plugin/",
+    ".codex-plugin/",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "THIRD-PARTY-NOTICES.md",
+    "SECURITY.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md"
+  ],
+  "dependencies": {
+    "@tursodatabase/database": "0.7.1"
+  },
+  "scripts": {
+    "validate": "node scripts/validate/validate-all.mjs",
+    "scan": "node scripts/privacy/scan.mjs --allow-binary .superdev-scan-binary-allow",
+    "scan:history": "node scripts/privacy/scan-history.mjs --allow-binary .superdev-scan-binary-allow --history-allow .superdev-scan-history-allow",
+    "ui:build": "node scripts/package/build-ui.mjs build",
+    "ui:check": "node scripts/package/build-ui.mjs check",
+    "prepublishOnly": "npm test && node scripts/validate/validate-all.mjs && node scripts/package/build-ui.mjs check",
+    "release": "npm run release:tooling && npx release-it",
+    "release:patch": "npm run release:tooling && npx release-it patch",
+    "release:minor": "npm run release:tooling && npx release-it minor",
+    "release:major": "npm run release:tooling && npx release-it major",
+    "release:dry": "npm run release:tooling && npx release-it --dry-run",
+    "version:sync": "node scripts/package/sync-version.mjs --apply",
+    "check": "npm test && node scripts/validate/validate-all.mjs && node src/cli.mjs doctor && node scripts/check/release-criteria.mjs",
+    "release:tooling": "npm install --no-save --silent release-it@19 @release-it/conventional-changelog@10",
+    "test": "node --test \"src/**/*.test.mjs\""
+  }
+}

@@ -1,0 +1,48 @@
+name: Publish to npm
+
+# release-it tags the commit and creates the GitHub release. This publishes the
+# CLI when that release appears, so the tag and the published version can never
+# disagree: there is one trigger and one publish.
+#
+# The plugin needs no step here. It is distributed by git, so the tag is the
+# release, and a user's `claude plugin marketplace update` reads it directly.
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install the one runtime dependency
+        run: npm ci
+
+      # The same gate a maintainer runs locally. A release that cannot pass its
+      # own validators is not a release, and finding that out here costs nothing
+      # next to finding out from whoever installs it.
+      - name: Unit tests
+        run: npm test
+
+      - name: Validate
+        run: node scripts/validate/validate-all.mjs
+
+      - name: Check the dashboard is the current build
+        run: node scripts/package/build-ui.mjs check
+
+      - name: Check every manifest declares the released version
+        run: node scripts/package/sync-version.mjs
+
+      - name: Publish
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

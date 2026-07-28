@@ -1,0 +1,426 @@
+@import "tailwindcss";
+
+/*
+  Theme is driven by data-theme on <html>, written before first paint by the
+  inline script in index.html. "system" is resolved there to a concrete value,
+  so no prefers-color-scheme query participates in theming.
+*/
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ---------------------------------------------------------------------------
+   Instrument Bay tokens. See ui/DESIGN_DIRECTION.md for the rules that govern
+   every one of these. Light is the default, dark overrides.
+   --------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: light;
+
+  --sd-substrate: oklch(0.957 0.006 80);
+  --sd-panel: oklch(0.992 0.003 80);
+  --sd-panel-raised: oklch(0.978 0.004 80);
+  --sd-inset: oklch(0.928 0.008 78);
+  --sd-ink: oklch(0.235 0.014 62);
+  --sd-ink-2: oklch(0.415 0.012 62);
+  /* Measured, not chosen by eye: at the previous 0.565 this scored 3.69:1 on
+     inset and 4.44:1 on panel, so every label, identifier and freshness line
+     in the light theme failed WCAG AA. 0.505 clears 4.5:1 on all four
+     surfaces (4.8 on inset, 5.77 on panel). */
+  --sd-ink-3: oklch(0.505 0.011 62);
+  --sd-rule: oklch(0.872 0.008 76);
+  --sd-rule-strong: oklch(0.775 0.011 76);
+
+  /* Signal is the link colour and the focus ring as well as the primary fill.
+     At 0.565 a link read 3.95:1 on inset and 4.05:1 on its own wash. 0.530
+     clears 4.5:1 on every light surface and makes the focus ring firmer too,
+     while the primary button keeps 5.56:1 against signal-ink. */
+  --sd-signal: oklch(0.53 0.163 45);
+  --sd-signal-ink: oklch(0.995 0.004 80);
+  --sd-signal-wash: oklch(0.938 0.036 60);
+  --sd-signal-edge: oklch(0.842 0.076 52);
+
+  /* Each of these is read on its own wash, so that pairing is what decides the
+     lightness. Attention was 4.22:1 and idle 4.47:1 there; both now clear
+     4.5:1, which matters because attention carries most of the gap and risk
+     copy on the Readiness page. */
+  /* Record type, as a hue ramp rather than six arbitrary colours.
+     The types are a hierarchy, goal down to task, so the ramp reads as depth
+     and not merely as category. Colour is a second channel here, never the
+     first: the node's silhouette and glyph already carry the type, per section
+     7 of DESIGN_DIRECTION.md, so this survives greyscale. */
+  --sd-type-goal: oklch(0.5 0.12 300);
+  --sd-type-milestone: oklch(0.5 0.12 265);
+  --sd-type-module: oklch(0.5 0.12 230);
+  --sd-type-feature: oklch(0.5 0.12 195);
+  --sd-type-workflow: oklch(0.5 0.12 152);
+  --sd-type-task: oklch(0.5 0.1 95);
+
+  --sd-type-goal-wash: oklch(0.945 0.032 300);
+  --sd-type-milestone-wash: oklch(0.945 0.032 265);
+  --sd-type-module-wash: oklch(0.945 0.032 230);
+  --sd-type-feature-wash: oklch(0.945 0.032 195);
+  --sd-type-workflow-wash: oklch(0.945 0.032 152);
+  --sd-type-task-wash: oklch(0.945 0.03 95);
+
+  --sd-state-complete: oklch(0.47 0.108 152);
+  --sd-state-active: oklch(0.505 0.128 245);
+  --sd-state-attention: oklch(0.52 0.116 85);
+  --sd-state-blocked: oklch(0.505 0.17 22);
+  --sd-state-idle: oklch(0.515 0.008 76);
+  --sd-state-retired: oklch(0.5 0.098 305);
+
+  --sd-state-complete-wash: oklch(0.94 0.036 152);
+  --sd-state-active-wash: oklch(0.938 0.036 245);
+  --sd-state-attention-wash: oklch(0.94 0.044 85);
+  --sd-state-blocked-wash: oklch(0.938 0.036 22);
+  --sd-state-idle-wash: oklch(0.928 0.006 76);
+  --sd-state-retired-wash: oklch(0.94 0.032 305);
+
+  --sd-shadow-overlay: 0 1px 2px oklch(0 0 0 / 0.16),
+    0 12px 28px -14px oklch(0 0 0 / 0.42);
+  --sd-shadow-sheet: 0 2px 4px oklch(0 0 0 / 0.18),
+    0 32px 64px -28px oklch(0 0 0 / 0.55);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --sd-substrate: oklch(0.168 0.008 72);
+  --sd-panel: oklch(0.205 0.009 72);
+  --sd-panel-raised: oklch(0.243 0.01 72);
+  --sd-inset: oklch(0.186 0.008 72);
+  --sd-ink: oklch(0.948 0.01 84);
+  --sd-ink-2: oklch(0.79 0.011 84);
+  /* 0.63 cleared the four base surfaces but fell to about 4:1 on the tinted
+     state washes, where a good deal of secondary text sits. 0.70 clears 4.5:1
+     on every background in this theme. */
+  --sd-ink-3: oklch(0.70 0.011 84);
+  --sd-rule: oklch(0.318 0.01 72);
+  --sd-rule-strong: oklch(0.438 0.013 72);
+
+  --sd-signal: oklch(0.76 0.158 55);
+  --sd-signal-ink: oklch(0.19 0.03 55);
+  --sd-signal-wash: oklch(0.3 0.052 48);
+  --sd-signal-edge: oklch(0.43 0.09 50);
+
+  --sd-type-goal: oklch(0.77 0.13 300);
+  --sd-type-milestone: oklch(0.77 0.13 265);
+  --sd-type-module: oklch(0.77 0.12 230);
+  --sd-type-feature: oklch(0.78 0.12 195);
+  --sd-type-workflow: oklch(0.78 0.13 152);
+  --sd-type-task: oklch(0.8 0.12 95);
+
+  --sd-type-goal-wash: oklch(0.3 0.05 300);
+  --sd-type-milestone-wash: oklch(0.3 0.05 265);
+  --sd-type-module-wash: oklch(0.3 0.05 230);
+  --sd-type-feature-wash: oklch(0.3 0.05 195);
+  --sd-type-workflow-wash: oklch(0.3 0.05 152);
+  --sd-type-task-wash: oklch(0.31 0.045 95);
+
+  --sd-state-complete: oklch(0.775 0.14 152);
+  --sd-state-active: oklch(0.76 0.12 245);
+  --sd-state-attention: oklch(0.815 0.135 85);
+  --sd-state-blocked: oklch(0.715 0.165 22);
+  --sd-state-idle: oklch(0.68 0.008 76);
+  --sd-state-retired: oklch(0.755 0.11 305);
+
+  --sd-state-complete-wash: oklch(0.288 0.048 152);
+  --sd-state-active-wash: oklch(0.288 0.046 245);
+  --sd-state-attention-wash: oklch(0.292 0.048 85);
+  --sd-state-blocked-wash: oklch(0.288 0.056 22);
+  --sd-state-idle-wash: oklch(0.268 0.006 76);
+  --sd-state-retired-wash: oklch(0.29 0.044 305);
+
+  --sd-shadow-overlay: 0 1px 2px oklch(0 0 0 / 0.4),
+    0 12px 28px -14px oklch(0 0 0 / 0.72);
+  --sd-shadow-sheet: 0 2px 4px oklch(0 0 0 / 0.45),
+    0 32px 64px -28px oklch(0 0 0 / 0.8);
+}
+
+@theme inline {
+  --color-type-goal: var(--sd-type-goal);
+  --color-type-goal-wash: var(--sd-type-goal-wash);
+  --color-type-milestone: var(--sd-type-milestone);
+  --color-type-milestone-wash: var(--sd-type-milestone-wash);
+  --color-type-module: var(--sd-type-module);
+  --color-type-module-wash: var(--sd-type-module-wash);
+  --color-type-feature: var(--sd-type-feature);
+  --color-type-feature-wash: var(--sd-type-feature-wash);
+  --color-type-workflow: var(--sd-type-workflow);
+  --color-type-workflow-wash: var(--sd-type-workflow-wash);
+  --color-type-task: var(--sd-type-task);
+  --color-type-task-wash: var(--sd-type-task-wash);
+  --color-substrate: var(--sd-substrate);
+  --color-panel: var(--sd-panel);
+  --color-panel-raised: var(--sd-panel-raised);
+  --color-inset: var(--sd-inset);
+  --color-ink: var(--sd-ink);
+  --color-ink-2: var(--sd-ink-2);
+  --color-ink-3: var(--sd-ink-3);
+  --color-rule: var(--sd-rule);
+  --color-rule-strong: var(--sd-rule-strong);
+
+  --color-signal: var(--sd-signal);
+  --color-signal-ink: var(--sd-signal-ink);
+  --color-signal-wash: var(--sd-signal-wash);
+  --color-signal-edge: var(--sd-signal-edge);
+
+  --color-state-complete: var(--sd-state-complete);
+  --color-state-active: var(--sd-state-active);
+  --color-state-attention: var(--sd-state-attention);
+  --color-state-blocked: var(--sd-state-blocked);
+  --color-state-idle: var(--sd-state-idle);
+  --color-state-retired: var(--sd-state-retired);
+
+  --color-state-complete-wash: var(--sd-state-complete-wash);
+  --color-state-active-wash: var(--sd-state-active-wash);
+  --color-state-attention-wash: var(--sd-state-attention-wash);
+  --color-state-blocked-wash: var(--sd-state-blocked-wash);
+  --color-state-idle-wash: var(--sd-state-idle-wash);
+  --color-state-retired-wash: var(--sd-state-retired-wash);
+
+  /* shadcn primitives address these names; they map onto the tokens above. */
+  --color-background: var(--sd-substrate);
+  --color-foreground: var(--sd-ink);
+  --color-card: var(--sd-panel);
+  --color-card-foreground: var(--sd-ink);
+  --color-popover: var(--sd-panel-raised);
+  --color-popover-foreground: var(--sd-ink);
+  --color-primary: var(--sd-signal);
+  --color-primary-foreground: var(--sd-signal-ink);
+  --color-secondary: var(--sd-inset);
+  --color-secondary-foreground: var(--sd-ink);
+  --color-muted: var(--sd-inset);
+  --color-muted-foreground: var(--sd-ink-3);
+  --color-accent: var(--sd-signal-wash);
+  --color-accent-foreground: var(--sd-ink);
+  --color-destructive: var(--sd-state-blocked);
+  --color-border: var(--sd-rule);
+  --color-input: var(--sd-rule);
+  --color-ring: var(--sd-signal);
+
+  --font-chassis: ui-monospace, "SF Mono", "JetBrains Mono", "IBM Plex Mono",
+    "Cascadia Mono", Menlo, Consolas, monospace;
+  --font-prose: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+
+  --text-display: 1.625rem;
+  --text-display--line-height: 1.15;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 600;
+  --text-title: 1.125rem;
+  --text-title--line-height: 1.3;
+  --text-title--letter-spacing: -0.012em;
+  --text-title--font-weight: 600;
+  --text-subtitle: 0.9375rem;
+  --text-subtitle--line-height: 1.35;
+  --text-subtitle--font-weight: 600;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.55;
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.5;
+  --text-chassis: 0.8125rem;
+  --text-chassis--line-height: 1.4;
+  --text-chassis--letter-spacing: 0.005em;
+  --text-chassis--font-weight: 500;
+  --text-chassis-sm: 0.75rem;
+  --text-chassis-sm--line-height: 1.35;
+  --text-chassis-sm--letter-spacing: 0.02em;
+  --text-chassis-sm--font-weight: 500;
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.3;
+  --text-label--letter-spacing: 0.09em;
+  --text-label--font-weight: 600;
+
+  --radius-sd-sm: 3px;
+  --radius-sd: 5px;
+  --radius-sd-lg: 7px;
+
+  --shadow-overlay: var(--sd-shadow-overlay);
+  --shadow-sheet: var(--sd-shadow-sheet);
+
+  --ease-sd: cubic-bezier(0.22, 0.68, 0.36, 1);
+
+  --animate-sd-in: sd-in 180ms var(--ease-sd);
+  --animate-sd-out: sd-out 120ms var(--ease-sd);
+  --animate-sd-heartbeat: sd-heartbeat 2s var(--ease-sd) infinite;
+
+  @keyframes sd-in {
+    from {
+      opacity: 0;
+      transform: translateY(-2px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes sd-out {
+    from {
+      opacity: 1;
+      transform: none;
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.985);
+    }
+  }
+  @keyframes sd-heartbeat {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--sd-rule);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--sd-substrate);
+    color: var(--sd-ink);
+    font-family: var(--font-prose);
+    font-size: 0.875rem;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* The shell owns scrolling; the page body never scrolls sideways. */
+    overflow-x: hidden;
+  }
+
+  /*
+    One focus treatment for the whole application.
+
+    The `.focus-ring` class carried it wherever someone remembered to add it;
+    everything else fell back to the browser default, so tabbing through a view
+    switched between two different rings. `:where()` keeps this at zero
+    specificity, so any component that needs its own treatment still wins.
+  */
+  :where(a[href], button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--sd-signal);
+    outline-offset: 2px;
+  }
+
+  /* Numerals line up in every column of readings. */
+  .font-chassis,
+  code,
+  kbd,
+  samp,
+  pre {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  ::selection {
+    background-color: var(--sd-signal-wash);
+    color: var(--sd-ink);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--sd-rule-strong);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--sd-ink-3);
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  /* The one focus treatment. Never removed, never invisible. */
+  .focus-ring {
+    outline: none;
+  }
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--sd-signal);
+    outline-offset: 2px;
+  }
+
+  /* A focused or selected full-width row: an outline is easy to lose there. */
+  .row-edge-focus:focus-visible {
+    outline: none;
+    box-shadow: inset 2px 0 0 var(--sd-signal);
+    background-color: var(--sd-signal-wash);
+  }
+
+  /* Non-colour carrier for a blocked row, per the status rules. */
+  .hatch-blocked {
+    background-image: repeating-linear-gradient(
+      45deg,
+      currentColor 0 1px,
+      transparent 1px 4px
+    );
+    opacity: 0.06;
+  }
+
+  /*
+    React Flow's own attribution keeps a translucent white background from its
+    stylesheet, which left the link at 1.22:1 in the dark theme and 2.57:1 in
+    the light one. Styled once here because four separate canvases render it.
+  */
+  .react-flow__attribution {
+    background: var(--sd-panel) !important;
+    border-top-left-radius: var(--radius-sd-sm);
+  }
+  .react-flow__attribution a {
+    color: var(--sd-ink-2) !important;
+    font-family: var(--font-chassis);
+    font-size: 10px;
+  }
+
+  /* Canvas backdrop, shared by every @xyflow/react surface. */
+  .canvas-grid {
+    background-color: var(--sd-inset);
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      var(--sd-rule-strong) 1px,
+      transparent 0
+    );
+    background-size: 24px 24px;
+  }
+
+  .prose-measure {
+    /*
+     * No cap. Text fills the container it is given.
+     *
+     * This was a 68ch reading measure, which rendered as 589px at the 14px body
+     * size while the cards holding it run 942 to 1188px, so descriptions
+     * stopped halfway across their own card and wrapped with several hundred
+     * pixels to spare. The owner's call is that the space should be used.
+     *
+     * The class is kept rather than deleted from three hundred call sites, so
+     * a measure can be reintroduced in one place if long lines ever become the
+     * bigger complaint.
+     */
+    max-width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,4 @@
+# Legitimate binary assets, explicitly classified (A1 item 3).
+# One repo-relative path per line. These are still byte-scanned for denylist
+# entries and path/email/key markers; they are exempt only from BIN-UNCLASSIFIED.
+# The privacy scanner consumes this via --allow-binary.

@@ -1,0 +1,45 @@
+{
+  "git": {
+    "commitMessage": "chore: release v${version}",
+    "tagName": "v${version}",
+    "push": true,
+    "requireCleanWorkingDir": true,
+    "requireBranch": [
+      "main"
+    ]
+  },
+  "npm": {
+    "publish": false,
+    "publishPath": ".",
+    "access": "public"
+  },
+  "github": {
+    "release": true,
+    "releaseName": "Release v${version}",
+    "releaseNotes": null,
+    "preRelease": false,
+    "draft": false,
+    "tokenRef": "GITHUB_TOKEN"
+  },
+  "hooks": {
+    "before:init": [
+      "npm test",
+      "node scripts/validate/validate-all.mjs",
+      "node src/cli.mjs doctor",
+      "node scripts/check/release-criteria.mjs",
+      "node scripts/package/build-ui.mjs check"
+    ],
+    "after:bump": "node scripts/package/sync-version.mjs --apply",
+    "after:release": "echo Released ${name} v${version}. The workflow publishes to npm when the GitHub release is created."
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": "angular",
+      "infile": "CHANGELOG.md",
+      "header": "# Changelog\n\nAll notable changes to this project will be documented in this file.\n\nThe format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),\nand this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).\n\nThe CLI and the plugin share one version. A release moves both.\n\n",
+      "gitRawCommitsOpts": {
+        "path": "."
+      }
+    }
+  }
+}

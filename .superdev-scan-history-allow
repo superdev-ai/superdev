@@ -1,0 +1,13 @@
+# Complete-history BIN-TEXT exceptions — one "<object-id> <path>" per line.
+#
+# History is immutable, so a binary blob committed to a text-extension path
+# BEFORE the confinement/NUL fix cannot be rewritten out of history. These exact
+# (object-id, path) pairs suppress ONLY the BIN-TEXT *classification* finding.
+# The blob content is still byte-scanned on every run (denylist / absolute-home
+# path / non-allowlisted email / private-key markers are never suppressed); each
+# blob below was verified byte-clean before being listed.
+#
+# a3f279e8a1… : the pre-fix ingest.mjs blob, which contained literal NUL
+# separators (the very defect the A1 corrective gate removed). Byte-scan of this
+# object is clean — the NUL blind spot hid no real leak.
+a3f279e8a110609310999d7fa739dd2f61607ac0 skills/docs/scripts/ingest.mjs
