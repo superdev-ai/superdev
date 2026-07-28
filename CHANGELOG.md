@@ -9,6 +9,18 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+# [0.4.0](https://github.com/superdev-ai/superdev/compare/v0.3.0...v0.4.0) (2026-07-28)
+
+
+### Bug Fixes
+
+* **hooks:** Superdev regenerating its own documents is not untracked work ([0ad8deb](https://github.com/superdev-ai/superdev/commit/0ad8deb0ee92f3076b0b8ad38645fbce6f25044d))
+
+
+### Features
+
+* supersede a piece of evidence that no longer applies ([08bc57d](https://github.com/superdev-ai/superdev/commit/08bc57d4862479ceac9ab7170be76ab311382db0))
+
 # [0.3.0](https://github.com/superdev-ai/superdev/compare/v0.2.1...v0.3.0) (2026-07-28)
 
 
