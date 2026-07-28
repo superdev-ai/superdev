@@ -40,13 +40,18 @@ Detect and keep visible until resolved: source vs source · source vs code · so
 
 ## 5. Engine commands
 
-The ingestion engine implements this contract deterministically - use it, never improvise its jobs: `node "${CLAUDE_PLUGIN_ROOT}/skills/docs/scripts/ingest.mjs" <op>`:
+Ingestion is `superdev init --brief <file>`, which reads the source, screens it for
+credential-shaped values before anything is stored, records what it states, and
+records what it does not state as an open question rather than a guess. The
+operations below describe that contract:
 
 - `ingest --source <rel> [--apply]` - intake, hashing, screening, revision registration (plan first; unchanged re-ingest is a structural no-op; changed content appends a new revision).
 - `propose --revision <SRC-..:rN> --proposals <file|-> [--apply]` - YOUR semantic claim/contradiction proposals, validated against the deterministic schema (category, six-label epistemic enum, span hash-verified against the revision; Confirmed requires verification evidence). Deterministic identity dedups and merges provenance.
 - `approve|reject --id <CLM-..> --approver <who> [--apply]` - drafts become accepted only here; open contradictions and load-bearing Contradicted/Unknown labels block approval.
 - `resolve --id <CTR-..> --authority <class> --evidence <e> [--apply]` - contradictions stay visible until explicitly resolved; re-ingest never closes them.
 - `verify` - re-verifies every stored provenance span against its recorded revision hash.
-- Owner questions and risk: `node "${CLAUDE_PLUGIN_ROOT}/scripts/talks/questions.mjs"` (packet contract enforced) and `node "${CLAUDE_PLUGIN_ROOT}/scripts/talks/risk.mjs" score`.
+- Owner questions: `superdev question list` and `superdev question answer <id>`. Risk
+  is carried per feature as its specification depth, set with
+  `superdev feature depth <id> <depth>` and enforced at acceptance.
 
 Standalone single-skill install: inventory and screening (dry-run) work; record mutation requires the plugin context and is refused with a documented checkpoint (`E_STANDALONE`) - never silently skipped. Inbox retention/commit policy belongs to the project; the engine never edits ignore files.

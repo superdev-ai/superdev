@@ -15,7 +15,7 @@
 // about it.
 
 import { readFileSync, existsSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 import { ERROR, WARNING, finding, rel } from "./common.mjs";
 
@@ -175,6 +175,16 @@ export async function run(root) {
     }
   }
 
+  // A skill also tells an agent to run scripts by path, and a path is a claim
+  // about the repository exactly like a command name is.
+  //
+  // Nothing checked those, and five had been dead for as long as the database
+  // replaced the file-per-record engine they belonged to. The docs skill still
+  // documented a fourteen-command surface at scripts/talks/, and a shipped
+  // script imported three modules from it, so its mutation path could never run
+  // and failed advising the reader to do the thing they were already doing.
+  findings.push(...scriptPaths(root));
+
   // One finding per distinct claim: a flag documented in four places is one
   // wrong instruction repeated, but each file still needs fixing, so they are
   // kept separate and only exact duplicates within a file are collapsed.
@@ -187,4 +197,64 @@ export async function run(root) {
   });
 
   return { name, findings: unique };
+}
+
+/**
+ * Every script a skill names by path, checked against the repository.
+ *
+ * Two shapes are read: `${CLAUDE_PLUGIN_ROOT}/...` in the prose an agent
+ * follows, and a relative import inside a script the skills ship. A path
+ * containing a placeholder such as `<cmd>` is a family rather than a file, and
+ * is reported only when its whole directory is missing, because that is the
+ * difference between "documented loosely" and "documented for something gone".
+ */
+function scriptPaths(root) {
+  const out = [];
+  const files = [];
+  const walk = (dir) => {
+    if (!existsSync(dir)) return;
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) walk(path);
+      else if (/\.(md|mjs)$/.test(entry.name)) files.push(path);
+    }
+  };
+  walk(join(root, "skills"));
+  walk(join(root, "references"));
+
+  for (const file of files) {
+    const where = rel(root, file);
+    const text = readFileSync(file, "utf8");
+
+    for (const match of text.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9_./<>-]+\.mjs)/g)) {
+      const named = match[1];
+      if (named.includes("<")) {
+        // A family. Only its directory can be checked, and a missing directory
+        // means every member of the family is missing too.
+        const dir = named.slice(0, named.lastIndexOf("/"));
+        if (dir && !existsSync(join(root, dir))) {
+          out.push(finding("skill-script-dir-missing", ERROR, where,
+            `The skill tells an agent to run scripts under ${dir}/, and that directory does not exist.`));
+        }
+        continue;
+      }
+      if (!existsSync(join(root, named))) {
+        out.push(finding("skill-script-missing", ERROR, where,
+          `The skill tells an agent to run ${named}, and there is no such file.`));
+      }
+    }
+
+    // A shipped script importing something that is not there fails at the
+    // moment it is needed, which is later and more confusing than a bad path in
+    // prose.
+    if (!file.endsWith(".mjs")) continue;
+    for (const match of text.matchAll(/new URL\("(\.\.[A-Za-z0-9_./-]+\.mjs)"/g)) {
+      const target = resolve(dirname(file), match[1]);
+      if (!existsSync(target)) {
+        out.push(finding("skill-script-import-missing", ERROR, where,
+          `It imports ${match[1]}, which resolves to a file that does not exist.`));
+      }
+    }
+  }
+  return out;
 }

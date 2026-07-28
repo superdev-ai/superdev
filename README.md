@@ -141,8 +141,13 @@ claude plugin marketplace add superdev-ai/superdev
 claude plugin install superdev@superdev
 ```
 
-The plugin is text only, so nothing is compiled and no dependency is installed.
-It calls the `superdev` from step 1.
+The plugin calls the `superdev` from step 1. Nothing in it is compiled and it
+installs no dependency of its own: its hooks and skills invoke the command, not
+code inside the plugin.
+
+It is distributed as this repository, so the copy your editor caches also
+contains the CLI source it does not use. That is dead weight rather than a second
+installation, and the version that runs is always the one npm installed.
 
 To try it without installing permanently:
 

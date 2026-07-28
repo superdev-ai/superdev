@@ -59,4 +59,12 @@ Generated views (module inventory rollups, decision index, ownership rollups) ar
 
 ## 7. Engine commands
 
-Durable writes go through the record engine: append the change entry with `node "${CLAUDE_PLUGIN_ROOT}/scripts/talks/events.mjs" append --root <project> --event <file|-> --apply` (immutable, collision-safe, secret/reasoning-content rejected), map changed paths with `node "${CLAUDE_PLUGIN_ROOT}/scripts/talks/ownership.mjs" match`, and regenerate views with `node "${CLAUDE_PLUGIN_ROOT}/scripts/talks/index.mjs" rebuild --apply`. Generated views are never hand-edited - rebuild them.
+Durable writes go through the database, reached by the `superdev` command.
+Record what moved in accepted scope with
+`superdev change record --summary <what> --reason <why> --apply`, which names the
+records it moved and is refused without a reason. The activity trail behind it is
+append only, enforced by database triggers rather than by convention, and
+screening refuses a secret-shaped value before it can be stored. Regenerate the
+Markdown with `superdev docs generate --apply`. Generated files are never
+hand-edited: an edit becomes a proposal, read with `superdev docs diff` and taken
+in with `superdev docs accept`.
