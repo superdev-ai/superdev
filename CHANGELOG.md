@@ -9,6 +9,18 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+# [0.3.0](https://github.com/superdev-ai/superdev/compare/v0.2.1...v0.3.0) (2026-07-28)
+
+
+### Bug Fixes
+
+* judge a check by containment, and never leave an active task unowned ([1a5a18a](https://github.com/superdev-ai/superdev/commit/1a5a18a50abbf7210368aa49fcb7892d6d1879c3))
+
+
+### Features
+
+* merge a duplicate task into the one that keeps the work ([7767d08](https://github.com/superdev-ai/superdev/commit/7767d08679dea6382928deb1c962e618aafd69fc))
+
 ## [0.2.1](https://github.com/superdev-ai/superdev/compare/v0.2.0...v0.2.1) (2026-07-28)
 
 
