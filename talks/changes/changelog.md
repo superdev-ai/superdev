@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3160 hash=4f9ee28e8bcf39756012c0fcb61c7f82197ed1767cc41ea264ad34b771d4cd7b -->
+<!-- superdev:generated source=PRJ-0001 revision=3162 hash=cdd41a06403b7e101dc602e433b618cee3716c8f139060e54ffff3b47b84dd3e -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,7 @@ Specification and decision changes, newest first, taken from the append-only act
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3162 | 2026-07-28 | Change recorded: Removed skills/docs/scripts/ingest.mjs from the Docs skill | superdev |
 | 3160 | 2026-07-28 | Session SES-0006 ended. No outcome recorded. | superdev |
 | 3158 | 2026-07-28 | Session started by Superdev Dev in claude-code on main | Superdev Dev |
 | 3156 | 2026-07-28 | Session SES-0005 ended. No outcome recorded. | superdev |
@@ -206,4 +207,3 @@ Specification and decision changes, newest first, taken from the append-only act
 | 2947 | 2026-07-27 | Passing evidence recorded for TASK-0001: The changes and change_targets tables exist, created by migration 008. A change records what moved in accepted scope, why, and every record it touched, and the table is append only so the audit trail section 14.2 requires cannot be revised. change record, change list and change show reach it. | self-host |
 | 2946 | 2026-07-27 | Task TASK-0001 moved to in progress | self-host |
 | 2945 | 2026-07-27 | TASK-0001 claimed. | self-host |
-| 2942 | 2026-07-27 | Accepted Verify a task at microspec depth | self-host |

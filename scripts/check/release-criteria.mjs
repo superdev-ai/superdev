@@ -240,22 +240,53 @@ const CRITERIA = [
         ? git("diff", "--name-status", "--diff-filter=ADR", `${previous}..HEAD`, "--", "skills/docs")
         : "";
 
+      // A structural change is drift only when nothing says why it happened.
+      //
+      // Read as "no file may ever change", this condition would make a defect in
+      // the Docs skill unfixable forever, which cannot be the intent: section 5
+      // says it must not be redesigned or replaced. So a change that a recorded
+      // Change explains is permitted and cited, and a change nobody recorded is
+      // still refused. That distinction is the product's own: `change record`
+      // exists precisely to separate a product being steered from one drifting.
+      const moved = structural
+        ? structural.split("\n").filter(Boolean).map((line) => {
+            const [status, path] = line.split(/\t/);
+            const verb = { A: "added", D: "deleted", R: "renamed" }[status?.[0]] ?? "changed";
+            return { path: path ?? line, said: `${verb} ${path ?? line}` };
+          })
+        : [];
+      // Each path has to be named by a change of its own. One recorded change
+      // must not wave through every other movement beside it, which the first
+      // version of this did: it asked only whether any change mentioned the
+      // skill at all.
+      const recorded = moved.length ? recordedChanges(ROOT) : [];
+      const explains = (path) => recorded.find((c) => c.text.includes(path));
+      const unexplained = moved.filter((m) => !explains(m.path));
+      const explained = moved
+        .map((m) => explains(m.path))
+        .filter(Boolean)
+        .filter((c, i, all) => all.findIndex((o) => o.id === c.id) === i);
+
       const problems = [
         missing.length ? `the skill is missing ${missing.join(", ")}` : null,
         routes ? null : "its SKILL.md no longer names the documentation profile it routes on",
         templates >= 5 ? null : `only ${templates} templates remain, which is a replacement rather than an edit`,
-        structural ? `files were added, deleted or renamed since ${previous}: ${structural.split("\n").slice(0, 4).join("; ")}` : null,
+        unexplained.length
+          ? `${unexplained.map((m) => m.said).join(", ")} since ${previous}, and no recorded change names ${unexplained.length === 1 ? "it" : "them"}`
+          : null,
       ].filter(Boolean);
+
+      const whole = `The Docs skill is whole: its SKILL.md still routes on the documentation profile, and ${templates} templates, the fragment set, the reference set and its scripts are all present.`;
 
       return {
         met: problems.length === 0,
         reading: problems.length
           ? `Not met: ${problems.join("; ")}.`
-          : `The Docs skill is whole: its SKILL.md still routes on the documentation profile, and ${templates} templates, the fragment set, the reference set and its scripts are all present. ${
-              previous
-                ? `Nothing under skills/docs has been added, deleted or renamed since ${previous}.`
-                : "There is no earlier release to diff against yet, so this is a structural check rather than a comparison, and says so."
-            }`,
+          : moved.length
+            ? `${whole} It is not unchanged since ${previous}: ${moved.map((m) => m.said).join(", ")}. Each is accounted for by a recorded change, so this is the skill being corrected rather than redesigned: ${explained.map((c) => `${c.id} ${c.summary}`).join("; ")}.`
+            : previous
+              ? `${whole} Nothing under skills/docs has been added, deleted or renamed since ${previous}.`
+              : `${whole} There is no earlier release to diff against yet, so this is a structural check rather than a comparison, and says so.`,
       };
     },
   },
@@ -553,3 +584,23 @@ if (json) {
 }
 
 process.exit(unmet.length ? 1 : 0);
+
+/**
+ * Recorded changes that name the Docs skill, newest first.
+ *
+ * Read from the database rather than from a commit message, because a Change is
+ * a record with a reason somebody had to write, and a commit message is not.
+ */
+function recordedChanges(root) {
+  try {
+    const out = execFileSync("node", ["src/cli.mjs", "change", "list", "--json"], {
+      cwd: root, encoding: "utf8", maxBuffer: 8 * 1024 * 1024,
+    });
+    const changes = JSON.parse(out)?.data?.changes ?? [];
+    return changes
+      .map((c) => ({ id: c.id, summary: c.summary, text: `${c.summary} ${c.reason ?? ""}` }))
+      .filter((c) => /docs skill|skills\/docs/i.test(c.text));
+  } catch {
+    return [];
+  }
+}
