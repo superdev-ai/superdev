@@ -11,9 +11,9 @@
 // 2 a usage error. A finding is a real answer, so `doctor` and `docs diff`
 // return 1 when they find something rather than pretending nothing is wrong.
 
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { mkdirSync, readFileSync, realpathSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import * as R from "./cli/render.mjs";
 
 const nowIso = () => new Date().toISOString();
@@ -2767,8 +2767,31 @@ export async function run(argv = process.argv.slice(2)) {
   }
 }
 
-// Only dispatch when this file is the program. Imported (by a hook, or by a
-// test of the parser) it stays inert.
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+/**
+ * Whether this file is the program, rather than something that imported it.
+ *
+ * Compared through realpath on both sides, because npm installs a `bin` as a
+ * symlink. Run as `superdev`, argv[1] is the link in the bin directory while
+ * import.meta.url is the real file inside the package, so comparing them
+ * directly is always false: every command exited 0 having printed nothing.
+ *
+ * That was invisible until the package had a binary at all. `node src/cli.mjs`
+ * matches on the nose and had been the only way it was ever run.
+ */
+function isProgram() {
+  const invoked = process.argv[1];
+  if (!invoked) return false;
+  const real = (path) => {
+    try {
+      return realpathSync(path);
+    } catch {
+      return path;
+    }
+  };
+  return real(invoked) === real(fileURLToPath(import.meta.url));
+}
+
+// Imported, by a hook or by a test of the parser, it stays inert.
+if (isProgram()) {
   process.exitCode = await run();
 }
