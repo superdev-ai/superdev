@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0016 revision=2943 hash=95fdeca210a565c7ff1ed736c0b82e6359871cae826a7acc2ff5818daf4766e7 -->
+<!-- superdev:generated source=FEAT-0016 revision=3326 hash=35c9f3c9c6635b8442208ffdfaa8f604629926d90f6c04bf8a9b1022db6ab1cb -->
 # Feature: Start local services
 
 - **Status:** Complete
@@ -45,6 +45,8 @@
 | Evidence | Type | Result | Reference |
 |---|---|---|---|
 | Ran node src/cli.mjs start (dry run since a service was already running elsewhere): it correctly reported the current service state and offered 'Starting the service opens one local process for this project. Re-run with --apply to start the local service.' The same startService function is what cmdUi used to bring up the already-running control center reachable at 127.0.0.1:4317 (see FEAT-0015 evidence), confirming the underlying start path is functional, not just a planned message. | command | pass | superdev start (COMMANDS.start -> cmdStart in src/cli.mjs:667, using startService/serviceStatus from src/service/manage.mjs) |
+| A held port now names its holder, start takes a port, and the two messages that were wrong are right | manual_check | pass | - |
+| The port flag exists on both start and ui, and refuses what is not a port | manual_check | pass | - |
 
 ## Delivery state
 

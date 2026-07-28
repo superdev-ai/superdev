@@ -136,6 +136,19 @@ export function probeHealth(host, port, timeout = PROBE_TIMEOUT_MS) {
 }
 
 /**
+ * A path a reader can retype, shortened at home so a long absolute path does not
+ * bury the part that identifies the project.
+ *
+ * Every message about a port used to describe it without saying whose it was,
+ * even though the health probe had already been handed the answer, so finding out
+ * meant opening candidate directories one at a time.
+ */
+export function displayRoot(path) {
+  const home = homedir();
+  return home && path.startsWith(`${home}/`) ? `~/${path.slice(home.length + 1)}` : path;
+}
+
+/**
  * What is actually true for this project right now. Distinguishes a service we
  * manage from a stale lock, from a start in progress, from someone else holding
  * the port.
@@ -160,14 +173,31 @@ export async function inspect(root, { port = null, host = DEFAULTS.host } = {}) 
       };
     }
     if (health) {
+      // Not running, and the default port happens to be busy. Those are two
+      // separate facts and only the first one is about this project.
+      //
+      // This used to report `foreign`, which made both commands lie. `start`
+      // never blocked on it: the server scans forward from the requested port on
+      // EADDRINUSE, so a second project quietly lands on the next free one, and
+      // the message told the reader to do something the tool was already doing.
+      // `stop` did worse. On a project with nothing running it refused, and told
+      // the reader to go and stop a different project, which they have no reason
+      // to touch.
+      //
+      // Reserving `foreign` for the case that is genuinely somebody else's
+      // service in our place is what makes the word mean something.
       return {
-        state: "foreign",
+        state: "stopped",
         managed: false,
         lock: null,
         health,
-        port: candidate,
+        port: null,
         host,
-        explanation: `Port ${candidate} is held by a Superdev service for a different project. Start this one on another port.`,
+        portInUse: candidate,
+        heldBy: health.projectRoot ?? null,
+        explanation: `Nothing is running for this project. Port ${candidate} is held by ${
+          health.projectRoot ? `the Superdev service for ${displayRoot(health.projectRoot)}` : "another Superdev service"
+        }, so starting this one will use the next free port instead. Pass --port <number> to choose.`,
       };
     }
     return {
@@ -217,7 +247,9 @@ export async function inspect(root, { port = null, host = DEFAULTS.host } = {}) 
       health,
       port: lock.port,
       host: lock.host ?? host,
-      explanation: `Port ${lock.port} is answering, but it is not the service this lock file describes. Something else took the port.`,
+      explanation: `Port ${lock.port} is answering, but it is not the service this lock file describes${
+        health.projectRoot ? `: it belongs to ${displayRoot(health.projectRoot)}` : ""
+      }. This project's service is gone and something else took its port. Run \`superdev start --apply\` to bring this one back on a free port.`,
     };
   }
   return {
@@ -335,7 +367,12 @@ export async function startService(root, options = {}) {
   );
   if (!held) {
     if (view.state === "foreign") {
-      throw new ServiceError(E.FOREIGN, view.explanation, { port: view.port });
+      throw new ServiceError(E.FOREIGN, view.explanation, {
+        port: view.port,
+        // The caller cannot act on a refusal whose subject it cannot see, and the
+        // probe already knows it. `superdev services` prints it; a script reads it.
+        heldBy: view.health?.projectRoot ?? null,
+      });
     }
     return { ...summarize(root, view), alreadyRunning: true };
   }

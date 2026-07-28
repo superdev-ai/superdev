@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0009 revision=3298 hash=bc976b9165002417937ce996d4ab11c5db5c0eed94be842e04ddf432b14e94d1 -->
+<!-- superdev:generated source=MOD-0009 revision=3326 hash=b3e5b6b2568765299e0792868f81a4a2ac30f038bffffbaa7d4266f4c7ab7012 -->
 # Local Control Center - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -56,3 +56,5 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | The API carries each question's options, select mode, recommended options and why, and the control centre renders them as choices | manual_check | pass | - | Current |
 | One-answer questions refuse several options; many-answer questions accept them | manual_check | pass | - | Current |
 | A typed answer is accepted alone or alongside an option, and the right half of it reaches the project field | manual_check | pass | - | Current |
+| A held port now names its holder, start takes a port, and the two messages that were wrong are right | manual_check | pass | - | Current |
+| The port flag exists on both start and ui, and refuses what is not a port | manual_check | pass | - | Current |

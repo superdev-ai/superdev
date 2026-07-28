@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3312 hash=5401fb7fd3567f9cb95b5095f5541bae0281621582fe6292489c3eded0882b0b -->
+<!-- superdev:generated source=PRJ-0001 revision=3326 hash=77d9ad83eeb9a12fe87f1d2edaef1bf587372a842e132622d0e3f2b02daf8a51 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,19 @@ Specification and decision changes, newest first, taken from the append-only act
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3326 | 2026-07-28 | Change recorded: A busy port says whose it is, and stops claiming the reader is blocked when they are not | superdev |
+| 3325 | 2026-07-28 | Linked memory MEM-0096 to feature FEAT-0016 | superdev |
+| 3324 | 2026-07-28 | Linked memory MEM-0096 to task TASK-0028 | superdev |
+| 3323 | 2026-07-28 | Remembered outcome: TASK-0028 complete: Make the port refusal actionable: say which project holds it | superdev |
+| 3322 | 2026-07-28 | TASK-0028 completed, assignment released. | superdev |
+| 3321 | 2026-07-28 | Task TASK-0028 moved to complete | superdev |
+| 3320 | 2026-07-28 | Passing evidence recorded for TASK-0028: The port flag exists on both start and ui, and refuses what is not a port | superdev |
+| 3319 | 2026-07-28 | Passing evidence recorded for TASK-0028: A held port now names its holder, start takes a port, and the two messages that were wrong are right | superdev |
+| 3318 | 2026-07-28 | Changed 22 files in src, src/init, src/product and 14 more places. | superdev |
+| 3317 | 2026-07-28 | Task TASK-0028 moved to in progress | superdev |
+| 3316 | 2026-07-28 | TASK-0028 claimed. | superdev |
+| 3315 | 2026-07-28 | TASK-0028 now implements acceptance_criterion AC-0016. | superdev |
+| 3314 | 2026-07-28 | Created task TASK-0028 | superdev |
 | 3312 | 2026-07-28 | Change recorded: A claim points the session at its task, so the record stops accusing tracked work of being untracked | superdev |
 | 3311 | 2026-07-28 | Linked memory MEM-0095 to feature FEAT-0088 | superdev |
 | 3310 | 2026-07-28 | Linked memory MEM-0095 to task TASK-0027 | superdev |
@@ -194,16 +207,3 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3115 | 2026-07-27 | Passing evidence recorded for TASK-0020: cloud connect established a connection to the directory transport, created the project key and recorded the peer as connected with its fingerprint. cloud status then reported it reachable. | superdev |
 | 3114 | 2026-07-27 | Passing evidence recorded for TASK-0018: superdev sync --dry-run reported the same counts the applied run then produced, and wrote nothing locally or remotely: the preview and the run share every line that decides anything, so they cannot describe different syncs. | superdev |
 | 3113 | 2026-07-27 | Task TASK-0018 moved to in progress | superdev |
-| 3112 | 2026-07-27 | TASK-0018 claimed. | superdev |
-| 3111 | 2026-07-27 | Passing evidence recorded for TASK-0019: Both copies changed the same feature purpose after agreeing on a base. The sync recorded one conflict, took in nothing, and left the local value standing; superdev sync --resolve settled it by keeping remote, the value changed, and the next sync reported no conflict because the settled value became the new agreed base. A defect was found and fixed on the way: the base was being advanced to this side's own unacknowledged value, which overwrote a local edit with no conflict at all. | superdev |
-| 3110 | 2026-07-27 | Task TASK-0019 moved to in progress | superdev |
-| 3109 | 2026-07-27 | TASK-0019 claimed. | superdev |
-| 3108 | 2026-07-27 | Passing evidence recorded for TASK-0017: Two copies of the same project synchronized through a directory: 55 records went out sealed with AES-256-GCM, the bundle on disk is unreadable as text, and reading it back showed 29 shared tables, none of the 18 withheld ones, and no developer name anywhere in it. | superdev |
-| 3107 | 2026-07-27 | Task TASK-0017 moved to in progress | superdev |
-| 3106 | 2026-07-27 | TASK-0017 claimed. | superdev |
-| 3105 | 2026-07-27 | Passing evidence recorded for TASK-0020: superdev cloud connect pointed a throwaway project at a directory, created a 32 byte key kept locally with owner-only permissions, recorded the peer with its key fingerprint, and sent nothing. The preview said what it would do before anything was written. | superdev |
-| 3104 | 2026-07-27 | Task TASK-0020 moved to in progress | superdev |
-| 3103 | 2026-07-27 | TASK-0020 claimed. | superdev |
-| 3102 | 2026-07-27 | Task TASK-0020 moved to ready | superdev |
-| 3101 | 2026-07-27 | Task TASK-0019 moved to ready | superdev |
-| 3100 | 2026-07-27 | Task TASK-0018 moved to ready | superdev |

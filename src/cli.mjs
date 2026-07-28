@@ -242,6 +242,10 @@ Flags worth knowing
   feature specify --not <text>
                        What the feature deliberately does not do. Repeatable.
                        Its counterpart is --in, and --out stays global
+  ui | start --port <number>
+                       Serve on this port instead of 4317. Every project defaults
+                       to the same port, so the second one to start is refused
+                       and needs this
 
 Exit codes
   0 it worked, 1 something was found or refused, 2 the command was misused`;
@@ -757,6 +761,23 @@ const service = () => import("./service/manage.mjs");
 // later rename of one field cannot silently make `ui` claim nothing is running.
 const isRunning = (report) => report?.state === "running" || report?.running === true;
 
+/**
+ * The port to serve on, when the default one is taken.
+ *
+ * The refusal for a held port told the reader to start on another port and no
+ * command could. This is that flag, validated here rather than in two places:
+ * `ui` and `start` are the same decision made twice, and a port that is not a
+ * usable number has to be refused before a process is spawned against it.
+ */
+function portFrom(ctx) {
+  if (ctx.flags.port === undefined) return null;
+  const value = Number(ctx.flags.port);
+  if (!Number.isInteger(value) || value < 1024 || value > 65535) {
+    throw new UsageError(`--port takes a whole number between 1024 and 65535. ${JSON.stringify(String(ctx.flags.port))} is not one.`);
+  }
+  return value;
+}
+
 async function cmdUi(ctx) {
   const { serviceStatus, startService } = await service();
   const current = await serviceStatus(ctx.root);
@@ -769,21 +790,25 @@ async function cmdUi(ctx) {
       ]),
     };
   }
+  const port = portFrom(ctx);
   if (!ctx.apply) {
     return planned(current, "start the control center",
-      R.wrap("The control center is not running. Starting it opens one local process for this project and listens on the loopback address only."));
+      R.wrap(`The control center is not running. Starting it opens one local process for this project and listens on the loopback address only${port ? `, on port ${port}` : ""}.`));
   }
-  const started = await startService(ctx.root, { actor: ctx.actor });
+  const started = await startService(ctx.root, { actor: ctx.actor, ...(port ? { port } : {}) });
   return { data: { applied: true, service: started }, text: report(ctx, "Control center started", started) };
 }
 
 async function cmdStart(ctx) {
   const { startService, serviceStatus } = await service();
+  const port = portFrom(ctx);
   if (!ctx.apply) {
     return planned(await serviceStatus(ctx.root), "start the local service",
-      "Starting the service opens one local process for this project.");
+      port
+        ? `Starting the service opens one local process for this project, on port ${port}.`
+        : "Starting the service opens one local process for this project.");
   }
-  const started = await startService(ctx.root, { actor: ctx.actor });
+  const started = await startService(ctx.root, { actor: ctx.actor, ...(port ? { port } : {}) });
   return { data: { applied: true, service: started }, text: report(ctx, "Service started", started) };
 }
 
