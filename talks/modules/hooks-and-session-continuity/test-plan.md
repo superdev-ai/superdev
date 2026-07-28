@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0008 revision=3365 hash=e4de49a08db1d874b022f9985ae6fae2b5b804e8cee1a9ff81b56c435fb32a23 -->
+<!-- superdev:generated source=MOD-0008 revision=3408 hash=9674dde7fc93f0b5e1fcfd93794aa8ffc9567783120e01e479f90353a8a5019c -->
 # Hooks and Session Continuity - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -43,3 +43,4 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | Work already accounted for is no longer reported as untracked when git re-reports it | manual_check | pass | - | Current |
 | A task can no longer be in an active status that no session owns, by either route in | manual_check | pass | - | Current |
 | verify now accepts a script anywhere inside the project, and refuses everything that leaves it | manual_check | pass | - | Current |
+| A note that files moved no longer marks every generated document stale | manual_check | pass | - | Current |

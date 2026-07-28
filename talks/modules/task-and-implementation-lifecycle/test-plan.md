@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0004 revision=3072 hash=8a2fed387ad1a5d026246e9faf49bd202fa799caecf97e2b344acf4260418d8e -->
+<!-- superdev:generated source=MOD-0004 revision=3408 hash=670eaf080e0460ccfee86c0614d6b25a1dc0e56ebaa1209136efcda1a1bf4fcc -->
 # Task and Implementation Lifecycle - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -28,13 +28,16 @@
 | Verify a task | superdev verify <TASK-id> reports pass or fail against the task's test plan | Run superdev verify <TASK-id> and record what was observed. | Met |
 | Detect unlinked work at prompt time | Submitting a prompt describing new work with no matching task triggers a reminder to create and link a task | Do it through the surface a person would use and record what was observed. | Met |
 | Track touched files during work | After edits during an active task, the task's file list includes the touched files | Do it through the surface a person would use and record what was observed. | Met |
+| Merge a duplicate task into the one that keeps the work | Everything a duplicate owns ends up on the task that is kept | Merge a task carrying evidence, links, dependencies and a child, then read both tasks back | Met |
+| Merge a duplicate task into the one that keeps the work | The duplicate is superseded and names its survivor rather than disappearing | Read the merged task and find the identifier it points at | Met |
+| Merge a duplicate task into the one that keeps the work | A merge that would lose something is refused by name | Try merging a task into itself, into a task in another project, and while somebody else holds it | Met |
 
 ## Coverage map
 
 | Area | Level | Cases | Status |
 |---|---|---|---|
-| Happy paths per feature | command, manual_check, validator | 20 | exists |
-| Applicable edge-case categories | command, manual_check, validator | 68 | exists |
+| Happy paths per feature | command, manual_check, validator | 21 | exists |
+| Applicable edge-case categories | command, manual_check, validator | 70 | exists |
 | Permission boundaries | command, manual_check, validator | 0 | missing |
 | State machines including illegal transitions | command, manual_check, validator | 0 | missing |
 
@@ -67,3 +70,6 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | The test_plans and test_plan_cases tables exist, created by migration 008, and eight plans with eleven cases are recorded from section 20.1. Task completion can now be gated on a plan that exists, where section 9.3 previously named a document that could not. | validator | pass | scripts/validate/data-model.mjs | Current |
 | Completion is refused while a covering plan has no passing run: the lifecycle journey in a throwaway project hit the refusal, and E_TEST_PLAN_UNSATISFIED names the plan and the command that runs it. | manual_check | pass | - | Current |
 | All eight accepted test plans carry a passing run: three from running their own command, five from journeys carried out and recorded with what was observed. | manual_check | pass | - | Current |
+| A duplicate's evidence, contract links and child tasks end up on the task that is kept | manual_check | pass | - | Current |
+| The duplicate is superseded, keeps its history, and names the task that replaced it | manual_check | pass | - | Current |
+| Every merge that would lose something is refused by name | manual_check | pass | - | Current |

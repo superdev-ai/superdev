@@ -15,7 +15,7 @@
 // project root, so a caller composes several of these inside one read.
 
 import { json, DbError } from "../db/store.mjs";
-import { agrees, count } from "../model/vocabulary.mjs";
+import { agrees, count, AMBIENT_EVENTS } from "../model/vocabulary.mjs";
 
 const DAY_MS = 86_400_000;
 
@@ -715,12 +715,20 @@ export async function freshness(db, projectId) {
   // it rendered at and only then records its own documentation_generated event,
   // so comparing against the raw maximum sequence would report every document as
   // stale the instant it was produced, and no run could ever clear it.
+  // Documentation events are excluded because a render is not a content change,
+  // and ambient events because a note that files moved or a session started
+  // changes no record any document projects. Counting those made every commit
+  // mark all of them stale, which the release gate then refused, and regenerating
+  // only cleared it until the next commit.
+  const IGNORED = [
+    "documentation_generated", "documentation_proposal_raised",
+    "documentation_proposal_resolved", "documentation_possibly_stale",
+    ...AMBIENT_EVENTS,
+  ];
   const contentRevision = (await db.get(
     `SELECT max(sequence) AS s FROM activity_events
-      WHERE project_id = ? AND event_type NOT IN
-            ('documentation_generated','documentation_proposal_raised',
-             'documentation_proposal_resolved','documentation_possibly_stale')`,
-    projectId,
+      WHERE project_id = ? AND event_type NOT IN (${IGNORED.map(() => "?").join(", ")})`,
+    projectId, ...IGNORED,
   ))?.s ?? 0;
   const live = documents.filter((d) => d.sync_status !== "retired");
   const behind = live.filter((d) => (d.database_revision ?? 0) < contentRevision);

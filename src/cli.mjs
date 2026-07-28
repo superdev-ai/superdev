@@ -142,6 +142,7 @@ Working
   task block <id>      Record why a task cannot move
   task unblock <id>    Put a blocked task back where it was
   task reopen <id>     Reopen finished work, with a reason
+  task merge <id>      Fold a duplicate into the task that keeps the work
   derive [feature]     Turn accepted specifications into tasks
 
 Knowledge
@@ -2197,6 +2198,61 @@ async function cmdTaskBlock(ctx) {
   return { data: { applied: true, task }, text: `${task.id} is Blocked. The reason is on the record.` };
 }
 
+/**
+ * Fold a duplicate task into the one that keeps the work.
+ *
+ * There is no delete. A task carries why it existed and what proved it, and
+ * history here is append only, so a deleted task would take its evidence with it
+ * and leave a commit message pointing at an identifier nobody can look up. The
+ * duplicate is superseded and says which task replaced it, which is the same
+ * answer for the reader and a better one for the record.
+ */
+async function cmdTaskMerge(ctx) {
+  const duplicate = requireWord(ctx.words, 2, "Say which task is the duplicate: superdev task merge <duplicate-id> --into <TASK-id>.");
+  const survivor = String(requireFlag(ctx.flags, "into", "Say which task keeps the work: --into <TASK-id>."));
+  const { planMerge, mergeTasks } = await import("./tasks/merge.mjs");
+
+  if (!ctx.apply) {
+    const plan = await planMerge(ctx.root, duplicate, survivor);
+    const rows = Object.entries(plan.moving)
+      .filter(([, n]) => n > 0)
+      .map(([kind, n]) => [MERGE_LABEL[kind] ?? kind, String(n)]);
+    return planned(plan, "merge them", R.stitch([
+      R.wrap(`Would fold ${plan.duplicate.id} ${plan.duplicate.name} into ${plan.survivor.id} ${plan.survivor.name}.`),
+      rows.length ? R.block("What would move", R.table(["What", "How many"], rows)) : R.wrap("Nothing is recorded against it yet, so only its status would change."),
+      plan.releasing ? R.wrap("Its claim would be released rather than moved, because an assignment names who took the work.") : null,
+      plan.staying.history
+        ? R.wrap(`${countWord(plan.staying.history, "activity event")} would stay on ${plan.duplicate.id}, because history records a moment and cannot be moved to another record without saying something untrue about the past.`)
+        : null,
+      R.wrap(`${plan.duplicate.id} would become Superseded and point at ${plan.survivor.id}. Nothing is deleted.`),
+    ]));
+  }
+
+  const out = await mergeTasks(ctx.root, duplicate, survivor, {
+    actor: ctx.actor, reason: ctx.flags.reason ? String(ctx.flags.reason) : null,
+  });
+  const rows = Object.entries(out.moved).filter(([, n]) => n > 0);
+  return {
+    data: out,
+    text: R.stitch([
+      `${out.duplicate.id} is merged into ${out.survivor.id}.`,
+      rows.length
+        ? R.block("Moved", R.table(["What", "How many"], rows.map(([k, n]) => [MERGE_LABEL[k] ?? k, String(n)])))
+        : null,
+      R.wrap(`${out.duplicate.id} is ${R.status(out.duplicate.status)} and points at ${out.survivor.id}, so anyone who finds the old identifier is told where the work went.`),
+    ]),
+  };
+}
+
+const MERGE_LABEL = {
+  evidence: "Evidence",
+  contractLinks: "Contract links (copied, not moved)",
+  dependencies: "Dependencies",
+  memories: "Memory entries",
+  changes: "Recorded changes",
+  children: "Child tasks",
+};
+
 async function cmdTaskReopen(ctx) {
   const id = requireWord(ctx.words, 2, "Say which task to reopen: superdev task reopen <id>.");
   const reason = requireFlag(ctx.flags, "reason", "Reopening finished work needs a reason, because the record already said it was done.");
@@ -3108,6 +3164,7 @@ const COMMANDS = {
   "task cancel": cmdTaskCancel,
   "task complete": cmdTaskComplete,
   "task block": cmdTaskBlock,
+  "task merge": cmdTaskMerge,
   "task reopen": cmdTaskReopen,
   "docs generate": cmdDocsGenerate,
   "docs diff": cmdDocsDiff,

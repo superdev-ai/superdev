@@ -1173,7 +1173,7 @@ export function changelog(data) {
   return doc(
     REGENERATED,
     `# ${text(data.project.name, "Project")} - Changelog`,
-    "Specification and decision changes, newest first, taken from the append-only activity log. Task and session traffic stays in the control center.",
+    "Specification, decision and task changes, newest first, taken from the append-only activity log. File and session traffic stays in the control center, because a note that files moved is not a change to anything described here.",
     table(
       ["#", "Date", "Change", "Actor"],
       data.entries.map((e) => [e.sequence, e.date, e.summary, e.actor]),

@@ -22,7 +22,7 @@ import { dirname, join, posix } from "node:path";
 import { query, mutate, create, recordActivity, currentProject, json } from "../db/store.mjs";
 import { assertStorable } from "../model/screening.mjs";
 import { slugify } from "../model/ids.mjs";
-import { EDGE_CASE_CATEGORIES, MODULE_STEPS } from "../model/vocabulary.mjs";
+import { EDGE_CASE_CATEGORIES, MODULE_STEPS, AMBIENT_EVENTS } from "../model/vocabulary.mjs";
 import * as T from "./templates.mjs";
 
 export const MARKER = "superdev:generated";
@@ -145,8 +145,9 @@ async function snapshot(db, projectId) {
     db,
     `SELECT sequence, event_type, summary, actor_label, created_at FROM activity_events
      WHERE project_id = ? AND event_type NOT LIKE 'documentation_%'
+       AND event_type NOT IN (${AMBIENT_EVENTS.map(() => "?").join(", ")})
      ORDER BY sequence DESC LIMIT 200`,
-    projectId,
+    projectId, ...AMBIENT_EVENTS,
   );
 
   index(s);

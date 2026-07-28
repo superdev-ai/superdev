@@ -1,12 +1,50 @@
-<!-- superdev:generated source=PRJ-0001 revision=3365 hash=14f95ed35583e0c2226e947afc2e155fa52ceb06bfb509e7afb79d56566c0fc8 -->
+<!-- superdev:generated source=PRJ-0001 revision=3408 hash=c5e8c5bc91959dc062ebd82bac07a256cda0afcbe082a3045d6e5a8d0a1dcb5b -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
 
-Specification and decision changes, newest first, taken from the append-only activity log. Task and session traffic stays in the control center.
+Specification, decision and task changes, newest first, taken from the append-only activity log. File and session traffic stays in the control center, because a note that files moved is not a change to anything described here.
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3408 | 2026-07-28 | Linked memory MEM-0101 to feature FEAT-0096 | superdev |
+| 3407 | 2026-07-28 | Linked memory MEM-0101 to task TASK-0033 | superdev |
+| 3406 | 2026-07-28 | Remembered outcome: TASK-0033 complete: Prove Merge a duplicate task into the one that keeps the wor | superdev |
+| 3405 | 2026-07-28 | Merge a duplicate task into the one that keeps the work is complete: its contract is satisfied | superdev |
+| 3404 | 2026-07-28 | TASK-0033 completed, assignment released. | superdev |
+| 3403 | 2026-07-28 | Task TASK-0033 moved to complete | superdev |
+| 3402 | 2026-07-28 | Acceptance criterion AC-0106 is met, evidenced by EV-0150. | superdev |
+| 3401 | 2026-07-28 | Passing evidence recorded for TASK-0033: Every merge that would lose something is refused by name | superdev |
+| 3400 | 2026-07-28 | Acceptance criterion AC-0105 is met, evidenced by EV-0149. | superdev |
+| 3399 | 2026-07-28 | Passing evidence recorded for TASK-0033: The duplicate is superseded, keeps its history, and names the task that replaced it | superdev |
+| 3398 | 2026-07-28 | Acceptance criterion AC-0104 is met, evidenced by EV-0148. | superdev |
+| 3397 | 2026-07-28 | Passing evidence recorded for TASK-0033: A duplicate's evidence, contract links and child tasks end up on the task that is kept | superdev |
+| 3395 | 2026-07-28 | Task TASK-0033 moved to in progress | superdev |
+| 3394 | 2026-07-28 | TASK-0033 claimed. | superdev |
+| 3392 | 2026-07-28 | Derived tasks for FEAT-0096: 1 new, 0 updated, 0 superseded. | superdev |
+| 3391 | 2026-07-28 | Derived Prove Merge a duplicate task into the one that keeps the work meets its acceptance criteria | superdev |
+| 3390 | 2026-07-28 | FEAT-0096 now serves No unmapped or disconnected implementation work | superdev |
+| 3389 | 2026-07-28 | Accepted Merge a duplicate task into the one that keeps the work at microspec depth | superdev |
+| 3388 | 2026-07-28 | Edge case recorded for FEAT-0096: state_machine_violations | superdev |
+| 3387 | 2026-07-28 | Edge case recorded for FEAT-0096: duplication | superdev |
+| 3386 | 2026-07-28 | Acceptance criterion recorded for FEAT-0096 | superdev |
+| 3385 | 2026-07-28 | Acceptance criterion recorded for FEAT-0096 | superdev |
+| 3384 | 2026-07-28 | Acceptance criterion recorded for FEAT-0096 | superdev |
+| 3383 | 2026-07-28 | Primary flow recorded for FEAT-0096 | superdev |
+| 3382 | 2026-07-28 | Primary flow recorded for FEAT-0096 | superdev |
+| 3381 | 2026-07-28 | Primary flow recorded for FEAT-0096 | superdev |
+| 3380 | 2026-07-28 | Primary flow recorded for FEAT-0096 | superdev |
+| 3379 | 2026-07-28 | Feature drafted in Task and Implementation Lifecycle: Merge a duplicate task into the one that keeps the work | superdev |
+| 3378 | 2026-07-28 | Linked memory MEM-0100 to feature FEAT-0088 | superdev |
+| 3377 | 2026-07-28 | Linked memory MEM-0100 to task TASK-0032 | superdev |
+| 3376 | 2026-07-28 | Remembered outcome: TASK-0032 complete: Stop events about files and sessions from marking generated | superdev |
+| 3375 | 2026-07-28 | TASK-0032 completed, assignment released. | superdev |
+| 3374 | 2026-07-28 | Task TASK-0032 moved to complete | superdev |
+| 3373 | 2026-07-28 | Passing evidence recorded for TASK-0032: A note that files moved no longer marks every generated document stale | superdev |
+| 3371 | 2026-07-28 | Task TASK-0032 moved to in progress | superdev |
+| 3370 | 2026-07-28 | TASK-0032 claimed. | superdev |
+| 3369 | 2026-07-28 | TASK-0032 now implements acceptance_criterion AC-0088. | superdev |
+| 3368 | 2026-07-28 | Created task TASK-0032 | superdev |
 | 3365 | 2026-07-28 | Change recorded: A verification script is judged by containment, and an active task always has an owner | superdev |
 | 3364 | 2026-07-28 | Linked memory MEM-0099 to feature FEAT-0088 | superdev |
 | 3363 | 2026-07-28 | Linked memory MEM-0099 to task TASK-0031 | superdev |
@@ -18,14 +56,12 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3357 | 2026-07-28 | TASK-0031 claimed. | superdev |
 | 3356 | 2026-07-28 | TASK-0031 now implements acceptance_criterion AC-0088. | superdev |
 | 3355 | 2026-07-28 | Created task TASK-0031 | superdev |
-| 3354 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
 | 3353 | 2026-07-28 | Linked memory MEM-0098 to feature FEAT-0088 | superdev |
 | 3352 | 2026-07-28 | Linked memory MEM-0098 to task TASK-0030 | superdev |
 | 3351 | 2026-07-28 | Remembered outcome: TASK-0030 complete: Never leave a task in an active status that no session owns | superdev |
 | 3350 | 2026-07-28 | TASK-0030 completed, assignment released. | superdev |
 | 3349 | 2026-07-28 | Task TASK-0030 moved to complete | superdev |
 | 3348 | 2026-07-28 | Passing evidence recorded for TASK-0030: A task can no longer be in an active status that no session owns, by either route in | superdev |
-| 3347 | 2026-07-28 | Changed 6 files in src/runtime, talks/changes, talks/modules/hooks-and-session-continuity/features and 2 more places. | superdev |
 | 3346 | 2026-07-28 | Task TASK-0030 moved to in progress | superdev |
 | 3345 | 2026-07-28 | TASK-0030 claimed. | superdev |
 | 3344 | 2026-07-28 | TASK-0030 now implements acceptance_criterion AC-0088. | superdev |
@@ -37,13 +73,10 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3337 | 2026-07-28 | TASK-0029 completed, assignment released. | superdev |
 | 3336 | 2026-07-28 | Task TASK-0029 moved to complete | superdev |
 | 3335 | 2026-07-28 | Passing evidence recorded for TASK-0029: Work already accounted for is no longer reported as untracked when git re-reports it | superdev |
-| 3334 | 2026-07-28 | Changed 7 files in src, src/service, talks/changes and 3 more places. | superdev |
 | 3333 | 2026-07-28 | Task TASK-0029 moved to in progress | superdev |
 | 3332 | 2026-07-28 | TASK-0029 claimed. | superdev |
 | 3331 | 2026-07-28 | TASK-0029 now implements acceptance_criterion AC-0088. | superdev |
 | 3330 | 2026-07-28 | Created task TASK-0029 | superdev |
-| 3329 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
-| 3328 | 2026-07-28 | Changed 6 files in src, src/service, talks/changes and 2 more places. | superdev |
 | 3326 | 2026-07-28 | Change recorded: A busy port says whose it is, and stops claiming the reader is blocked when they are not | superdev |
 | 3325 | 2026-07-28 | Linked memory MEM-0096 to feature FEAT-0016 | superdev |
 | 3324 | 2026-07-28 | Linked memory MEM-0096 to task TASK-0028 | superdev |
@@ -52,7 +85,6 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3321 | 2026-07-28 | Task TASK-0028 moved to complete | superdev |
 | 3320 | 2026-07-28 | Passing evidence recorded for TASK-0028: The port flag exists on both start and ui, and refuses what is not a port | superdev |
 | 3319 | 2026-07-28 | Passing evidence recorded for TASK-0028: A held port now names its holder, start takes a port, and the two messages that were wrong are right | superdev |
-| 3318 | 2026-07-28 | Changed 22 files in src, src/init, src/product and 14 more places. | superdev |
 | 3317 | 2026-07-28 | Task TASK-0028 moved to in progress | superdev |
 | 3316 | 2026-07-28 | TASK-0028 claimed. | superdev |
 | 3315 | 2026-07-28 | TASK-0028 now implements acceptance_criterion AC-0016. | superdev |
@@ -66,10 +98,8 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3306 | 2026-07-28 | Task TASK-0027 moved to in progress | superdev |
 | 3305 | 2026-07-28 | TASK-0027 now implements acceptance_criterion AC-0088. | superdev |
 | 3304 | 2026-07-28 | Passing evidence recorded for TASK-0027: Claiming a task now points the session at it, so work under a claim stops being reported as untracked | superdev |
-| 3303 | 2026-07-28 | Changed 19 files in src, src/init, src/product and 12 more places. | superdev |
 | 3302 | 2026-07-28 | TASK-0027 claimed. | superdev |
 | 3301 | 2026-07-28 | Created task TASK-0027 | superdev |
-| 3300 | 2026-07-28 | Changed 18 files in ui/src/views, src, src/init and 11 more places. | superdev |
 | 3298 | 2026-07-28 | Change recorded: One answer path for a question, replacing three that disagreed | superdev |
 | 3297 | 2026-07-28 | Linked memory MEM-0094 to feature FEAT-0095 | superdev |
 | 3296 | 2026-07-28 | Linked memory MEM-0094 to task TASK-0026 | superdev |
@@ -77,15 +107,12 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3294 | 2026-07-28 | Answer a question by choosing from its options or typing your own is complete: its contract is satisfied | superdev |
 | 3293 | 2026-07-28 | TASK-0026 completed, assignment released. | superdev |
 | 3292 | 2026-07-28 | Task TASK-0026 moved to complete | superdev |
-| 3291 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
 | 3290 | 2026-07-28 | Acceptance criterion AC-0103 is met, evidenced by EV-0140. | superdev |
 | 3289 | 2026-07-28 | Passing evidence recorded for TASK-0026: A typed answer is accepted alone or alongside an option, and the right half of it reaches the project field | superdev |
 | 3288 | 2026-07-28 | Acceptance criterion AC-0102 is met, evidenced by EV-0139. | superdev |
 | 3287 | 2026-07-28 | Passing evidence recorded for TASK-0026: One-answer questions refuse several options; many-answer questions accept them | superdev |
 | 3286 | 2026-07-28 | Acceptance criterion AC-0101 is met, evidenced by EV-0138. | superdev |
 | 3285 | 2026-07-28 | Passing evidence recorded for TASK-0026: The API carries each question's options, select mode, recommended options and why, and the control centre renders them as choices | superdev |
-| 3284 | 2026-07-28 | Changed 8 files in src, src/init, src/product and 4 more places. | superdev |
-| 3283 | 2026-07-28 | Changed 5 files in src/init, src/product, src and 1 more places. | superdev |
 | 3281 | 2026-07-28 | Task TASK-0026 moved to in progress | superdev |
 | 3280 | 2026-07-28 | TASK-0026 claimed. | superdev |
 | 3279 | 2026-07-28 | Derived tasks for FEAT-0095: 1 new, 0 updated, 0 superseded. | superdev |
@@ -114,8 +141,6 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3256 | 2026-07-28 | Passing evidence recorded for TASK-0025: capability not-applicable records a reason, and refuses without one | superdev |
 | 3255 | 2026-07-28 | Acceptance criterion AC-0098 is met, evidenced by EV-0135. | superdev |
 | 3254 | 2026-07-28 | Passing evidence recorded for TASK-0025: capability specify settled the area doctor was warning about, and the warning cleared | superdev |
-| 3253 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
-| 3252 | 2026-07-28 | Changed 20 files in the project root, scripts/validate, skills/docs/scripts and 8 more places. | superdev |
 | 3251 | 2026-07-28 | Task TASK-0025 moved to in progress | superdev |
 | 3250 | 2026-07-28 | TASK-0025 claimed. | superdev |
 | 3249 | 2026-07-28 | Derived tasks for FEAT-0094: 1 new, 0 updated, 0 superseded. | superdev |
@@ -160,14 +185,6 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3209 | 2026-07-28 | Primary flow recorded for FEAT-0093 | superdev |
 | 3208 | 2026-07-28 | Primary flow recorded for FEAT-0093 | superdev |
 | 3207 | 2026-07-28 | Feature drafted in Product Model and Orchestration: Record what the product deliberately does not do | superdev |
-| 3206 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
-| 3205 | 2026-07-28 | Changed 18 files in the project root, scripts/validate, skills/docs/scripts and 8 more places. | superdev |
-| 3204 | 2026-07-28 | Changed 17 files in the project root, scripts/validate, skills/docs/scripts and 7 more places. | superdev |
-| 3203 | 2026-07-28 | Changed 15 files in the project root, scripts/validate, src and 7 more places. | superdev |
-| 3202 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
-| 3201 | 2026-07-28 | Changed 12 files in src, talks/changes, talks/modules/product-model-and-orchestration and 5 more places. | superdev |
-| 3199 | 2026-07-28 | Changed 13 files in hooks, src/progress, src/runtime and 8 more places. | superdev |
-| 3198 | 2026-07-28 | Session started by Rahul Retnan in claude-code on main | Rahul Retnan |
 | 3197 | 2026-07-28 | FEAT-0092 now serves No unmapped or disconnected implementation work | superdev |
 | 3195 | 2026-07-28 | Linked memory MEM-0091 to feature FEAT-0092 | superdev |
 | 3194 | 2026-07-28 | Linked memory MEM-0091 to task TASK-0023 | superdev |
@@ -190,20 +207,3 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3177 | 2026-07-28 | Edge case recorded for FEAT-0092: invalid_input | superdev |
 | 3176 | 2026-07-28 | Edge case recorded for FEAT-0092: duplication | superdev |
 | 3175 | 2026-07-28 | Edge case recorded for FEAT-0092: empty_states | superdev |
-| 3174 | 2026-07-28 | Acceptance criterion recorded for FEAT-0092 | superdev |
-| 3173 | 2026-07-28 | Acceptance criterion recorded for FEAT-0092 | superdev |
-| 3172 | 2026-07-28 | Acceptance criterion recorded for FEAT-0092 | superdev |
-| 3171 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
-| 3170 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
-| 3169 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
-| 3168 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
-| 3167 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
-| 3166 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
-| 3165 | 2026-07-28 | Feature drafted in Product Model and Orchestration: Author the product map after initialization | superdev |
-| 3164 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
-| 3162 | 2026-07-28 | Change recorded: Removed skills/docs/scripts/ingest.mjs from the Docs skill | superdev |
-| 3160 | 2026-07-28 | Session SES-0006 ended. No outcome recorded. | superdev |
-| 3158 | 2026-07-28 | Session started by Superdev Dev in claude-code on main | Superdev Dev |
-| 3156 | 2026-07-28 | Session SES-0005 ended. No outcome recorded. | superdev |
-| 3154 | 2026-07-28 | Session SES-0004 ended. No outcome recorded. | superdev |
-| 3153 | 2026-07-28 | Session SES-0003 ended. No outcome recorded. | superdev |

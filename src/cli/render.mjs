@@ -317,6 +317,10 @@ export function renderTaskDetail(detail) {
       ["Priority", status(task.priority ?? "normal")],
       ["Feature", feature ? `${feature.id} ${feature.name}` : task.feature_id],
       ["Parent", task.parent_task_id],
+      // A superseded task that does not say what replaced it leaves anybody who
+      // found the old identifier, in a commit message or a branch name, with
+      // nowhere to go.
+      ["Merged into", task.superseded_by],
       ["Estimate", task.estimate],
       ["Due", task.due_at ? shortDate(task.due_at) : null],
       ["Blocked because", task.block_reason],

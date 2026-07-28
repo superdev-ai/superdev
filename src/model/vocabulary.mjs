@@ -13,6 +13,32 @@ export const OPEN_TASK_STATUSES = TASK_STATUSES.filter(
 
 export const TERMINAL_TASK_STATUSES = ["complete", "cancelled", "superseded"];
 
+/**
+ * Events that describe the working tree or a session, rather than a record.
+ *
+ * Generated documents are a projection of the database, so what makes one stale is
+ * a change to a record it renders. A `code_changed` event is a note that files
+ * moved; it changes nothing any document projects. Freshness counted it anyway, so
+ * every commit marked all 303 documents stale, and since the release gate runs
+ * doctor after the commit, the gate could never pass: regenerating cleared it, the
+ * next commit brought it back.
+ *
+ * The changelog had the matching half of the same confusion. It renders every event
+ * that is not a documentation event, while its own description says "Task and
+ * session traffic stays in the control center". The description was right about
+ * what belongs there and the query did not implement it.
+ *
+ * Held here because two modules have to agree about it: the one that decides what a
+ * document renders, and the one that decides when a document is out of date.
+ */
+export const AMBIENT_EVENTS = [
+  "code_changed",
+  "untracked_work",
+  "session_started",
+  "session_ended",
+  "session_compacted",
+];
+
 /** Human-facing label. Title Case, plain language, no internal vocabulary. */
 export const LABEL = {
   draft: "Draft",
