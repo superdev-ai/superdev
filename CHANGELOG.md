@@ -9,6 +9,14 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+## [0.2.1](https://github.com/superdev-ai/superdev/compare/v0.2.0...v0.2.1) (2026-07-28)
+
+
+### Bug Fixes
+
+* **hooks:** call work untracked only when it is newly changed ([3dff172](https://github.com/superdev-ai/superdev/commit/3dff172ae4d05efbcc1b521de0a8365b028b2a45)), closes [hi#severity](https://github.com/hi/issues/severity)
+* **service:** say whose port it is, and stop claiming the reader is blocked ([a85ff39](https://github.com/superdev-ai/superdev/commit/a85ff39bbc5aaae2bc9b947e144ab74d670dbfe2))
+
 # [0.2.0](https://github.com/superdev-ai/superdev/compare/v0.1.2...v0.2.0) (2026-07-28)
 
 

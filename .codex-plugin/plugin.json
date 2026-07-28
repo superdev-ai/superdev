@@ -1,6 +1,6 @@
 {
   "name": "superdev",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Describe a product in ordinary language and get a living map of goals, features, workflows, tasks, integrations, UI surfaces, decisions and evidence, plus a self-contained visual dashboard.",
   "author": {
     "name": "Rahul Retnan"
@@ -22,6 +22,6 @@
   "homepage": "https://github.com/superdev-ai/superdev",
   "repository": "https://github.com/superdev-ai/superdev",
   "requires": {
-    "cli": "0.2.0"
+    "cli": "0.2.1"
   }
 }
