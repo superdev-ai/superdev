@@ -277,7 +277,7 @@ export function DataView() {
         {entities.length === 0 ? (
           <Empty
             title="No entities have been recorded yet"
-            explanation="An entity is something the product stores: an account, an order, a document. They appear here once a feature has had its data specified, which normally happens during planning."
+            explanation="An entity is something the product stores: an account, an order, a document. Record one with superdev entity record, naming it and the feature it belongs to, then give it fields with superdev field add. An entity with no fields does not describe data."
             actions={[
               { label: "Open Features", href: hrefFor("features") },
               { label: "Open Product", href: hrefFor("product") },
@@ -1049,7 +1049,7 @@ function MigrationsPanel({
             density="inline"
             className="rounded-none border-0"
             title="No migrations recorded"
-            explanation="No schema change has been planned or applied yet. Migrations appear here once a feature records how its data has to change."
+            explanation="No schema change has been planned or applied yet. Record one with superdev migration record, saying what it does and how it is rolled back. The rollback is required, because a migration with no way back is what turns a bad deploy into an outage."
           />
         }
       />

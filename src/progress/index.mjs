@@ -1194,7 +1194,7 @@ export async function alignmentWarnings(db, projectId) {
       warn("medium", "feature_without_acceptance_criteria", "feature", feature.id,
         `${feature.id} has no acceptance criteria`,
         "Nothing states when this feature is done, so its progress cannot be measured and no task can be verified against it.",
-        "Write at least one acceptance criterion with a verification method.");
+        "Write one with superdev feature specify <id> --criterion, giving what must be true and how it is checked.");
     }
     if (!goalsByFeature.has(feature.id)) {
       warn("medium", "feature_without_goal", "feature", feature.id,
@@ -1207,14 +1207,14 @@ export async function alignmentWarnings(db, projectId) {
       warn("medium", "accepted_feature_without_tasks", "feature", feature.id,
         `${feature.id} is accepted with unmet criteria and no open tasks`,
         "Accepted scope with nothing planned against it quietly stalls.",
-        "Derive tasks from its acceptance criteria.");
+        "Run superdev derive <id> --apply, which turns its acceptance criteria into tasks.");
     }
     if (finished(feature.status) && mine.some((c) => c.status === "unmet")) {
       const n = mine.filter((c) => c.status === "unmet").length;
       warn("high", "feature_complete_with_unmet_criteria", "feature", feature.id,
         `${feature.id} claims ${feature.status} with ${count(n, "unmet criterion", "unmet criteria")}`,
         "The status says finished and the contract says otherwise. One of the two is wrong.",
-        "Meet the criteria, waive them with a reason, or move the feature back.");
+        "Record evidence with superdev task evidence, waive a criterion with superdev feature waive, or move the feature back.");
     }
     if (finished(feature.status)) {
       const openTasks = myTasks.filter((t) => t.status !== "complete");
@@ -1232,7 +1232,7 @@ export async function alignmentWarnings(db, projectId) {
       warn("medium", "criterion_met_without_evidence", "feature_acceptance_criterion", c.id,
         `${c.id} is met with no current evidence`,
         `It was marked met but nothing current proves it: ${c.criterion}`,
-        "Attach passing verification evidence, or move it back to unmet.");
+        "Attach passing evidence with superdev task evidence --criterion <id>, or retire the proof it rests on with superdev evidence supersede.");
     }
   }
 
@@ -1361,7 +1361,7 @@ export async function alignmentWarnings(db, projectId) {
       warn("medium", "decision_needs_revisit", "decision", decision.id,
         `${decision.id} is flagged for revisit`,
         "A revisit trigger fired and the decision has not been looked at since.",
-        "Confirm it still holds, or supersede it.");
+        "Confirm it with superdev memory verify <id>, or replace it with superdev memory supersede <id>.");
     }
   }
 
@@ -1379,7 +1379,7 @@ export async function alignmentWarnings(db, projectId) {
         : "The file no longer matches what was generated, so regeneration is held back until someone decides.",
       doc.sync_status === "missing"
         ? "Regenerate it."
-        : "Accept the edit back into the database, or reject it and regenerate.");
+        : "Take it in with superdev docs accept <path> --apply, or put the generated version back with superdev docs reject <path> --apply.");
   }
 
   // The product changing while nothing tracked it is the record falling behind,

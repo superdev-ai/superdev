@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0100 revision=3562 hash=bb43463fb9403a7b340c85fb932a803c2bdb99b0baa340e790fe43de7d1040d4 -->
+<!-- superdev:generated source=FEAT-0100 revision=3585 hash=2ecc47cf4c24e5118ce1e352b670eda21c1a251b8e71a8b54a1cfed3fb95da45 -->
 # Feature: Author the rest of the product map
 
 - **Status:** Complete
@@ -47,6 +47,8 @@
 | A value the schema will not accept is refused by name, listing what it accepts | manual_check | pass | - |
 | Surface actions are written to ui_actions, which is where every interface counter reads them | manual_check | pass | - |
 | The ten remaining record types the interface reads now have authors, and three defects were found by exercising them | manual_check | pass | - |
+| The five empty states that told readers to wait now name the command | manual_check | pass | - |
+| All 21 alignment warnings name the command that clears them | manual_check | pass | - |
 
 ## Delivery state
 

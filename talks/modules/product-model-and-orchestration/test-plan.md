@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3562 hash=eb9140927550af6c47f11b9540abf2e38e56091dec3e3a20228fdb53ed93c410 -->
+<!-- superdev:generated source=MOD-0002 revision=3585 hash=fc4d727a717b16f468ad3200369cb1da0e171c67ee1cf8bf230c500ba973cd44 -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -85,3 +85,5 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | A value the schema will not accept is refused by name, listing what it accepts | manual_check | pass | - | Current |
 | Surface actions are written to ui_actions, which is where every interface counter reads them | manual_check | pass | - | Current |
 | The ten remaining record types the interface reads now have authors, and three defects were found by exercising them | manual_check | pass | - | Current |
+| The five empty states that told readers to wait now name the command | manual_check | pass | - | Current |
+| All 21 alignment warnings name the command that clears them | manual_check | pass | - | Current |

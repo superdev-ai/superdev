@@ -359,7 +359,7 @@ export function ApisView() {
         {operations.length === 0 ? (
           <Empty
             title="No operations have been recorded yet"
-            explanation="An operation is one thing the API surface can do: a REST endpoint, an RPC method, a queued job. None has been recorded for this project yet, which normally happens once a service has been specified."
+            explanation="An operation is one thing the API surface can do: a REST endpoint, an RPC method, a queued job. Record one with superdev operation record, naming it and the feature it serves, and group them under a service with superdev service record."
           />
         ) : (
           <>

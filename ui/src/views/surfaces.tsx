@@ -146,7 +146,7 @@ export function SurfacesView() {
         {all.length === 0 ? (
           <Empty
             title="No UI surfaces have been recorded yet"
-            explanation="A surface is a screen, panel or modal the product shows to someone. They appear here once a feature has had its interface specified, which normally happens during planning."
+            explanation="A surface is a screen, panel or modal the product shows to someone. Record one with superdev surface record, naming it, the feature it belongs to and each action a person can take on it. Its empty, loading and error states go in with superdev surface state."
             actions={[{ label: "Open Features", href: hrefFor("features") }]}
           />
         ) : (

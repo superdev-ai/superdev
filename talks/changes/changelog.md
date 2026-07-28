@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3562 hash=e4dd43933e1e741962f09dae875e4f88c3d0c27ff26e092a81d3a8e41004417c -->
+<!-- superdev:generated source=PRJ-0001 revision=3585 hash=32a065b07d19da63e35dae9374b7bd263e25a5a6f4f9c64d7653ef4ec9109f5a -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,27 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3585 | 2026-07-28 | Change recorded: Empty states and warnings name the command that fills them | superdev |
+| 3584 | 2026-07-28 | Linked memory MEM-0110 to feature FEAT-0100 | superdev |
+| 3583 | 2026-07-28 | Linked memory MEM-0110 to task TASK-0042 | superdev |
+| 3582 | 2026-07-28 | Remembered outcome: TASK-0042 complete: Every alignment warning names the command that clears it | superdev |
+| 3581 | 2026-07-28 | TASK-0042 completed, assignment released. | superdev |
+| 3580 | 2026-07-28 | Task TASK-0042 moved to complete | superdev |
+| 3579 | 2026-07-28 | Passing evidence recorded for TASK-0042: All 21 alignment warnings name the command that clears them | superdev |
+| 3578 | 2026-07-28 | Task TASK-0042 moved to in progress | superdev |
+| 3577 | 2026-07-28 | TASK-0042 claimed. | superdev |
+| 3576 | 2026-07-28 | TASK-0042 now implements acceptance_criterion AC-0117. | superdev |
+| 3575 | 2026-07-28 | Created task TASK-0042 | superdev |
+| 3574 | 2026-07-28 | Linked memory MEM-0109 to feature FEAT-0100 | superdev |
+| 3573 | 2026-07-28 | Linked memory MEM-0109 to task TASK-0041 | superdev |
+| 3572 | 2026-07-28 | Remembered outcome: TASK-0041 complete: Empty states name the command instead of describing a wait | superdev |
+| 3571 | 2026-07-28 | TASK-0041 completed, assignment released. | superdev |
+| 3570 | 2026-07-28 | Task TASK-0041 moved to complete | superdev |
+| 3569 | 2026-07-28 | Passing evidence recorded for TASK-0041: The five empty states that told readers to wait now name the command | superdev |
+| 3567 | 2026-07-28 | Task TASK-0041 moved to in progress | superdev |
+| 3566 | 2026-07-28 | TASK-0041 claimed. | superdev |
+| 3565 | 2026-07-28 | TASK-0041 now implements acceptance_criterion AC-0117. | superdev |
+| 3564 | 2026-07-28 | Created task TASK-0041 | superdev |
 | 3562 | 2026-07-28 | Change recorded: Every record type the interface reads can now be written, and the check that says so derives its own subject | superdev |
 | 3561 | 2026-07-28 | Linked memory MEM-0108 to feature FEAT-0100 | superdev |
 | 3560 | 2026-07-28 | Linked memory MEM-0108 to task TASK-0040 | superdev |
@@ -186,24 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3365 | 2026-07-28 | Change recorded: A verification script is judged by containment, and an active task always has an owner | superdev |
 | 3364 | 2026-07-28 | Linked memory MEM-0099 to feature FEAT-0088 | superdev |
 | 3363 | 2026-07-28 | Linked memory MEM-0099 to task TASK-0031 | superdev |
-| 3362 | 2026-07-28 | Remembered outcome: TASK-0031 complete: Judge a verification script by whether it is inside the proj | superdev |
-| 3361 | 2026-07-28 | TASK-0031 completed, assignment released. | superdev |
-| 3360 | 2026-07-28 | Task TASK-0031 moved to complete | superdev |
-| 3359 | 2026-07-28 | Passing evidence recorded for TASK-0031: verify now accepts a script anywhere inside the project, and refuses everything that leaves it | superdev |
-| 3358 | 2026-07-28 | Task TASK-0031 moved to in progress | superdev |
-| 3357 | 2026-07-28 | TASK-0031 claimed. | superdev |
-| 3356 | 2026-07-28 | TASK-0031 now implements acceptance_criterion AC-0088. | superdev |
-| 3355 | 2026-07-28 | Created task TASK-0031 | superdev |
-| 3353 | 2026-07-28 | Linked memory MEM-0098 to feature FEAT-0088 | superdev |
-| 3352 | 2026-07-28 | Linked memory MEM-0098 to task TASK-0030 | superdev |
-| 3351 | 2026-07-28 | Remembered outcome: TASK-0030 complete: Never leave a task in an active status that no session owns | superdev |
-| 3350 | 2026-07-28 | TASK-0030 completed, assignment released. | superdev |
-| 3349 | 2026-07-28 | Task TASK-0030 moved to complete | superdev |
-| 3348 | 2026-07-28 | Passing evidence recorded for TASK-0030: A task can no longer be in an active status that no session owns, by either route in | superdev |
-| 3346 | 2026-07-28 | Task TASK-0030 moved to in progress | superdev |
-| 3345 | 2026-07-28 | TASK-0030 claimed. | superdev |
-| 3344 | 2026-07-28 | TASK-0030 now implements acceptance_criterion AC-0088. | superdev |
-| 3343 | 2026-07-28 | Created task TASK-0030 | superdev |
-| 3341 | 2026-07-28 | Change recorded: Work is untracked only when it is newly changed, not when git keeps reporting an old edit | superdev |
-| 3340 | 2026-07-28 | Linked memory MEM-0097 to feature FEAT-0088 | superdev |
-| 3339 | 2026-07-28 | Linked memory MEM-0097 to task TASK-0029 | superdev |

@@ -245,7 +245,7 @@ export function WorkflowsView() {
         {all.length === 0 ? (
           <Empty
             title="No workflows have been recorded yet"
-            explanation="A workflow is the ordered path a person or a system takes through a feature. They appear here once a feature has had its workflows specified, which normally happens during planning."
+            explanation="A workflow is the ordered path a person or a system takes through a feature. Record one with superdev workflow record, naming the feature and repeating a step for each thing that happens, in order. A named process with no steps is a title, so the steps come in with it."
             actions={[
               { label: "Open Features", href: hrefFor("features") },
               { label: "Open Product", href: hrefFor("product") },
