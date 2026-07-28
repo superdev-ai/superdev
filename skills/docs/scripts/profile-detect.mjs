@@ -7,6 +7,7 @@
  * Exit codes: 0 detection completed (including "none"), 2 usage error.
  */
 import { parseArgs } from "node:util";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -90,6 +91,58 @@ function dirNames(dir) {
     .map((e) => e.name);
 }
 
+/**
+ * Markdown under a directory that Git is not ignoring, at most three levels down.
+ *
+ * The bare existence of a subdirectory used to count as documentation. A real
+ * repository had `docs/` holding nothing but `.DS_Store` and a git-ignored
+ * `docs/client-shared/` of material the client had sent in. That is input to a
+ * project, not a projection of one, and detection called it "documentation
+ * present matching no known profile" and routed a brand new repository to adopt,
+ * which refuses to initialize.
+ *
+ * Git's own ignore list is the right authority for "is this part of the
+ * repository": it is the file the user already maintains to say so. Without Git
+ * the scan simply keeps everything, which is the old behaviour minus the
+ * empty-directory case.
+ */
+function trackedMarkdown(root, dir) {
+  const found = markdownUnder(dir, 3);
+  const ignored = ignoredByGit(root, found);
+  return found.filter((file) => !ignored.has(file));
+}
+
+function markdownUnder(dir, depth) {
+  if (depth < 0 || !fs.existsSync(dir)) return [];
+  const found = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name.startsWith(".")) continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) found.push(...markdownUnder(full, depth - 1));
+    else if (entry.name.endsWith(".md")) found.push(full);
+  }
+  return found;
+}
+
+/** One `git check-ignore` for the whole list: a call per file is a call per file. */
+function ignoredByGit(root, files) {
+  if (!files.length || !fs.existsSync(path.join(root, ".git"))) return new Set();
+  try {
+    const out = execFileSync("git", ["-C", root, "check-ignore", "--stdin"], {
+      input: files.join("\n"),
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "ignore"],
+      timeout: 10000,
+    });
+    return new Set(out.split(/\r?\n/).filter(Boolean).map((line) => path.resolve(root, line)));
+  } catch (error) {
+    // Exit 1 means nothing matched, which is an answer, not a failure. Anything
+    // else means git could not tell us, and then nothing is treated as ignored.
+    if (error?.status === 1) return new Set();
+    return new Set();
+  }
+}
+
 const TYPE_FOLDERS = ["features", "apis", "api", "data", "database", "workflows", "schemas"];
 const DOCS_ROOT_CANDIDATES = ["docs/project", "docs", "documentation"];
 
@@ -143,8 +196,9 @@ export function detectProfile(root) {
       return { profile: "legacy-flat-docs", confidence: "medium", source: "structure", evidence, docsRoot: candidate };
     }
 
-    const mdFiles = fs.readdirSync(docsRoot).filter((f) => f.endsWith(".md"));
-    if (mdFiles.length || dirNames(docsRoot).length) {
+    // Markdown Git is keeping, not a directory that happens to be here.
+    const mdFiles = trackedMarkdown(root, docsRoot);
+    if (mdFiles.length) {
       evidence.push({ what: "documentation present matching no known profile", where: candidate });
       return { profile: "custom", confidence: "low", source: "structure", evidence, docsRoot: candidate };
     }

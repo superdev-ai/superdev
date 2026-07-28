@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3058 hash=09873dd8e3528a8f2c58c660d0e3ab46f14d2dc43e9216a56f0fbc8538837dbd -->
+<!-- superdev:generated source=MOD-0002 revision=3235 hash=603de913405be17a6baa22d7016bf15a30f1d44d3f3a4b1374ffe1ad8fe321a7 -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -24,15 +24,21 @@
 | Show data schema | superdev schema show returns the current schema definition | Run superdev schema show and record what was observed. | Met |
 | Show API surface | superdev api show returns defined API services and operations | Run superdev api show and record what was observed. | Met |
 | List integrations | superdev integration list returns every defined integration | Run superdev integration list and record what was observed. | Met |
+| Author the product map after initialization | A goal recorded through the command carries success criteria that progress can count | Record a goal and a criterion, then read superdev goal show | Met |
+| Author the product map after initialization | A feature created through the command lands in draft and is refused acceptance while thin | Create one, run feature accept, and read the refusal | Met |
+| Author the product map after initialization | Moving a feature leaves its contract, tasks and evidence intact | Move one and read feature show before and after | Met |
+| Record what the product deliberately does not do | A brief's out-of-scope section reaches the generated foundations | Initialize from a brief with an Out of scope section and read talks/foundations/product.md | Met |
+| Record what the product deliberately does not do | Scope can be recorded, listed and removed after init | Run superdev scope record, scope list and scope remove against a project | Met |
+| Record what the product deliberately does not do | A hand edit to the Non-goals section is refused by naming the command that writes it | Edit the section in a generated document and run superdev docs accept | Met |
 
 ## Coverage map
 
 | Area | Level | Cases | Status |
 |---|---|---|---|
-| Happy paths per feature | command, validator | 16 | exists |
-| Applicable edge-case categories | command, validator | 45 | exists |
-| Permission boundaries | command, validator | 0 | missing |
-| State machines including illegal transitions | command, validator | 0 | missing |
+| Happy paths per feature | command, validator, manual_check | 18 | exists |
+| Applicable edge-case categories | command, validator, manual_check | 51 | exists |
+| Permission boundaries | command, validator, manual_check | 0 | missing |
+| State machines including illegal transitions | command, validator, manual_check | 0 | missing |
 
 ## Evidence conventions
 
@@ -59,3 +65,9 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | src/cli.mjs line 1141-1143 cmdSchemaShow wired in COMMANDS table at line 2071. Ran: node src/cli.mjs schema show, returned 43 data entities with field counts and status. Entity-scoped lookup also runs (returns a clean not-found message for a name that does not match a table). | command | pass | superdev schema show [entity] | Current |
 | src/cli.mjs line 1144 cmdApiShow wired in COMMANDS table at line 2072. Ran: node src/cli.mjs api show, returned 70 API operations with style, state-change flag, and status. | command | pass | superdev api show | Current |
 | The api_services table exists, created by migration 008, and nine services group all seventy operations with none left loose. Section 6.1 defines a service as the boundary that owns operations, and every operation now sits under one. | validator | pass | scripts/validate/data-model.mjs | Current |
+| In a throwaway project: goal record created GOAL-0001 and said it was unmeasurable until it carried a criterion; goal criterion added GSC-0001 with its measurement and target; the database shows the criterion unmet against the goal, which is what progress counts. | manual_check | pass | - | Current |
+| feature create drafted FEAT-0002 in MOD-0002 at microspec depth with status draft, and told the reader the depth gate would refuse acceptance until the specification was written. A second feature with the same name was refused, naming the one that existed. | manual_check | pass | - | Current |
+| feature move reassigned FEAT-0001 from MOD-0001 to MOD-0002 and the database shows the new module with the feature's name, depth and status unchanged. This very feature, FEAT-0092, was created and specified through the new commands rather than by a script. | manual_check | pass | - | Current |
+| A brief's out-of-scope line reached the generated Non-goals section, with its provenance | manual_check | pass | - | Current |
+| Scope was recorded, listed and removed through the CLI on a real project | manual_check | pass | - | Current |
+| A hand edit to Non-goals is refused with the command that writes it | manual_check | pass | - | Current |

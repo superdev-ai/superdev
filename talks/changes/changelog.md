@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3162 hash=cdd41a06403b7e101dc602e433b618cee3716c8f139060e54ffff3b47b84dd3e -->
+<!-- superdev:generated source=PRJ-0001 revision=3235 hash=581427558e87d845bed8b693d246b63bf025601e658dda790e4a834673630fb0 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,76 @@ Specification and decision changes, newest first, taken from the append-only act
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3235 | 2026-07-28 | Change recorded: Fixed eight defects an independent first-run report found, and added the checks that would have caught three of them | superdev |
+| 3234 | 2026-07-28 | Linked memory MEM-0092 to feature FEAT-0093 | superdev |
+| 3233 | 2026-07-28 | Linked memory MEM-0092 to task TASK-0024 | superdev |
+| 3232 | 2026-07-28 | Remembered outcome: TASK-0024 complete: Prove Record what the product deliberately does not do meets | superdev |
+| 3231 | 2026-07-28 | Record what the product deliberately does not do is complete: its contract is satisfied | superdev |
+| 3230 | 2026-07-28 | TASK-0024 completed, assignment released. | superdev |
+| 3229 | 2026-07-28 | Task TASK-0024 moved to complete | superdev |
+| 3228 | 2026-07-28 | Acceptance criterion AC-0097 is met, evidenced by EV-0134. | superdev |
+| 3227 | 2026-07-28 | Passing evidence recorded for TASK-0024: A hand edit to Non-goals is refused with the command that writes it | superdev |
+| 3226 | 2026-07-28 | Acceptance criterion AC-0096 is met, evidenced by EV-0133. | superdev |
+| 3225 | 2026-07-28 | Passing evidence recorded for TASK-0024: Scope was recorded, listed and removed through the CLI on a real project | superdev |
+| 3224 | 2026-07-28 | Acceptance criterion AC-0095 is met, evidenced by EV-0132. | superdev |
+| 3223 | 2026-07-28 | Passing evidence recorded for TASK-0024: A brief's out-of-scope line reached the generated Non-goals section, with its provenance | superdev |
+| 3222 | 2026-07-28 | Task TASK-0024 moved to in progress | superdev |
+| 3221 | 2026-07-28 | TASK-0024 claimed. | superdev |
+| 3220 | 2026-07-28 | Derived tasks for FEAT-0093: 1 new, 0 updated, 0 superseded. | superdev |
+| 3219 | 2026-07-28 | Derived Prove Record what the product deliberately does not do meets its acceptance criteria | superdev |
+| 3218 | 2026-07-28 | FEAT-0093 now serves No unmapped or disconnected implementation work | superdev |
+| 3217 | 2026-07-28 | Accepted Record what the product deliberately does not do at microspec depth | superdev |
+| 3216 | 2026-07-28 | Edge case recorded for FEAT-0093: duplication | superdev |
+| 3215 | 2026-07-28 | Edge case recorded for FEAT-0093: empty_states | superdev |
+| 3214 | 2026-07-28 | Acceptance criterion recorded for FEAT-0093 | superdev |
+| 3213 | 2026-07-28 | Acceptance criterion recorded for FEAT-0093 | superdev |
+| 3212 | 2026-07-28 | Acceptance criterion recorded for FEAT-0093 | superdev |
+| 3211 | 2026-07-28 | Primary flow recorded for FEAT-0093 | superdev |
+| 3210 | 2026-07-28 | Primary flow recorded for FEAT-0093 | superdev |
+| 3209 | 2026-07-28 | Primary flow recorded for FEAT-0093 | superdev |
+| 3208 | 2026-07-28 | Primary flow recorded for FEAT-0093 | superdev |
+| 3207 | 2026-07-28 | Feature drafted in Product Model and Orchestration: Record what the product deliberately does not do | superdev |
+| 3206 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
+| 3205 | 2026-07-28 | Changed 18 files in the project root, scripts/validate, skills/docs/scripts and 8 more places. | superdev |
+| 3204 | 2026-07-28 | Changed 17 files in the project root, scripts/validate, skills/docs/scripts and 7 more places. | superdev |
+| 3203 | 2026-07-28 | Changed 15 files in the project root, scripts/validate, src and 7 more places. | superdev |
+| 3202 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
+| 3201 | 2026-07-28 | Changed 12 files in src, talks/changes, talks/modules/product-model-and-orchestration and 5 more places. | superdev |
+| 3199 | 2026-07-28 | Changed 13 files in hooks, src/progress, src/runtime and 8 more places. | superdev |
+| 3198 | 2026-07-28 | Session started by Rahul Retnan in claude-code on main | Rahul Retnan |
+| 3197 | 2026-07-28 | FEAT-0092 now serves No unmapped or disconnected implementation work | superdev |
+| 3195 | 2026-07-28 | Linked memory MEM-0091 to feature FEAT-0092 | superdev |
+| 3194 | 2026-07-28 | Linked memory MEM-0091 to task TASK-0023 | superdev |
+| 3193 | 2026-07-28 | Remembered outcome: TASK-0023 complete: Prove Author the product map after initialization meets its | superdev |
+| 3192 | 2026-07-28 | Author the product map after initialization is complete: its contract is satisfied | superdev |
+| 3191 | 2026-07-28 | TASK-0023 completed, assignment released. | superdev |
+| 3190 | 2026-07-28 | Task TASK-0023 moved to complete | superdev |
+| 3189 | 2026-07-28 | Acceptance criterion AC-0094 is met, evidenced by EV-0131. | superdev |
+| 3188 | 2026-07-28 | Passing evidence recorded for TASK-0023: feature move reassigned FEAT-0001 from MOD-0001 to MOD-0002 and the database shows the new module with the feature's name, depth and status unchanged. This very feature, FEAT-0092, was created and specified through the new commands rather than by a script. | superdev |
+| 3187 | 2026-07-28 | Acceptance criterion AC-0093 is met, evidenced by EV-0130. | superdev |
+| 3186 | 2026-07-28 | Passing evidence recorded for TASK-0023: feature create drafted FEAT-0002 in MOD-0002 at microspec depth with status draft, and told the reader the depth gate would refuse acceptance until the specification was written. A second feature with the same name was refused, naming the one that existed. | superdev |
+| 3185 | 2026-07-28 | Acceptance criterion AC-0092 is met, evidenced by EV-0129. | superdev |
+| 3184 | 2026-07-28 | Passing evidence recorded for TASK-0023: In a throwaway project: goal record created GOAL-0001 and said it was unmeasurable until it carried a criterion; goal criterion added GSC-0001 with its measurement and target; the database shows the criterion unmet against the goal, which is what progress counts. | superdev |
+| 3183 | 2026-07-28 | Task TASK-0023 moved to in progress | superdev |
+| 3182 | 2026-07-28 | TASK-0023 claimed. | superdev |
+| 3181 | 2026-07-28 | Derived tasks for FEAT-0092: 1 new, 0 updated, 0 superseded. | superdev |
+| 3180 | 2026-07-28 | Derived Prove Author the product map after initialization meets its acceptance criteria | superdev |
+| 3179 | 2026-07-28 | Accepted Author the product map after initialization at microspec depth | superdev |
+| 3178 | 2026-07-28 | Edge case recorded for FEAT-0092: deletion_semantics | superdev |
+| 3177 | 2026-07-28 | Edge case recorded for FEAT-0092: invalid_input | superdev |
+| 3176 | 2026-07-28 | Edge case recorded for FEAT-0092: duplication | superdev |
+| 3175 | 2026-07-28 | Edge case recorded for FEAT-0092: empty_states | superdev |
+| 3174 | 2026-07-28 | Acceptance criterion recorded for FEAT-0092 | superdev |
+| 3173 | 2026-07-28 | Acceptance criterion recorded for FEAT-0092 | superdev |
+| 3172 | 2026-07-28 | Acceptance criterion recorded for FEAT-0092 | superdev |
+| 3171 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
+| 3170 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
+| 3169 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
+| 3168 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
+| 3167 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
+| 3166 | 2026-07-28 | Primary flow recorded for FEAT-0092 | superdev |
+| 3165 | 2026-07-28 | Feature drafted in Product Model and Orchestration: Author the product map after initialization | superdev |
+| 3164 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
 | 3162 | 2026-07-28 | Change recorded: Removed skills/docs/scripts/ingest.mjs from the Docs skill | superdev |
 | 3160 | 2026-07-28 | Session SES-0006 ended. No outcome recorded. | superdev |
 | 3158 | 2026-07-28 | Session started by Superdev Dev in claude-code on main | Superdev Dev |
@@ -137,73 +207,3 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3021 | 2026-07-27 | Retrieval benchmark recorded | self-host |
 | 3019 | 2026-07-27 | Cloud synchronization recorded as deferred, with its owner, trigger and consequence | self-host |
 | 3018 | 2026-07-27 | Readiness area answered: Release and rollback is specified | self-host |
-| 3017 | 2026-07-27 | Readiness area answered: Testing strategy for the product is specified | self-host |
-| 3016 | 2026-07-27 | Readiness area answered: Product analytics is not applicable | self-host |
-| 3015 | 2026-07-27 | Readiness area answered: Backups, recovery, retention and deletion is specified | self-host |
-| 3014 | 2026-07-27 | Readiness area answered: Infrastructure and deployment is specified | self-host |
-| 3013 | 2026-07-27 | Readiness area answered: Continuous integration and delivery is specified | self-host |
-| 3012 | 2026-07-27 | Readiness area answered: Environments and secret management is specified | self-host |
-| 3011 | 2026-07-27 | Readiness area answered: Performance and capacity targets is specified | self-host |
-| 3010 | 2026-07-27 | Readiness area answered: Observability and operational response is specified | self-host |
-| 3009 | 2026-07-27 | Readiness area answered: Compliance is not applicable | self-host |
-| 3008 | 2026-07-27 | Readiness area answered: Security and privacy is specified | self-host |
-| 3007 | 2026-07-27 | Readiness area answered: Rate limiting and abuse controls is not applicable | self-host |
-| 3006 | 2026-07-27 | Readiness area answered: Notifications is not applicable | self-host |
-| 3005 | 2026-07-27 | Readiness area answered: External integrations is specified | self-host |
-| 3004 | 2026-07-27 | Readiness area answered: Events and webhooks is not applicable | self-host |
-| 3003 | 2026-07-27 | Readiness area answered: Background jobs and scheduling is not applicable | self-host |
-| 3002 | 2026-07-27 | Readiness area answered: Offline behavior and conflict handling is specified | self-host |
-| 3001 | 2026-07-27 | Readiness area answered: Real-time behavior is specified | self-host |
-| 3000 | 2026-07-27 | Readiness area answered: Search and indexing is specified | self-host |
-| 2999 | 2026-07-27 | Readiness area answered: File or object storage is not applicable | self-host |
-| 2998 | 2026-07-27 | Readiness area answered: Data migrations and rollback is specified | self-host |
-| 2997 | 2026-07-27 | Readiness area answered: Database and data ownership is specified | self-host |
-| 2996 | 2026-07-27 | Readiness area answered: Authorization enforcement is not applicable | self-host |
-| 2995 | 2026-07-27 | Readiness area answered: Authentication and session lifecycle is not applicable | self-host |
-| 2994 | 2026-07-27 | Readiness area answered: API style and public contracts is specified | self-host |
-| 2993 | 2026-07-27 | Readiness area answered: Backend boundaries and service responsibilities is specified | self-host |
-| 2992 | 2026-07-27 | Readiness area answered: Design system and accessibility is specified | self-host |
-| 2991 | 2026-07-27 | Readiness area answered: Navigation and information architecture is specified | self-host |
-| 2990 | 2026-07-27 | Readiness area answered: Frontend delivery shape is specified | self-host |
-| 2989 | 2026-07-27 | Readiness area answered: Users, roles, permissions and tenancy is specified | self-host |
-| 2988 | 2026-07-27 | Readiness area answered: Product purpose and success criteria is specified | self-host |
-| 2984 | 2026-07-27 | Linked memory MEM-0079 to feature FEAT-0091 | superdev |
-| 2983 | 2026-07-27 | Linked memory MEM-0079 to task TASK-0021 | superdev |
-| 2982 | 2026-07-27 | Remembered outcome: TASK-0021 complete: Finish: Work without hooks at all | superdev |
-| 2981 | 2026-07-27 | TASK-0021 completed, assignment released. | self-host |
-| 2980 | 2026-07-27 | Task TASK-0021 moved to complete | self-host |
-| 2979 | 2026-07-27 | Passing evidence recorded for TASK-0021: Every hook behaviour names the command that replaces it, and the session start hook prints that list on every run: claim, start, scope correction, block and unblock. Verified by running the hook, which reported five named fallbacks and the rule that Superdev never treats a hook as proof that something happened. | self-host |
-| 2978 | 2026-07-27 | Task TASK-0021 moved to in progress | self-host |
-| 2977 | 2026-07-27 | TASK-0021 claimed. | self-host |
-| 2976 | 2026-07-27 | Linked memory MEM-0078 to feature FEAT-0026 | superdev |
-| 2975 | 2026-07-27 | Linked memory MEM-0078 to task TASK-0004 | superdev |
-| 2974 | 2026-07-27 | Remembered outcome: TASK-0004 complete: Build the api services the requirements document specifies | superdev |
-| 2973 | 2026-07-27 | TASK-0004 completed, assignment released. | self-host |
-| 2972 | 2026-07-27 | Task TASK-0004 moved to complete | self-host |
-| 2971 | 2026-07-27 | Passing evidence recorded for TASK-0004: The api_services table exists, created by migration 008, and nine services group all seventy operations with none left loose. Section 6.1 defines a service as the boundary that owns operations, and every operation now sits under one. | self-host |
-| 2970 | 2026-07-27 | Task TASK-0004 moved to in progress | self-host |
-| 2969 | 2026-07-27 | TASK-0004 claimed. | self-host |
-| 2968 | 2026-07-27 | Linked memory MEM-0077 to feature FEAT-0008 | superdev |
-| 2967 | 2026-07-27 | Linked memory MEM-0077 to task TASK-0003 | superdev |
-| 2966 | 2026-07-27 | Remembered outcome: TASK-0003 complete: Build the test plans the requirements document specifies | superdev |
-| 2965 | 2026-07-27 | TASK-0003 completed, assignment released. | self-host |
-| 2964 | 2026-07-27 | Task TASK-0003 moved to complete | self-host |
-| 2963 | 2026-07-27 | Passing evidence recorded for TASK-0003: The test_plans and test_plan_cases tables exist, created by migration 008, and eight plans with eleven cases are recorded from section 20.1. Task completion can now be gated on a plan that exists, where section 9.3 previously named a document that could not. | self-host |
-| 2962 | 2026-07-27 | Task TASK-0003 moved to in progress | self-host |
-| 2961 | 2026-07-27 | TASK-0003 claimed. | self-host |
-| 2960 | 2026-07-27 | Linked memory MEM-0076 to feature FEAT-0061 | superdev |
-| 2959 | 2026-07-27 | Linked memory MEM-0076 to task TASK-0002 | superdev |
-| 2958 | 2026-07-27 | Remembered outcome: TASK-0002 complete: Build the assumptions the requirements document specifies | superdev |
-| 2957 | 2026-07-27 | TASK-0002 completed, assignment released. | self-host |
-| 2956 | 2026-07-27 | Task TASK-0002 moved to complete | self-host |
-| 2955 | 2026-07-27 | Passing evidence recorded for TASK-0002: The assumptions table exists, created by migration 008. It requires the statement, why it was assumed rather than decided, and the review trigger, which is what section 8.4 asks for and what stops an assumption hardening into a fact nobody chose. assumption record, list and resolve reach it. | self-host |
-| 2954 | 2026-07-27 | Task TASK-0002 moved to in progress | self-host |
-| 2953 | 2026-07-27 | TASK-0002 claimed. | self-host |
-| 2952 | 2026-07-27 | Linked memory MEM-0075 to feature FEAT-0006 | superdev |
-| 2951 | 2026-07-27 | Linked memory MEM-0075 to task TASK-0001 | superdev |
-| 2950 | 2026-07-27 | Remembered outcome: TASK-0001 complete: Build the changes the requirements document specifies | superdev |
-| 2949 | 2026-07-27 | TASK-0001 completed, assignment released. | self-host |
-| 2948 | 2026-07-27 | Task TASK-0001 moved to complete | self-host |
-| 2947 | 2026-07-27 | Passing evidence recorded for TASK-0001: The changes and change_targets tables exist, created by migration 008. A change records what moved in accepted scope, why, and every record it touched, and the table is append only so the audit trail section 14.2 requires cannot be revised. change record, change list and change show reach it. | self-host |
-| 2946 | 2026-07-27 | Task TASK-0001 moved to in progress | self-host |
-| 2945 | 2026-07-27 | TASK-0001 claimed. | self-host |

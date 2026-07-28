@@ -892,6 +892,52 @@ const splitSentences = (text) =>
     .map((s) => s.trim())
     .filter(Boolean);
 
+/**
+ * A statement's name and its description, when the statement carries both.
+ *
+ * Briefs list their parts as `**Screens.** Four routes with shared layout,
+ * navigation, and session state.` Every word of that was taken as the name, so a
+ * product map read as a column of truncated sentences whose first several words
+ * were identical, and the module slug reached the filesystem as
+ * `screens-four-routes-with-shared-layout-navigation-and-sessio`, cut mid-word,
+ * as a committed directory path.
+ *
+ * A label is short, comes first, and has a description after it. The three forms
+ * briefs actually use are `Name. Rest`, `Name: Rest` and `Name - Rest`, and the
+ * dash arrives as a hyphen, an en dash or an em dash because a person typed it.
+ * When there is no description the whole statement is the name, minus the
+ * full stop that would otherwise be part of it.
+ *
+ * The limits are deliberately tight. A label is a noun phrase: "Weather client",
+ * "Course data". A long first clause is a sentence, and treating it as a label
+ * would rename every feature to its opening clause, which is a different defect
+ * with the same cause. Word count separates the two better than length does:
+ * "The outgoing chef records what is prepped and what ran out" is short enough to
+ * pass any character limit and is plainly not a name.
+ */
+export function splitLabel(statement, limit = 60, words = 6) {
+  const text = String(statement ?? "").replace(/\s+/g, " ").trim();
+  if (!text) return { name: null, description: null };
+
+  // The dashes are written as escapes because the em dash character is refused in
+  // this project's own source, and this has to match one a person typed.
+  const separated = text.match(/^(.{2,}?)\s*(?:[.:]|\s[-\u2013\u2014])\s+(\S.*)$/);
+  if (separated) {
+    const label = separated[1].trim();
+    // A label holds no sentence-ending punctuation of its own, and a trailing
+    // "and" or "or" means the split landed inside a list rather than after a name.
+    if (
+      label.length <= limit &&
+      label.split(/\s+/).length <= words &&
+      !/[.!?:]/.test(label) &&
+      !/\b(and|or|but|with|for|to|of)$/i.test(label)
+    ) {
+      return { name: label, description: separated[2].trim() };
+    }
+  }
+  return { name: text.replace(/\s*\.$/, ""), description: null };
+}
+
 const normalize = (text) => String(text ?? "").toLowerCase().replace(/\s+/g, " ").trim();
 
 function clean(text) {

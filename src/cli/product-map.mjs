@@ -163,9 +163,13 @@ export async function milestoneShow(root, id) {
   const { milestone, features } = found;
   // Both shapes are read: a plain string from before conditions could be
   // judged, and the object a judged condition is stored as now.
-  const exits = json(milestone.exit_conditions_json, []).map((c) =>
-    typeof c === "string" ? { condition: c, met: false, reading: null, check: null } : c);
+  const asCondition = (c) => (typeof c === "string" ? { condition: c, met: false, reading: null, check: null } : c);
+  const exits = json(milestone.exit_conditions_json, []).map(asCondition);
+  // Entry conditions were stored and never shown, so a milestone could be
+  // blocked from starting by something the reader had no way to see.
+  const entries = json(milestone.entry_conditions_json, []).map(asCondition);
   const met = exits.filter((c) => c.met).length;
+  const entryMet = entries.filter((c) => c.met).length;
   const done = features.filter((f) => ["complete", "delivered", "implemented"].includes(f.status)).length;
   return {
     data: found,
@@ -181,6 +185,10 @@ export async function milestoneShow(root, id) {
       // that decided it, and was being printed straight into a bullet, which
       // rendered twenty five of them as [object Object]. The control centre
       // normalises the same shape; the command line was never taught to.
+      entries.length
+        ? R.block(`Entry conditions (${entryMet} of ${entries.length} met)`,
+            entries.map((c) => `  [${c.met ? "met" : "not met"}] ${c.condition}`).join("\n"))
+        : null,
       R.block(`Exit conditions (${met} of ${exits.length} met)`, exits.length
         ? exits.map((c) => R.stitch([
             `  [${c.met ? "met" : "not met"}] ${c.condition}`,

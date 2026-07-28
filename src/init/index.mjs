@@ -14,7 +14,7 @@ import { ensureDatabase, mutate, paths, query, create, patch, setStatus, recordA
 import { slugify, uniqueSlug } from "../model/ids.mjs";
 import { sanitizeExternal } from "../model/screening.mjs";
 import { CAPABILITY_AREAS, SYSTEM_TASK_CATEGORIES, count } from "../model/vocabulary.mjs";
-import { buildConceptMap, detectProjectKind, ingestSources, inspectEvidence, titleOf } from "./discovery.mjs";
+import { buildConceptMap, detectProjectKind, ingestSources, inspectEvidence, splitLabel, titleOf } from "./discovery.mjs";
 import {
   MATERIAL_AREAS,
   STACK_SLOTS,
@@ -104,7 +104,18 @@ export async function planInit(root, opts = {}) {
     warnings.push("The repository is larger than the inspection limit, so the evidence below is a sample rather than a census.");
   }
   if (detection.route === "adopt") {
-    warnings.push(`This repository already has documentation (profile ${detection.docsProfile}). Initialization is refused here; adoptProject leaves those files exactly where they are.`);
+    // Name a command, never a function. This said "adoptProject leaves those
+    // files exactly where they are", which is the internal function, so the
+    // refusal told the reader the remedy in a vocabulary they cannot type. It
+    // also stayed silent about the confidence, and a low-confidence detection is
+    // exactly the case where the reader should know to override it.
+    warnings.push([
+      `This repository already has documentation (profile ${detection.docsProfile}, ${detection.confidence} confidence).`,
+      "Initialization is refused here. Run superdev adopt, which leaves every existing file exactly where it is.",
+      detection.confidence === "low" || detection.confidence === "unknown"
+        ? "If those documents are input rather than a record of this project, for example a brief you are initializing from, run superdev init --adopt to say so and initialization will proceed."
+        : null,
+    ].filter(Boolean).join(" "));
   }
   if (existing.project) {
     warnings.push(`Project ${existing.project.id} already exists. Initialization will report what is present and create only what is missing.`);
@@ -372,15 +383,6 @@ export async function applyInit(root, opts = {}) {
   // Step 14 and 15 run outside every transaction: both open their own.
   // `notRun` rather than `skipped`: both generate and deriveAll return their own
   // `skipped` collection, and an empty array is still truthy.
-  let documents = { notRun: "documentation generation was turned off for this run" };
-  if (opts.generateDocs !== false) {
-    documents = await runQuietly(async () => {
-      const { generate } = await import("../docs/render.mjs");
-      return generate(at, { apply: true });
-    }, "documentation could not be generated");
-  }
-  record(14, outcomeOf(documents), documents.error ?? documents.notRun ?? summarize(documents));
-
   let tasks = { notRun: "task derivation was turned off for this run" };
   if (opts.deriveTasks !== false) {
     tasks = await runQuietly(async () => {
@@ -407,6 +409,25 @@ export async function applyInit(root, opts = {}) {
     actor,
     metadata: { route: plan.route, questions: questions.length, discoveryItems: conceptMap.created.length, reused: created.reused },
   }));
+
+  // Documents are generated last, after every record and every event init will
+  // write, and the step is still reported as 14 because the brief's order is
+  // what a reader follows.
+  //
+  // It ran before task derivation and before the closing event, so a document
+  // was stamped with a revision lower than the project's own, and freshness
+  // compares the two. Every project therefore began its life reporting that its
+  // documentation was built from an older database revision, seconds after init
+  // wrote it, and no command the user could run would clear it. A gate that is
+  // red on arrival teaches the reader that red means nothing.
+  let documents = { notRun: "documentation generation was turned off for this run" };
+  if (opts.generateDocs !== false) {
+    documents = await runQuietly(async () => {
+      const { generate } = await import("../docs/render.mjs");
+      return generate(at, { apply: true });
+    }, "documentation could not be generated");
+  }
+  record(14, outcomeOf(documents), documents.error ?? documents.notRun ?? summarize(documents));
 
   return {
     root: at,
@@ -485,6 +506,34 @@ const titleFrom = (name) =>
  * with no goal candidates gets no goals, and the gap stays visible as the
  * unknown the concept map already wrote down.
  */
+/**
+ * The module a feature names, or nothing.
+ *
+ * Matching is on the module's name appearing in the feature's own words, which is
+ * how a brief actually signals ownership: "Read the previous shift's handover"
+ * belongs to "Handover", and says so. A single common word is not a signal, so
+ * short and structural words are ignored, and nothing matching means nothing is
+ * claimed.
+ */
+const STRUCTURAL = new Set(["the", "and", "for", "with", "data", "core", "app", "api", "web", "ui", "service", "client", "server", "module", "system"]);
+
+function ownerFor(modules, statement) {
+  const text = String(statement ?? "").toLowerCase();
+  let best = null;
+  for (const module of modules) {
+    const words = String(module.name).toLowerCase().split(/[^a-z0-9]+/)
+      .filter((word) => word.length > 3 && !STRUCTURAL.has(word));
+    if (!words.length) continue;
+    const hits = words.filter((word) => text.includes(word)).length;
+    // Every distinctive word of the module's name has to appear, so "Shot log"
+    // does not claim a feature that merely mentions a shot.
+    if (hits === words.length && (!best || words.length > best.words)) {
+      best = { module, words: words.length };
+    }
+  }
+  return best?.module ?? null;
+}
+
 async function draftProduct(root, project, { actor, at, milestones }) {
   const outcome = await mutate(root, async (db) => {
     const items = await db.all(
@@ -513,9 +562,13 @@ async function draftProduct(root, project, { actor, at, milestones }) {
 
     const modules = [];
     for (const [index, item] of moduleCandidates.entries()) {
-      const name = trim(item.statement.replace(/^Module candidate:\s*/, ""), 120);
+      const stated = item.statement.replace(/^Module candidate:\s*/, "");
+      // The name is the label the brief gave the part, and the sentence after it
+      // is what the part does. Both used to become the name.
+      const { name: label, description } = splitLabel(stated);
+      const name = trim(label, 120);
       if (!name) continue;
-      const module = await createModule(db, project, name, item.statement, index, at);
+      const module = await createModule(db, project, name, description ?? stated, index, at);
       if (!module) continue;
       modules.push(module);
       await convert(db, item, "module", module.id, at);
@@ -528,14 +581,27 @@ async function draftProduct(root, project, { actor, at, milestones }) {
     }
 
     const features = [];
-    for (const [index, item] of featureCandidates.entries()) {
-      const name = trim(item.statement, 120);
+    const unowned = [];
+    for (const item of featureCandidates) {
+      const { name: label } = splitLabel(item.statement);
+      const name = trim(label, 120);
       if (!name || !modules.length) continue;
       if (await db.get("SELECT 1 FROM features WHERE project_id = ? AND name = ?", project.id, name)) continue;
       const slug = await uniqueSlug(db, "features", project.id, name, "feature");
+      // Which module owns this feature is read from the feature, never from where
+      // it happened to sit in the list.
+      //
+      // It was `modules[index % modules.length]`, so feature n went to module n.
+      // Four features that were all screens landed on four different modules, one
+      // per supporting library, and the result was defensible only because the
+      // two lists happened to be the same length and in a compatible order.
+      // Reorder either list in the brief and the map becomes nonsense that reads
+      // as deliberate.
+      const matched = ownerFor(modules, item.statement);
+      const owner = matched ?? modules[0];
       const feature = await create(db, "feature", {
         project_id: project.id,
-        module_id: modules[index % modules.length].id,
+        module_id: owner.id,
         name,
         slug,
         purpose: item.statement,
@@ -547,7 +613,52 @@ async function draftProduct(root, project, { actor, at, milestones }) {
         updated_at: at,
       }, { projectId: project.id, activity: false });
       features.push(feature);
+      // An unmatched feature still needs a module, so it gets the first one and
+      // the guess is written down as a question rather than left to look decided.
+      if (!matched && modules.length > 1) unowned.push({ feature, owner });
       await convert(db, item, "feature", feature.id, at);
+    }
+
+    // What the brief said is out of scope, stored where the product reads it.
+    //
+    // An "Out of scope" section became a discovery item of kind `exclusion` and
+    // stopped there. project_scope_items, the table the product document reads,
+    // was written by nothing at all, so the generated foundations said "None
+    // declared. An empty list here is a gap, not a statement" to somebody who had
+    // just declared three. The most valuable section of a brief was parsed,
+    // stored as a proposal, and contradicted in the same run.
+    const exclusions = items.filter((i) => i.kind === "exclusion");
+    const scope = [];
+    for (const [index, item] of exclusions.entries()) {
+      const { name: statement, description: why } = splitLabel(item.statement);
+      if (!statement) continue;
+      const already = await db.get(
+        "SELECT id FROM project_scope_items WHERE project_id = ? AND statement = ?", project.id, statement);
+      if (already) continue;
+      const row = await create(db, "project_scope_item", {
+        project_id: project.id,
+        direction: "non_goal",
+        statement,
+        why: why ?? item.provenance ?? null,
+        sequence: index,
+      }, { projectId: project.id, activity: false });
+      scope.push(row);
+      await convert(db, item, "project_scope_item", row.id, at);
+    }
+
+    // Every guess about ownership, asked rather than assumed.
+    for (const { feature, owner } of unowned) {
+      await create(db, "question", {
+        project_id: project.id,
+        scope_type: "feature",
+        scope_id: feature.id,
+        question: `Which module owns ${feature.name}?`,
+        why_it_matters: `The brief named ${modules.length} modules and none of them appears in this feature, so it was placed in ${owner.name} to have a home. Module ownership decides which test plan covers it and which documentation directory it is written to.`,
+        recommendation: `Leave it in ${owner.name} if that is right, or run superdev feature move ${feature.id} --module <MOD-id>.`,
+        alternatives_json: JSON.stringify(modules.filter((m) => m.id !== owner.id).map((m) => m.name)),
+        status: "open",
+        created_at: at,
+      }, { projectId: project.id, activity: false });
     }
 
     const created = [];
@@ -564,24 +675,24 @@ async function draftProduct(root, project, { actor, at, milestones }) {
 
     for (const module of modules) await seedModuleCompleteness(db, module.id, { at });
 
-    if (goals.length || modules.length || features.length || created.length) {
+    if (goals.length || modules.length || features.length || created.length || scope.length) {
       await recordActivity(db, project.id, {
         type: "specification_changed",
-        summary: `Drafted ${count(goals.length, "goal")}, ${count(modules.length, "module")}, ${count(features.length, "feature")} and ${count(created.filter(Boolean).length, "milestone")} from the concept map`,
+        summary: `Drafted ${count(goals.length, "goal")}, ${count(modules.length, "module")}, ${count(features.length, "feature")}, ${count(created.filter(Boolean).length, "milestone")} and ${count(scope.length, "non-goal")} from the concept map`,
         actor,
-        metadata: { goals: goals.length, modules: modules.length, features: features.length, milestones: created.filter(Boolean).length },
+        metadata: { goals: goals.length, modules: modules.length, features: features.length, milestones: created.filter(Boolean).length, nonGoals: scope.length },
       });
     }
 
-    return { goals, modules, features, milestones: created.filter(Boolean) };
+    return { goals, modules, features, milestones: created.filter(Boolean), nonGoals: scope };
   });
 
-  const total = outcome.goals.length + outcome.modules.length + outcome.features.length;
+  const total = outcome.goals.length + outcome.modules.length + outcome.features.length + outcome.nonGoals.length;
   return {
     ...outcome,
     created: total > 0,
     detail: total
-      ? `${count(outcome.goals.length, "goal")}, ${count(outcome.modules.length, "module")}, ${count(outcome.features.length, "feature")}, ${count(outcome.milestones.length, "milestone")}`
+      ? `${count(outcome.goals.length, "goal")}, ${count(outcome.modules.length, "module")}, ${count(outcome.features.length, "feature")}, ${count(outcome.milestones.length, "milestone")}, ${count(outcome.nonGoals.length, "non-goal")}`
       : "the concept map held no candidates to convert, so nothing was invented to fill the gap",
   };
 }

@@ -25,6 +25,7 @@
     "skills/",
     "references/",
     "hooks/",
+    "scripts/providers/",
     "scripts/validate/",
     "!scripts/**/*.test.mjs",
     "scripts/doctor/",

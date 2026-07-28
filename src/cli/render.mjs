@@ -443,15 +443,23 @@ export function renderProposals(report) {
  * in one line, so the failing one is findable without reading the rest.
  */
 export function renderDoctor({ checks = [], findings = [] } = {}) {
-  const rows = checks.map((c) => [c.name, c.ok ? "Pass" : "Problem", c.detail ?? ""]);
-  const bad = checks.filter((c) => !c.ok).length;
+  // Three verdicts, because a check that threw is neither. Pass beside "could
+  // not be determined" was a real defect: it is the answer a reader trusts least
+  // once they notice it, and most when they do not.
+  const verdict = (ok) => (ok === true ? "Pass" : ok === false ? "Problem" : "Unknown");
+  const rows = checks.map((c) => [c.name, verdict(c.ok), c.detail ?? ""]);
+  const bad = checks.filter((c) => c.ok === false).length;
+  const unknown = checks.filter((c) => c.ok !== true && c.ok !== false).length;
   return stitch([
     heading("Doctor"),
     table(["Check", "Verdict", "Detail"], rows),
     "",
     bad
       ? `${plural(bad, "check")} found a problem.`
-      : "Every check passed.",
+      : unknown
+        ? "No check found a problem."
+        : "Every check passed.",
+    unknown ? `${plural(unknown, "check")} could not determine an answer, so nothing here vouches for it.` : null,
     findings.length ? "" : null,
     findings.length ? block(`Findings (${findings.length})`, findingList(findings)) : null,
   ]);

@@ -486,6 +486,19 @@ function valueFor(column, lines) {
   return lines.join("\n").trim();
 }
 
+/**
+ * Sections that are lists of records rather than one field, and the command that
+ * writes each. These cannot be read back out of Markdown, because a bullet list
+ * cannot say which record each line is, but every one of them can be written.
+ */
+const WRITTEN_BY = {
+  non_goals: 'Non-goals are records rather than one field. Add one with superdev scope record --not "<what this will not do>" --why "<reason>" --apply.',
+  out_of_scope: 'This is a list of records. Add one with superdev scope record --out "<what is out>" --apply.',
+  success_criteria: 'Success criteria belong to a goal. Add one with superdev goal criterion <GOAL-id> --criterion "<what must be true>" --measurement "<how it is read>" --apply.',
+  goals: 'A goal is a record. Add one with superdev goal record --name "<the outcome>" --apply.',
+  milestones: 'A milestone is a record. Add one with superdev milestone record --name "<the stage>" --apply.',
+};
+
 function columnFor(name, columns, constrained) {
   const key = normalizeHeading(name);
   if (!key) return null;
@@ -636,7 +649,12 @@ async function planAcceptance(db, doc, state) {
     }
     const column = item.heading ? columnFor(item.heading, columns, constrained) : null;
     if (!column) {
-      reject(where, `No ${kind} field is projected from this section, so its edit cannot be stored.`);
+      // A section backed by child records has a command, and naming it is the
+      // difference between a refusal and a dead end. Non-goals invited an edit
+      // in its own generated prose and then refused it with nowhere to go, so a
+      // reader who did exactly what the document asked had no next step.
+      reject(where, WRITTEN_BY[normalizeHeading(item.heading ?? "")]
+        ?? `No ${kind} field is projected from this section, so its edit cannot be stored.`);
       continue;
     }
     if (item.section.lines.some((line) => TABLE_ROW.test(line) || LABEL_LINE.test(line))) {

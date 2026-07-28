@@ -22,7 +22,7 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 
-import { extractFromDocument, paragraphs, titleOf } from "./discovery.mjs";
+import { extractFromDocument, paragraphs, splitLabel, titleOf } from "./discovery.mjs";
 
 describe("paragraphs", () => {
   it("joins a hard-wrapped sentence back into one", () => {
@@ -203,5 +203,59 @@ describe("extractFromDocument", () => {
 
   it("takes nothing from an empty document", () => {
     assert.deepEqual(found(""), []);
+  });
+});
+
+describe("splitLabel", () => {
+  const split = (text) => {
+    const { name, description } = splitLabel(text);
+    return [name, description];
+  };
+
+  it("takes the label from the form every brief uses for its parts", () => {
+    // The defect. All of this became the name, and its first sixty characters
+    // became a committed directory path cut mid-word.
+    assert.deepEqual(
+      split("Screens. Four routes with shared layout, navigation, and session state."),
+      ["Screens", "Four routes with shared layout, navigation, and session state."],
+    );
+  });
+
+  it("takes a colon label", () => {
+    assert.deepEqual(split("Weather client: Open-Meteo fetch for one course."),
+      ["Weather client", "Open-Meteo fetch for one course."]);
+  });
+
+  it("takes a dash label, whichever dash was typed", () => {
+    for (const dash of ["-", "\u2013", "\u2014"]) {
+      assert.deepEqual(split(`Course data ${dash} Static JSON with tees and per-hole notes.`),
+        ["Course data", "Static JSON with tees and per-hole notes."]);
+    }
+  });
+
+  it("keeps a single sentence whole, minus the full stop", () => {
+    // A feature bullet is a sentence, not a label with a description.
+    assert.deepEqual(split("Record a handover note at the end of a shift."),
+      ["Record a handover note at the end of a shift", null]);
+  });
+
+  it("refuses a first sentence too long to be a label", () => {
+    const long = "The outgoing chef records what is prepped and what ran out. The next chef reads it.";
+    assert.deepEqual(split(long), [long.replace(/\.$/, ""), null]);
+  });
+
+  it("does not split inside a list", () => {
+    // "Averages, spread and" is where a naive dash rule would cut.
+    assert.deepEqual(split("Averages, spread and - where a club is inconsistent - the outliers."),
+      ["Averages, spread and - where a club is inconsistent - the outliers", null]);
+  });
+
+  it("does not split a decimal or a version", () => {
+    assert.deepEqual(split("Runs on Node 22.23 or newer"), ["Runs on Node 22.23 or newer", null]);
+  });
+
+  it("answers nothing for nothing", () => {
+    assert.deepEqual(split(""), [null, null]);
+    assert.deepEqual(split(null), [null, null]);
   });
 });

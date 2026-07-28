@@ -39,7 +39,7 @@ class Refusal extends Error {
 // Flags that carry no value. Everything else must be given one, so that
 // `--reason --apply` fails loudly instead of silently recording "true" as the
 // reason a task is blocked.
-const BOOLEAN = new Set(["apply", "json", "help", "all", "enabling", "end", "reports", "partial", "adopt", "dryRun", "resolve", "version", "noUpdateCheck", "updateCheck"]);
+const BOOLEAN = new Set(["apply", "json", "help", "all", "enabling", "end", "reports", "partial", "adopt", "dryRun", "resolve", "version", "noUpdateCheck", "updateCheck", "entry", "remove"]);
 
 const camel = (name) => name.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
 
@@ -81,6 +81,11 @@ function parseArgs(argv) {
 }
 
 const asList = (value) => (value === undefined ? [] : [].concat(value).map(String));
+
+/** A path with its symlinks resolved, or the path itself when it cannot be. */
+const realpathOf = (path) => {
+  try { return realpathSync(path); } catch { return path; }
+};
 
 function requireFlag(flags, name, what) {
   const value = flags[camel(name)];
@@ -172,7 +177,21 @@ Knowledge
   decision record      Record a decision, with what it governs
   decision supersede   Replace a decision that no longer holds
   decision list        Decisions and what they still govern
+  feature create       Add a feature to a module
+  feature move <id>    Reassign a feature's module or milestone
+  feature goal <id>    Say which goal a feature advances
   feature specify <id> Write the specification its depth requires
+  goal record          Record a lasting outcome
+  goal criterion <id>  Add a success criterion, with how it is measured
+  milestone record     Record a delivery stage
+  milestone condition <id>  Add an exit condition, or --entry for an entry one
+  milestone update <id>     Rename it, restate it, or move its target date
+  module record        Record a slice of the product
+  module rename <id>   Rename a module, or restate what it owns
+  scope record         Record what the product will not do, and why
+  scope list           What is in scope, out of scope, and a non-goal
+  scope remove <id>    Take a scope line back out
+  retire <id>          Take a goal or milestone out of scope, with the reason
   feature waive <id>   Set an acceptance criterion aside, with the reason
   feature depth        Read what a depth requires, or set one
   feature accept       Accept a feature, refused while its depth is unmet
@@ -202,6 +221,16 @@ Options
   --out <path>         Write this command's output to a file
   --actor <name>       Who to record as responsible. Defaults to superdev
   --help               This text
+
+Flags worth knowing
+  init --brief <file>  Read the project from a document. See requirement.md in
+                       the Superdev repository for the format it reads best
+  init --adopt         The documents already here are input to this project, not
+                       a record of it. Say this when init routes to adopt but the
+                       files it found are a brief rather than a projection
+  feature specify --not <text>
+                       What the feature deliberately does not do. Repeatable.
+                       Its counterpart is --in, and --out stays global
 
 Exit codes
   0 it worked, 1 something was found or refused, 2 the command was misused`;
@@ -554,6 +583,23 @@ async function cmdDoctor(ctx) {
         : "Nothing has been generated yet",
   });
 
+  // Markdown in the docs root that no record claims.
+  //
+  // Two Superdev architectures existed under the same version number, and both
+  // wrote to talks/. A copy of the older one, driving its own engine, would fill
+  // that directory with files this database has never heard of, and every check
+  // here would stay green because each one asks about records rather than about
+  // the directory. An unclaimed file is also what a hand-created document looks
+  // like, which is worth naming for its own sake.
+  const foreign = await unclaimedDocuments(ctx.root);
+  if (foreign.length) {
+    checks.push({
+      name: "Docs directory",
+      ok: false,
+      detail: `${countWord(foreign.length, "file")} under the docs root ${foreign.length === 1 ? "belongs" : "belong"} to no record: ${foreign.slice(0, 3).join(", ")}${foreign.length > 3 ? ", and more" : ""}. Superdev did not write ${foreign.length === 1 ? "it" : "them"}, so nothing here keeps ${foreign.length === 1 ? "it" : "them"} true.`,
+    });
+  }
+
   const view = await withProject(ctx.root, async (db, project) => ({
     warnings: await alignmentWarnings(db, project.id),
     freshness: await freshness(db, project.id),
@@ -595,18 +641,57 @@ async function cmdDoctor(ctx) {
        FROM verification_evidence WHERE status = 'current'`));
   checks.push({
     name: "Evidence",
-    ok: (evidence?.failing ?? 0) === 0,
+    ok: evidence?.total ? (evidence.failing ?? 0) === 0 : null,
     detail: evidence?.total
       ? `${evidence.total - evidence.manual} of ${evidence.total} can be re-run${evidence.failing ? `, ${evidence.failing} last failed` : ""}. Run superdev verify.`
       : "No evidence recorded yet",
   });
 
-  const ok = checks.every((c) => c.ok);
+  const ok = checks.every((c) => c.ok !== false);
   return {
     data: { ok, checks, migrations, integrity: { ok: integrity.ok, counts: integrity.counts }, findings: view.warnings },
     text: R.renderDoctor({ checks, findings: view.warnings }),
     exit: ok ? 0 : 1,
   };
+}
+
+/**
+ * Markdown under the project's docs root that no document record claims.
+ *
+ * Read only, and bounded: this is a health check, not a crawl. The docs root is
+ * read from the project rather than assumed, because adoption points it at
+ * whatever the repository already used.
+ */
+async function unclaimedDocuments(root) {
+  const found = [];
+  try {
+    const { readdirSync } = await import("node:fs");
+    const project = await withProject(root, async (db) => ({
+      docsRoot: (await db.get("SELECT docs_profile FROM projects LIMIT 1"))?.docs_profile === "talks-v1" ? "talks" : null,
+      known: new Set((await db.all("SELECT path FROM documents")).map((d) => d.path)),
+    }));
+    if (!project.docsRoot) return [];
+    const base = resolve(root, project.docsRoot);
+    const walk = (dir, depth) => {
+      if (depth > 4 || found.length > 50) return;
+      let entries;
+      try { entries = readdirSync(dir, { withFileTypes: true }); } catch { return; }
+      for (const entry of entries) {
+        if (entry.name.startsWith(".")) continue;
+        const full = join(dir, entry.name);
+        if (entry.isDirectory()) walk(full, depth + 1);
+        else if (entry.name.endsWith(".md")) {
+          const rel = relative(resolve(root), full).split("\\").join("/");
+          if (!project.known.has(rel)) found.push(rel);
+        }
+      }
+    };
+    walk(base, 0);
+  } catch {
+    // A health check that throws is worse than one that says nothing here.
+    return [];
+  }
+  return found;
 }
 
 /**
@@ -640,7 +725,16 @@ async function recordProviderReadiness(root, paths) {
         : "No provider was detected",
     };
   } catch (error) {
-    return { name: "Providers", ok: true, detail: `Readiness could not be determined: ${String(error.message).slice(0, 80)}` };
+    // ok: null, not ok: true. This returned Pass beside the words "could not be
+    // determined", which is a contradiction printed in green, and the detail
+    // column truncates at 80 characters so on a narrow terminal only the green
+    // was visible. Doctor exists so nothing is silently skipped; its own checks
+    // are held to that.
+    return {
+      name: "Providers",
+      ok: null,
+      detail: `Readiness could not be determined: ${String(error.message).slice(0, 120)}`,
+    };
   }
 }
 
@@ -1571,12 +1665,24 @@ async function cmdSettings(ctx) {
   }
 
   const on = checkingEnabled(ctx.root);
+  // Which copy is answering, not just which version.
+  //
+  // Superdev ships as an npm package and as a plugin, and both carry the same
+  // version number. A stale plugin copy of an older architecture sat in a cache
+  // beside the current one under the same number, and no command could say which
+  // of them a session was actually using. The running file settles it, so
+  // "superdev 0.1.1" stops naming two different things.
+  const running = realpathOf(fileURLToPath(import.meta.url));
+  const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT ? realpathOf(process.env.CLAUDE_PLUGIN_ROOT) : null;
+  const throughPlugin = Boolean(pluginRoot && running.startsWith(pluginRoot));
   return {
-    data: { version: me.version, package: me.name, updateCheck: on },
+    data: { version: me.version, package: me.name, updateCheck: on, running, pluginRoot, throughPlugin },
     text: R.stitch([
       R.heading("Settings"),
       R.pairs([
         ["Version", `${me.name} ${me.version}`],
+        ["Running from", running],
+        ["Reached as", throughPlugin ? "the plugin's own copy" : "an installed superdev-cli"],
         ["Update check", on ? "On" : "Off"],
       ]),
       R.wrap(on
@@ -2377,6 +2483,283 @@ async function cmdCategoryRestore(ctx) {
 }
 
 
+// ------------------------------------------------------- authoring the map
+//
+// Every product record could only be created by `init`, so a project was frozen
+// the moment it was initialized. The read side was complete, which is why the
+// gap was invisible: goal list and goal show both worked while nothing could
+// write a goal. These are the writes.
+
+async function cmdGoalRecord(ctx) {
+  const { recordGoal } = await import("./product/authoring.mjs");
+  const out = await recordGoal(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A goal needs a name that states the outcome, not the work."),
+    why: ctx.flags.why ?? null,
+    description: ctx.flags.description ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would record the goal "${out.name}".`));
+  }
+  return {
+    data: out,
+    text: R.stitch([
+      R.wrap(`${out.goal.id} recorded: ${out.goal.name}`),
+      R.wrap(`It has no success criteria yet, so nothing can say whether it is met and progress counts it as unmeasurable. Add one with superdev goal criterion ${out.goal.id} --criterion "<what is true>" --measurement "<how it is checked>" --apply.`),
+    ]),
+  };
+}
+
+async function cmdGoalCriterion(ctx) {
+  const { count } = await import("./model/vocabulary.mjs");
+  const id = requireWord(ctx.words, 2, "Say which goal: superdev goal criterion <GOAL-id>.");
+  const { addGoalCriterion } = await import("./product/authoring.mjs");
+  const out = await addGoalCriterion(ctx.root, id, {
+    criterion: requireFlag(ctx.flags, "criterion", "Say what has to be true. A criterion nobody can check is not one."),
+    measurement: ctx.flags.measurement ?? null,
+    target: ctx.flags.target ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would add to ${id}: ${out.criterion}`));
+  }
+  return {
+    data: out,
+    text: R.stitch([
+      R.wrap(`${out.criterion.id} recorded against ${out.goal.name}: ${out.criterion.criterion}`),
+      R.wrap(`${out.goal.id} now carries ${count(out.total, "success criterion", "success criteria")}. It is met when every one of them is.`),
+    ]),
+  };
+}
+
+async function cmdMilestoneRecord(ctx) {
+  const { recordMilestone } = await import("./product/authoring.mjs");
+  const out = await recordMilestone(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A milestone needs a name that says what is delivered by it."),
+    outcome: ctx.flags.outcome ?? null,
+    targetDate: ctx.flags.date ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would record the milestone "${out.name}".`));
+  }
+  return {
+    data: out,
+    text: R.stitch([
+      R.wrap(`${out.milestone.id} recorded: ${out.milestone.name}`),
+      R.wrap(`It has no exit conditions, so nothing says when it is reached. Add one with superdev milestone condition ${out.milestone.id} --condition "<what must hold>" --apply.`),
+    ]),
+  };
+}
+
+async function cmdMilestoneCondition(ctx) {
+  const { count } = await import("./model/vocabulary.mjs");
+  const id = requireWord(ctx.words, 2, "Say which milestone: superdev milestone condition <MS-id>.");
+  const { addMilestoneCondition } = await import("./product/authoring.mjs");
+  const out = await addMilestoneCondition(ctx.root, id, {
+    condition: requireFlag(ctx.flags, "condition", "Say what has to hold before this milestone is reached."),
+    check: ctx.flags.check ?? null,
+    entry: Boolean(ctx.flags.entry),
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would add to ${id} as ${out.entry ? "an entry" : "an exit"} condition: ${out.condition}`));
+  }
+  return {
+    data: out,
+    text: R.wrap(out.entry
+      ? `Recorded against ${id}. It now carries ${count(out.total, "entry condition")}, and cannot be started until every one is met.`
+      : `Recorded against ${id}. It now carries ${count(out.total, "exit condition")}, and is reached when every one is met.`),
+  };
+}
+
+async function cmdModuleRecord(ctx) {
+  const { recordModule } = await import("./product/authoring.mjs");
+  const out = await recordModule(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A module needs a name."),
+    purpose: ctx.flags.purpose ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would record the module "${out.name}".`));
+  }
+  return {
+    data: out,
+    text: R.wrap(`${out.module.id} recorded: ${out.module.name}. Put a feature in it with superdev feature create --module ${out.module.id}.`),
+  };
+}
+
+async function cmdFeatureCreate(ctx) {
+  const { createFeature } = await import("./product/authoring.mjs");
+  const out = await createFeature(ctx.root, {
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    milestoneId: ctx.flags.milestone ? String(ctx.flags.milestone) : null,
+    name: requireFlag(ctx.flags, "name", "A feature needs a name that states what somebody can do."),
+    purpose: ctx.flags.purpose ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "create it", R.wrap(`Would draft "${out.name}" in module ${out.moduleId}.`));
+  }
+  return {
+    data: out,
+    text: R.stitch([
+      R.wrap(`${out.feature.id} drafted in ${out.module.name}: ${out.feature.name}`),
+      R.wrap(`It is Draft at microspec depth. Write its specification with superdev feature specify ${out.feature.id}, then accept it. The depth gate refuses acceptance while anything it promises is missing.`),
+    ]),
+  };
+}
+
+async function cmdScopeRecord(ctx) {
+  const { recordScopeItem } = await import("./product/authoring.mjs");
+  // --not is the same word here as in feature specify, and means the same thing.
+  const direction = ctx.flags.in !== undefined ? "in" : ctx.flags.out !== undefined ? "out" : "non_goal";
+  const statement = ctx.flags.in ?? ctx.flags.out ?? ctx.flags.not ?? ctx.words[2];
+  if (statement === undefined) {
+    throw new UsageError('Say what is decided: superdev scope record --not "<what this will not do>" [--why "<reason>"].');
+  }
+  const out = await recordScopeItem(ctx.root, {
+    statement: String(statement),
+    direction,
+    why: ctx.flags.why ?? null,
+    horizon: ctx.flags.horizon ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would record as ${SAID_AS[out.direction]}: ${out.statement}`));
+  }
+  return {
+    data: out,
+    text: R.wrap(`${out.item.id} records this as ${out.said}. It appears in the product foundations, which is the one place a deliberate exclusion is distinguishable from something nobody thought of.`),
+  };
+}
+
+async function cmdScopeRemove(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which scope item: superdev scope remove <SCOPE-id>.");
+  const { removeScopeItem } = await import("./product/authoring.mjs");
+  const out = await removeScopeItem(ctx.root, id, { actor: ctx.actor, apply: ctx.apply });
+  if (!out.applied) {
+    return planned(out, "remove it", R.wrap(`Would stop recording as ${out.said}: ${out.statement}`));
+  }
+  return { data: out, text: R.wrap(`${id} is no longer recorded as ${out.said}.`) };
+}
+
+async function cmdScopeList(ctx) {
+  const { scopeList } = await import("./product/authoring.mjs");
+  const rows = await scopeList(ctx.root);
+  if (!rows.length) {
+    return {
+      data: { scope: [] },
+      text: R.wrap('Nothing is recorded as in or out of scope. What a product deliberately does not do is the only place a decision is distinguishable from an oversight; record one with superdev scope record --not "<what this will not do>".'),
+    };
+  }
+  return {
+    data: { scope: rows },
+    text: R.stitch([
+      R.heading(`Scope (${rows.length})`),
+      R.table(["Id", "Direction", "Statement", "Why"],
+        rows.map((r) => [r.id, SAID_AS[r.direction] ?? r.direction, r.statement, r.why ?? "Not recorded"])),
+    ]),
+  };
+}
+
+const SAID_AS = { in: "in scope", out: "out of scope", non_goal: "a non-goal" };
+
+async function cmdMilestoneUpdate(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which milestone: superdev milestone update <MS-id> [--name <text>] [--outcome <text>] [--target <date>].");
+  const { updateMilestone } = await import("./product/authoring.mjs");
+  const out = await updateMilestone(ctx.root, id, {
+    name: ctx.flags.name ?? null,
+    outcome: ctx.flags.outcome ?? null,
+    targetDate: ctx.flags.target ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  const said = Object.entries(out.changes).map(([field, value]) => `${SAYS[field] ?? field} to ${value}`).join(", ");
+  if (!out.applied) return planned(out, "change it", R.wrap(`Would set ${id} ${said}.`));
+  return { data: out, text: R.wrap(`${id} updated: ${said}.`) };
+}
+
+async function cmdModuleRename(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which module: superdev module rename <MOD-id> --name <text>.");
+  const { renameModule } = await import("./product/authoring.mjs");
+  const out = await renameModule(ctx.root, id, {
+    name: ctx.flags.name ?? ctx.words[3] ?? null,
+    purpose: ctx.flags.purpose ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  const said = Object.entries(out.changes).map(([field, value]) => `${SAYS[field] ?? field} to ${value}`).join(", ");
+  if (!out.applied) return planned(out, "change it", R.wrap(`Would set ${id} ${said}.`));
+  return {
+    data: out,
+    text: R.wrap(out.changes.name
+      ? `${id} is now ${out.changes.name}. Its documentation directory is named from the module, so run superdev docs generate to move it.`
+      : `${id} updated: ${said}.`),
+  };
+}
+
+/** Field names as a reader would say them. */
+const SAYS = { name: "its name", purpose: "what it owns", outcome: "what it delivers", target_date: "its target date" };
+
+async function cmdFeatureGoal(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which feature: superdev feature goal <FEAT-id> --goal <GOAL-id>.");
+  const goalId = requireFlag(ctx.flags, "goal", "Say which goal it advances: --goal <GOAL-id>.");
+  const { linkFeatureGoal } = await import("./product/authoring.mjs");
+  const remove = Boolean(ctx.flags.remove);
+  const out = await linkFeatureGoal(ctx.root, id, String(goalId), { remove, actor: ctx.actor, apply: ctx.apply });
+  if (out.unchanged) {
+    return { data: out, text: R.wrap(`${id} already serves ${out.goal}.`) };
+  }
+  if (!out.applied) {
+    return planned(out, remove ? "unlink it" : "link it",
+      R.wrap(remove
+        ? `Would stop ${id} ${out.name} counting toward ${out.goal}.`
+        : `Would record that ${id} ${out.name} advances ${out.goal}.`));
+  }
+  return {
+    data: out,
+    text: R.wrap(remove
+      ? `${id} no longer serves ${out.goal}.`
+      : `${id} now serves ${out.goal}. A feature that advances no goal is scope nobody can justify when scope is cut, which is what the alignment report was warning about.`),
+  };
+}
+
+async function cmdFeatureMove(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which feature: superdev feature move <FEAT-id> --module <MOD-id>.");
+  const { moveFeature } = await import("./product/authoring.mjs");
+  const out = await moveFeature(ctx.root, id, {
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    milestoneId: ctx.flags.milestone ? String(ctx.flags.milestone) : null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "move it", R.stitch([
+      R.wrap(`Would move ${id} ${out.name}.`),
+      out.moduleId ? R.wrap(`Module: ${out.fromModule ?? "none"} to ${out.moduleId}`, R.WIDTH, "  ") : null,
+      out.milestoneId ? R.wrap(`Milestone: ${out.fromMilestone ?? "none"} to ${out.milestoneId}`, R.WIDTH, "  ") : null,
+    ]));
+  }
+  return {
+    data: out,
+    text: R.wrap(`${id} moved${out.toModule ? ` into module ${out.toModule}` : ""}${out.toMilestone ? ` into ${out.toMilestone}` : ""}. Its contract, tasks and evidence are untouched.`),
+  };
+}
+
+async function cmdRetire(ctx) {
+  const id = requireWord(ctx.words, 1, "Say which goal or milestone: superdev retire <id> --reason <why>.");
+  const { retire } = await import("./product/authoring.mjs");
+  const out = await retire(ctx.root, id, {
+    reason: requireFlag(ctx.flags, "reason", "Say why it is being retired, so nobody later has to guess whether it was decided or forgotten."),
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "retire it", R.wrap(`Would retire ${out.kind} ${id} ${out.name}. Because: ${out.reason}`));
+  }
+  return {
+    data: out,
+    text: R.wrap(`${id} is retired. Nothing is deleted: it keeps its history and stops counting toward progress.`),
+  };
+}
+
 // ------------------------------------------------------------ feature depth
 
 async function cmdFeatureAccept(ctx) {
@@ -2451,11 +2834,29 @@ async function cmdFeatureSpecify(ctx) {
     return { criterion, verification: verification || null };
   });
 
+  if (ctx.flags.out !== undefined) {
+    throw new UsageError(
+      "--out is the global flag for writing a command's output to a file. What is deliberately out of scope goes in --not, so that the two cannot be confused.",
+    );
+  }
+
   const input = {
     purpose: ctx.flags.purpose ? String(ctx.flags.purpose) : null,
     userStatement: ctx.flags.user ? String(ctx.flags.user) : null,
     scopeIn: asList(ctx.flags.in).map(String),
-    scopeOut: asList(ctx.flags.out).map(String),
+    // --not, never --out.
+    //
+    // This flag was --out, which is also the global "write this command's output
+    // to this path" flag. The database write succeeded, then the joined scope-out
+    // sentences were treated as a filename: three files named after their own
+    // contents appeared in a real user's repository root, and the fourth call
+    // died with ENAMETOOLONG. Both outcomes were silent, because the output that
+    // would have said what happened went into the junk file.
+    //
+    // Renaming it is the fix rather than marking the flag consumed, because a
+    // command where --out means something different from every other command is
+    // a trap even when it works.
+    scopeOut: asList(ctx.flags.not).map(String),
     flow: asList(ctx.flags.flow).map(String),
     criteria,
     edgeCases,
@@ -2619,6 +3020,20 @@ const COMMANDS = {
   "decision supersede": cmdDecisionSupersede,
   "decision list": cmdDecisionList,
   "feature accept": cmdFeatureAccept,
+  "goal record": cmdGoalRecord,
+  "goal criterion": cmdGoalCriterion,
+  "milestone record": cmdMilestoneRecord,
+  "milestone condition": cmdMilestoneCondition,
+  "module record": cmdModuleRecord,
+  "feature create": cmdFeatureCreate,
+  "feature move": cmdFeatureMove,
+  "feature goal": cmdFeatureGoal,
+  "milestone update": cmdMilestoneUpdate,
+  "module rename": cmdModuleRename,
+  "scope record": cmdScopeRecord,
+  "scope remove": cmdScopeRemove,
+  "scope list": cmdScopeList,
+  retire: cmdRetire,
   "feature depth": cmdFeatureDepth,
   "feature specify": cmdFeatureSpecify,
   "feature waive": cmdFeatureWaive,
@@ -2781,14 +3196,7 @@ export async function run(argv = process.argv.slice(2)) {
 function isProgram() {
   const invoked = process.argv[1];
   if (!invoked) return false;
-  const real = (path) => {
-    try {
-      return realpathSync(path);
-    } catch {
-      return path;
-    }
-  };
-  return real(invoked) === real(fileURLToPath(import.meta.url));
+  return realpathOf(invoked) === realpathOf(fileURLToPath(import.meta.url));
 }
 
 // Imported, by a hook or by a test of the parser, it stays inert.
