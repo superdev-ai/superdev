@@ -137,6 +137,7 @@ Working
   test-plan run <id>   Run the plan and record what it produced
   test-plan record <id>  Record a plan carried out by hand
   verify               Re-run the checks the recorded evidence stands on
+  evidence supersede <id>  Retire a record that no longer applies, with the reason
   task cancel <id>     Stop work that should not continue, with a reason
   task complete <id>   Finish a task once its verification passes
   task block <id>      Record why a task cannot move
@@ -2034,9 +2035,18 @@ async function cmdTaskEvidence(ctx) {
   }
   const { attachEvidence } = await lifecycle();
   const task = await attachEvidence(ctx.root, id, evidence);
+  const also = (task.alsoProving ?? []).filter((e) => e.id !== task.evidence.id);
   return {
     data: { applied: true, task },
-    text: `${task.evidence.id} recorded against ${task.id}: ${summary}`,
+    text: R.stitch([
+      `${task.evidence.id} recorded against ${task.id}: ${summary}`,
+      // Two current records for one criterion is legitimate, and it is also how a
+      // correction looks. Saying so is what stops the older one being forgotten
+      // until verify starts failing on a command that has moved.
+      also.length
+        ? R.wrap(`${countWord(also.length, "record")} already ${also.length === 1 ? "proves" : "prove"} ${evidence.acceptanceCriterionId}: ${also.map((e) => e.id).join(", ")}. If this replaces one rather than adding to it, retire it with superdev evidence supersede ${also[0].id} --reason "<why>" --apply.`)
+        : null,
+    ]),
   };
 }
 
@@ -2207,6 +2217,38 @@ async function cmdTaskBlock(ctx) {
  * duplicate is superseded and says which task replaced it, which is the same
  * answer for the reader and a better one for the record.
  */
+/**
+ * Retire one evidence record that no longer applies.
+ *
+ * `evidence` rather than `task evidence supersede`, because the resolver reads two
+ * words and the third would be taken as a task identifier. The record is the
+ * subject here anyway, not the task.
+ */
+async function cmdEvidenceSupersede(ctx) {
+  const id = requireWord(ctx.words, 2, 'Say which record: superdev evidence supersede <EV-id> --reason "<why it no longer applies>".');
+  const reason = String(requireFlag(ctx.flags, "reason", "Superseding evidence needs a reason, because the record already said this was observed."));
+  if (!ctx.apply) {
+    return planned({ id, reason }, "supersede it", R.stitch([
+      R.wrap(`Would supersede ${id}: ${reason}`),
+      R.wrap("The record and its reason stay in history. It leaves the verification tally, and any acceptance criterion resting on it falls back to whatever else is current, or to unmet."),
+    ]));
+  }
+  const { supersedeEvidence } = await lifecycle();
+  const out = await supersedeEvidence(ctx.root, id, { reason, actor: ctx.actor });
+  return {
+    data: out,
+    text: R.stitch([
+      `${id} is superseded and no longer counted.`,
+      out.command ? R.wrap(`Its command was: ${out.command}`) : null,
+      out.criterion
+        ? R.wrap(out.criterion.restingOn
+            ? `${out.criterion.id} is still met, now resting on ${out.criterion.restingOn}.`
+            : `${out.criterion.id} is ${R.status(out.criterion.status)}, because nothing current proves it now.`)
+        : null,
+    ]),
+  };
+}
+
 async function cmdTaskMerge(ctx) {
   const duplicate = requireWord(ctx.words, 2, "Say which task is the duplicate: superdev task merge <duplicate-id> --into <TASK-id>.");
   const survivor = String(requireFlag(ctx.flags, "into", "Say which task keeps the work: --into <TASK-id>."));
@@ -3164,6 +3206,7 @@ const COMMANDS = {
   "task cancel": cmdTaskCancel,
   "task complete": cmdTaskComplete,
   "task block": cmdTaskBlock,
+  "evidence supersede": cmdEvidenceSupersede,
   "task merge": cmdTaskMerge,
   "task reopen": cmdTaskReopen,
   "docs generate": cmdDocsGenerate,
@@ -3240,7 +3283,7 @@ const COMMANDS = {
   "category restore": cmdCategoryRestore,
 };
 
-const GROUPS = new Set(["db", "task", "docs", "memory", "question", "decision", "category", "feature",
+const GROUPS = new Set(["db", "task", "docs", "memory", "question", "decision", "category", "feature", "evidence",
   "module", "goal", "milestone", "workflow", "architecture", "schema", "api", "integration", "change", "assumption", "cloud"]);
 
 function resolveCommand(words) {

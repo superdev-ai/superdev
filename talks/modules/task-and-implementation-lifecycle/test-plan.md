@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0004 revision=3408 hash=670eaf080e0460ccfee86c0614d6b25a1dc0e56ebaa1209136efcda1a1bf4fcc -->
+<!-- superdev:generated source=MOD-0004 revision=3438 hash=3f1c8ad1258ba64fb0cbdaaddef6035298aedf0b20c4573347cdba569fb264da -->
 # Task and Implementation Lifecycle - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -31,13 +31,16 @@
 | Merge a duplicate task into the one that keeps the work | Everything a duplicate owns ends up on the task that is kept | Merge a task carrying evidence, links, dependencies and a child, then read both tasks back | Met |
 | Merge a duplicate task into the one that keeps the work | The duplicate is superseded and names its survivor rather than disappearing | Read the merged task and find the identifier it points at | Met |
 | Merge a duplicate task into the one that keeps the work | A merge that would lose something is refused by name | Try merging a task into itself, into a task in another project, and while somebody else holds it | Met |
+| Supersede a piece of evidence that no longer applies | A superseded record leaves the verify tally and says it is superseded | Supersede a record and run verify and task show | Met |
+| Supersede a piece of evidence that no longer applies | The criterion it proved falls back to other current evidence, or to unmet | Supersede the only proof of a met criterion and read the criterion | Met |
+| Supersede a piece of evidence that no longer applies | Recording evidence for a criterion that already has some says so, and names the command | Record two pieces of evidence for one criterion and read the second one's output | Met |
 
 ## Coverage map
 
 | Area | Level | Cases | Status |
 |---|---|---|---|
-| Happy paths per feature | command, manual_check, validator | 21 | exists |
-| Applicable edge-case categories | command, manual_check, validator | 70 | exists |
+| Happy paths per feature | command, manual_check, validator | 22 | exists |
+| Applicable edge-case categories | command, manual_check, validator | 72 | exists |
 | Permission boundaries | command, manual_check, validator | 0 | missing |
 | State machines including illegal transitions | command, manual_check, validator | 0 | missing |
 
@@ -73,3 +76,6 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | A duplicate's evidence, contract links and child tasks end up on the task that is kept | manual_check | pass | - | Current |
 | The duplicate is superseded, keeps its history, and names the task that replaced it | manual_check | pass | - | Current |
 | Every merge that would lose something is refused by name | manual_check | pass | - | Current |
+| A superseded record leaves the verification tally and keeps its command and reason | manual_check | pass | - | Current |
+| A criterion falls back to other current proof, or to unmet | manual_check | pass | - | Current |
+| Recording evidence for a criterion that already has some says so and names the command | manual_check | pass | - | Current |

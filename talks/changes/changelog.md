@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3408 hash=c5e8c5bc91959dc062ebd82bac07a256cda0afcbe082a3045d6e5a8d0a1dcb5b -->
+<!-- superdev:generated source=PRJ-0001 revision=3438 hash=bafd1a80b631950524857a8ebdc964413a42ee3e07417bd3d9cb7e8a80a3b493 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,33 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3438 | 2026-07-28 | Linked memory MEM-0102 to feature FEAT-0097 | superdev |
+| 3437 | 2026-07-28 | Linked memory MEM-0102 to task TASK-0034 | superdev |
+| 3436 | 2026-07-28 | Remembered outcome: TASK-0034 complete: Prove Supersede a piece of evidence that no longer applies m | superdev |
+| 3435 | 2026-07-28 | Supersede a piece of evidence that no longer applies is complete: its contract is satisfied | superdev |
+| 3434 | 2026-07-28 | TASK-0034 completed, assignment released. | superdev |
+| 3433 | 2026-07-28 | Task TASK-0034 moved to complete | superdev |
+| 3432 | 2026-07-28 | Acceptance criterion AC-0109 is met, evidenced by EV-0153. | superdev |
+| 3431 | 2026-07-28 | Passing evidence recorded for TASK-0034: Recording evidence for a criterion that already has some says so and names the command | superdev |
+| 3430 | 2026-07-28 | Acceptance criterion AC-0108 is met, evidenced by EV-0152. | superdev |
+| 3429 | 2026-07-28 | Passing evidence recorded for TASK-0034: A criterion falls back to other current proof, or to unmet | superdev |
+| 3428 | 2026-07-28 | Acceptance criterion AC-0107 is met, evidenced by EV-0151. | superdev |
+| 3427 | 2026-07-28 | Passing evidence recorded for TASK-0034: A superseded record leaves the verification tally and keeps its command and reason | superdev |
+| 3425 | 2026-07-28 | Task TASK-0034 moved to in progress | superdev |
+| 3424 | 2026-07-28 | TASK-0034 claimed. | superdev |
+| 3423 | 2026-07-28 | Derived tasks for FEAT-0097: 1 new, 0 updated, 0 superseded. | superdev |
+| 3422 | 2026-07-28 | Derived Prove Supersede a piece of evidence that no longer applies meets its acceptance criteria | superdev |
+| 3421 | 2026-07-28 | FEAT-0097 now serves No unmapped or disconnected implementation work | superdev |
+| 3420 | 2026-07-28 | Accepted Supersede a piece of evidence that no longer applies at microspec depth | superdev |
+| 3419 | 2026-07-28 | Edge case recorded for FEAT-0097: invalid_input | superdev |
+| 3418 | 2026-07-28 | Edge case recorded for FEAT-0097: duplication | superdev |
+| 3417 | 2026-07-28 | Acceptance criterion recorded for FEAT-0097 | superdev |
+| 3416 | 2026-07-28 | Acceptance criterion recorded for FEAT-0097 | superdev |
+| 3415 | 2026-07-28 | Acceptance criterion recorded for FEAT-0097 | superdev |
+| 3414 | 2026-07-28 | Primary flow recorded for FEAT-0097 | superdev |
+| 3413 | 2026-07-28 | Primary flow recorded for FEAT-0097 | superdev |
+| 3412 | 2026-07-28 | Primary flow recorded for FEAT-0097 | superdev |
+| 3411 | 2026-07-28 | Feature drafted in Task and Implementation Lifecycle: Supersede a piece of evidence that no longer applies | superdev |
 | 3408 | 2026-07-28 | Linked memory MEM-0101 to feature FEAT-0096 | superdev |
 | 3407 | 2026-07-28 | Linked memory MEM-0101 to task TASK-0033 | superdev |
 | 3406 | 2026-07-28 | Remembered outcome: TASK-0033 complete: Prove Merge a duplicate task into the one that keeps the wor | superdev |
@@ -180,30 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3214 | 2026-07-28 | Acceptance criterion recorded for FEAT-0093 | superdev |
 | 3213 | 2026-07-28 | Acceptance criterion recorded for FEAT-0093 | superdev |
 | 3212 | 2026-07-28 | Acceptance criterion recorded for FEAT-0093 | superdev |
-| 3211 | 2026-07-28 | Primary flow recorded for FEAT-0093 | superdev |
-| 3210 | 2026-07-28 | Primary flow recorded for FEAT-0093 | superdev |
-| 3209 | 2026-07-28 | Primary flow recorded for FEAT-0093 | superdev |
-| 3208 | 2026-07-28 | Primary flow recorded for FEAT-0093 | superdev |
-| 3207 | 2026-07-28 | Feature drafted in Product Model and Orchestration: Record what the product deliberately does not do | superdev |
-| 3197 | 2026-07-28 | FEAT-0092 now serves No unmapped or disconnected implementation work | superdev |
-| 3195 | 2026-07-28 | Linked memory MEM-0091 to feature FEAT-0092 | superdev |
-| 3194 | 2026-07-28 | Linked memory MEM-0091 to task TASK-0023 | superdev |
-| 3193 | 2026-07-28 | Remembered outcome: TASK-0023 complete: Prove Author the product map after initialization meets its | superdev |
-| 3192 | 2026-07-28 | Author the product map after initialization is complete: its contract is satisfied | superdev |
-| 3191 | 2026-07-28 | TASK-0023 completed, assignment released. | superdev |
-| 3190 | 2026-07-28 | Task TASK-0023 moved to complete | superdev |
-| 3189 | 2026-07-28 | Acceptance criterion AC-0094 is met, evidenced by EV-0131. | superdev |
-| 3188 | 2026-07-28 | Passing evidence recorded for TASK-0023: feature move reassigned FEAT-0001 from MOD-0001 to MOD-0002 and the database shows the new module with the feature's name, depth and status unchanged. This very feature, FEAT-0092, was created and specified through the new commands rather than by a script. | superdev |
-| 3187 | 2026-07-28 | Acceptance criterion AC-0093 is met, evidenced by EV-0130. | superdev |
-| 3186 | 2026-07-28 | Passing evidence recorded for TASK-0023: feature create drafted FEAT-0002 in MOD-0002 at microspec depth with status draft, and told the reader the depth gate would refuse acceptance until the specification was written. A second feature with the same name was refused, naming the one that existed. | superdev |
-| 3185 | 2026-07-28 | Acceptance criterion AC-0092 is met, evidenced by EV-0129. | superdev |
-| 3184 | 2026-07-28 | Passing evidence recorded for TASK-0023: In a throwaway project: goal record created GOAL-0001 and said it was unmeasurable until it carried a criterion; goal criterion added GSC-0001 with its measurement and target; the database shows the criterion unmet against the goal, which is what progress counts. | superdev |
-| 3183 | 2026-07-28 | Task TASK-0023 moved to in progress | superdev |
-| 3182 | 2026-07-28 | TASK-0023 claimed. | superdev |
-| 3181 | 2026-07-28 | Derived tasks for FEAT-0092: 1 new, 0 updated, 0 superseded. | superdev |
-| 3180 | 2026-07-28 | Derived Prove Author the product map after initialization meets its acceptance criteria | superdev |
-| 3179 | 2026-07-28 | Accepted Author the product map after initialization at microspec depth | superdev |
-| 3178 | 2026-07-28 | Edge case recorded for FEAT-0092: deletion_semantics | superdev |
-| 3177 | 2026-07-28 | Edge case recorded for FEAT-0092: invalid_input | superdev |
-| 3176 | 2026-07-28 | Edge case recorded for FEAT-0092: duplication | superdev |
-| 3175 | 2026-07-28 | Edge case recorded for FEAT-0092: empty_states | superdev |

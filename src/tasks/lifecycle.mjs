@@ -821,6 +821,21 @@ export async function attachEvidence(root, taskId, evidence = {}) {
 
   return mutate(root, async (db) => {
     const task = await taskOr404(db, taskId);
+    // What already proves this criterion, read before the new row is written.
+    //
+    // Two current records for one criterion is legitimate: two different checks can
+    // both prove one thing. It is also how a correction is made, and the second row
+    // silently joining the first is how a project ends up with one record failing
+    // forever because its command moved. So the caller is told, and told what to do
+    // about it, rather than the product guessing which of the two was meant.
+    const alreadyProving = acceptanceCriterionId
+      ? await db.all(
+          `SELECT id, check_command FROM verification_evidence
+            WHERE acceptance_criterion_id = ? AND status = 'current' AND result = 'pass'
+            ORDER BY recorded_at, id`,
+          acceptanceCriterionId)
+      : [];
+
     if (acceptanceCriterionId && result === "pass") {
       // Fresh proof of a criterion retires the stale proof it replaces. Marking
       // evidence stale is verify saying the check stopped passing, and the
@@ -906,6 +921,9 @@ export async function attachEvidence(root, taskId, evidence = {}) {
 
     const task_after = await db.get("SELECT * FROM tasks WHERE id = ?", taskId);
     task_after.evidence = row;
+    // Carried out so the surface can say it. A correction that looks identical to a
+    // second independent proof is how one record ends up failing forever.
+    task_after.alsoProving = alreadyProving;
     return task_after;
   });
 }
@@ -958,5 +976,75 @@ export async function findTaskForWork(root, { description, featureId = null, lim
     best.row.matched_terms = best.matched;
     best.row.alternatives = scored.slice(1, limit).map((s) => ({ id: s.row.id, name: s.row.name, score: Number(s.score.toFixed(3)) }));
     return best.row;
+  });
+}
+
+/**
+ * Retire one evidence record that no longer applies.
+ *
+ * A check whose script moved keeps failing forever, and the row cannot be
+ * corrected: `task evidence` only appends. Under the old verify allowlist such a
+ * row was refused and merely counted as unrunnable, so it was invisible; once
+ * containment let the path through, verify ran it, the file was gone, and it
+ * failed on every run of a healthy project. `decision supersede` and
+ * `memory supersede` have existed all along; this is the same shape for the one
+ * record type that is the whole basis of a completion claim.
+ *
+ * Nothing is deleted. What was observed and when is the point of keeping it, and
+ * the reason it stopped applying is worth as much as the observation was.
+ */
+export async function supersedeEvidence(root, evidenceId, { reason, actor = "superdev" } = {}) {
+  if (!reason) {
+    throw new TaskError(E.REASON_REQUIRED,
+      "Superseding evidence needs a reason, because the record already said this was observed.");
+  }
+  return mutate(root, async (db) => {
+    const row = await db.get("SELECT * FROM verification_evidence WHERE id = ?", evidenceId);
+    if (!row) {
+      throw new TaskError(E.NOT_FOUND,
+        `There is no evidence ${evidenceId}. superdev verify --json names every record it ran, and task show lists what a task carries.`);
+    }
+    if (row.status === "superseded") {
+      throw new TaskError(E.INVALID_TRANSITION, `${evidenceId} is already superseded.`);
+    }
+
+    await db.run("UPDATE verification_evidence SET status = 'superseded' WHERE id = ?", evidenceId);
+
+    // The criterion this was the proof for now rests on whatever else is current,
+    // and on nothing if there is nothing else. Leaving it met on retired proof
+    // would be the same defect as a green check that never ran.
+    let criterion = null;
+    if (row.acceptance_criterion_id) {
+      const replacement = await db.get(
+        `SELECT id FROM verification_evidence
+          WHERE acceptance_criterion_id = ? AND status = 'current' AND result = 'pass' AND id <> ?
+          ORDER BY recorded_at DESC, id DESC LIMIT 1`,
+        row.acceptance_criterion_id, evidenceId,
+      );
+      const before = await db.get(
+        "SELECT * FROM feature_acceptance_criteria WHERE id = ?", row.acceptance_criterion_id);
+      if (before && before.evidence_id === evidenceId) {
+        await db.run(
+          "UPDATE feature_acceptance_criteria SET status = ?, evidence_id = ? WHERE id = ?",
+          replacement ? "met" : "unmet", replacement?.id ?? null, row.acceptance_criterion_id,
+        );
+      }
+      criterion = {
+        id: row.acceptance_criterion_id,
+        status: before?.evidence_id === evidenceId ? (replacement ? "met" : "unmet") : before?.status ?? null,
+        restingOn: replacement?.id ?? null,
+      };
+    }
+
+    await recordActivity(db, row.project_id, {
+      type: "verification_attached",
+      actor,
+      taskId: row.task_id,
+      featureId: row.feature_id,
+      summary: `Evidence ${evidenceId} superseded: ${reason}`,
+      metadata: { evidenceId, reason, criterion: row.acceptance_criterion_id ?? null },
+    });
+
+    return { evidenceId, was: row.status, summary: row.summary, command: row.check_command ?? null, criterion };
   });
 }
