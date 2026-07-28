@@ -295,19 +295,10 @@ export async function claimTask(root, taskId, who = {}) {
   // out to git, and subprocess work inside a write transaction holds the
   // exclusive lock across it.
   if (!developerId && !agentId) {
-    try {
-      const { resolveIdentity, detectHarness } = await import("../runtime/identity.mjs");
-      const identity = await resolveIdentity(root, {
-        harness: detectHarness(process.env).harness,
-        displayName: who.displayName ?? (actor !== "superdev" ? actor : undefined),
-      });
-      developerId = developerId ?? identity.developer?.id ?? null;
-      agentId = agentId ?? identity.agent?.id ?? null;
-      branchId = branchId ?? identity.branch?.id ?? null;
-    } catch {
-      // An unresolvable identity must not block the claim: the task still gets
-      // held, and the assignment simply says so rather than naming someone.
-    }
+    const identity = await whoIsActing(root, { actor, displayName: who.displayName });
+    developerId = developerId ?? identity.developerId;
+    agentId = agentId ?? identity.agentId;
+    branchId = branchId ?? identity.branchId;
   }
 
   return mutate(root, async (db) => {
@@ -361,21 +352,11 @@ export async function claimTask(root, taskId, who = {}) {
 
     // A lease is a statement to somebody else. With no peer configured there is
     // nobody to hear it, and the local unique index is already the whole answer.
-    const peer = await db.get("SELECT alias FROM sync_peers WHERE status = 'connected' LIMIT 1")
-      .catch(() => null);
     try {
-      await create(db, "task_assignment", {
-        task_id: taskId,
-        developer_id: developerId,
-        agent_id: agentId,
-        branch_id: branchId,
-        session_id: sessionId,
-        assigned_at: nowIso(),
-        active: 1,
-        lease_holder: peer?.alias ?? null,
-        lease_expires_at: peer ? leaseExpiry(nowIso()) : null,
-      }, { projectId: task.project_id, actor, sessionId, taskId, activityType: "task_claimed",
-           activitySummary: `${taskId} claimed.` });
+      await assign(db, task, {
+        developerId, agentId, branchId, sessionId, actor,
+        summary: `${taskId} claimed.`,
+      });
     } catch (err) {
       // Only a uniqueness failure means someone else got the claim first. The
       // test used to accept any message containing "constraint", so a foreign
@@ -403,8 +384,6 @@ export async function claimTask(root, taskId, who = {}) {
     //
     // Written here rather than in each caller, because the control centre claims
     // tasks too and the field has to mean the same thing whichever surface moved it.
-    await pointSessionAt(db, task.project_id, sessionId, taskId);
-
     return db.get("SELECT * FROM tasks WHERE id = ?", taskId);
   });
 }
@@ -489,6 +468,7 @@ export async function blockTask(root, taskId, { reason, actor = "superdev", sess
 
 /** Return to whatever the task was doing before it blocked, not to a guess. */
 export async function unblockTask(root, taskId, { actor = "superdev", note = null, to = null } = {}) {
+  const identity = await whoIsActing(root, { actor });
   return mutate(root, async (db) => {
     const task = await taskOr404(db, taskId);
     if (task.status !== "blocked") {
@@ -500,8 +480,10 @@ export async function unblockTask(root, taskId, { actor = "superdev", note = nul
         ORDER BY sequence DESC LIMIT 1`,
       taskId,
     );
-    const target = to ?? (["in_progress", "in_review", "verifying"].includes(previous?.from_status) ? previous.from_status : "ready");
-    return move(db, task, target, { actor, note, activityType: "task_unblocked" });
+    const wanted = to ?? (ACTIVE.has(previous?.from_status) ? previous.from_status : "ready");
+    const owned = await ownedTarget(db, task, wanted, { actor, identity });
+    const moved = await move(db, task, owned.target, { actor, note, activityType: "task_unblocked" });
+    return owned.note ? { ...moved, unclaimed: owned.note } : moved;
   });
 }
 
@@ -691,20 +673,125 @@ export async function completeTask(root, taskId, { actor = "superdev", sessionId
 }
 
 /** Reopening is a recorded decision, never a quiet edit of a finished record. */
+/**
+ * Who is acting, resolved outside every transaction.
+ *
+ * resolveIdentity shells out to git, and subprocess work inside a write
+ * transaction holds the engine's exclusive lock across it, so this always runs
+ * before mutate opens. A claim recording three nulls says nothing about who holds
+ * the task, which is the only reason the claim exists.
+ */
+async function whoIsActing(root, { actor, displayName } = {}) {
+  try {
+    const { resolveIdentity, detectHarness } = await import("../runtime/identity.mjs");
+    const identity = await resolveIdentity(root, {
+      harness: detectHarness(process.env).harness,
+      displayName: displayName ?? (actor && actor !== "superdev" ? actor : undefined),
+    });
+    return {
+      developerId: identity.developer?.id ?? null,
+      agentId: identity.agent?.id ?? null,
+      branchId: identity.branch?.id ?? null,
+    };
+  } catch {
+    // An unresolvable identity must not block the work: the claim still happens
+    // and simply says so rather than naming somebody.
+    return { developerId: null, agentId: null, branchId: null };
+  }
+}
+
+/**
+ * Create the claim, point the session at it, and say who holds it now.
+ *
+ * Factored out of claimTask so that reopening a task can take the claim through
+ * exactly the same path. Two ways of claiming would be two things to keep in
+ * agreement, and the last three defects in this area were all one fact recorded
+ * in one place and read from another.
+ */
+async function assign(db, task, { developerId, agentId, branchId, sessionId, actor, summary }) {
+  const peer = await db.get("SELECT alias FROM sync_peers WHERE status = 'connected' LIMIT 1")
+    .catch(() => null);
+  await create(db, "task_assignment", {
+    task_id: task.id,
+    developer_id: developerId,
+    agent_id: agentId,
+    branch_id: branchId,
+    session_id: sessionId,
+    assigned_at: nowIso(),
+    active: 1,
+    lease_holder: peer?.alias ?? null,
+    lease_expires_at: peer ? leaseExpiry(nowIso()) : null,
+  }, { projectId: task.project_id, actor, sessionId, taskId: task.id, activityType: "task_claimed",
+       activitySummary: summary });
+  await pointSessionAt(db, task.project_id, sessionId, task.id);
+}
+
+/**
+ * Statuses that assert somebody is working on the task right now.
+ *
+ * A task in one of these with no claim behind it is a state the record should not
+ * be able to reach, and it had two ways in. `task reopen` moved a completed task
+ * straight to in_progress, and `task unblock` restored whatever status the task
+ * held before it was blocked. Neither took a claim, so the session's active task
+ * stayed null while a task said it was in progress, and the untracked-work hook,
+ * which reads exactly that field, then recorded every later edit as work nobody
+ * had accounted for. Readiness reported it at high severity against work being
+ * done on a correctly specified, in-progress task.
+ */
+const ACTIVE = new Set(["in_progress", "in_review", "verifying"]);
+
+/**
+ * The status a transition may actually use, given who holds the task.
+ *
+ * An unclaimed task drops to ready rather than being claimed on somebody's
+ * behalf: reopening a task is a statement that the work is not finished, which is
+ * a different fact from somebody working on it this minute, and taking a claim
+ * silently would be worse than asking for one. A task the caller already holds
+ * keeps the active status, and the session is pointed at it either way.
+ */
+async function ownedTarget(db, task, target, { actor, identity }) {
+  if (!ACTIVE.has(target)) return { target, note: null };
+  const held = await activeAssignment(db, task.id);
+  if (held) {
+    // Somebody already holds it, including possibly another machine. Their claim
+    // stands; this only makes sure the session it belongs to points at it.
+    await pointSessionAt(db, task.project_id, held.session_id, task.id);
+    return { target, note: null };
+  }
+  // Nobody holds it. Dropping to ready is not available: the status machine only
+  // allows complete to in_progress, and loosening a transition to work around a
+  // missing claim would be the wrong repair. So the claim is taken, by the actor
+  // who asked for this, which is an explicit act that already carries a reason.
+  await assign(db, task, {
+    developerId: identity?.developerId ?? null,
+    agentId: identity?.agentId ?? null,
+    branchId: identity?.branchId ?? null,
+    sessionId: null,
+    actor,
+    summary: `${task.id} claimed by reopening it.`,
+  });
+  return { target, note: `It is claimed for ${actor}, because a task in progress that no session owns is a state the record should not be able to reach.` };
+}
+
 export async function reopenTask(root, taskId, { reason, actor = "superdev", to = null } = {}) {
   if (!reason) throw new TaskError(E.REASON_REQUIRED, "Reopening a finished task needs a reason, because the record already said it was done.");
+  // Before mutate, because reopening may have to take the claim and resolving who
+  // is acting shells out to git.
+  const identity = await whoIsActing(root, { actor });
   return mutate(root, async (db) => {
     const task = await taskOr404(db, taskId);
     if (OPEN(task.status)) {
       throw new TaskError(E.INVALID_TRANSITION, `${taskId} is ${task.status} and already open. There is nothing to reopen.`);
     }
-    const target = to ?? (task.status === "complete" ? "in_progress" : "ready");
+    const wanted = to ?? (task.status === "complete" ? "in_progress" : "ready");
+    const { target, note } = await ownedTarget(db, task, wanted, { actor, identity });
     const cleared = await patch(db, "task", taskId, task.version, {
       completed_at: null,
       cancelled_at: null,
     }, { projectId: task.project_id, actor, activityType: "task_reopened",
          activitySummary: `${taskId} reopened: ${reason}` });
-    return move(db, cleared, target, { actor, note: reason, activityType: "task_reopened" });
+    const moved = await move(db, cleared, target, { actor, note: reason, activityType: "task_reopened" });
+    return note ? { ...moved, unclaimed: note } : moved;
   });
 }
 

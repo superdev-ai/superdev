@@ -1238,7 +1238,13 @@ async function cmdTaskUnblock(ctx) {
   }
   const { unblockTask } = await lifecycle();
   const task = await unblockTask(ctx.root, id, { actor: ctx.actor, to, note: ctx.flags.note ?? null });
-  return { data: { applied: true, task }, text: `${task.id} is ${R.status(task.status)} again.` };
+  return {
+    data: { applied: true, task },
+    text: R.stitch([
+      `${task.id} is ${R.status(task.status)} again.`,
+      task.unclaimed ? R.wrap(task.unclaimed) : null,
+    ]),
+  };
 }
 
 /**
@@ -2201,7 +2207,15 @@ async function cmdTaskReopen(ctx) {
   }
   const { reopenTask } = await lifecycle();
   const task = await reopenTask(ctx.root, id, { reason, to, actor: ctx.actor });
-  return { data: { applied: true, task }, text: `${task.id} is open again and is ${R.status(task.status)}.` };
+  return {
+    data: { applied: true, task },
+    // A task nobody holds lands Ready, and the reason is said rather than left
+    // for the reader to notice by comparing this against what they expected.
+    text: R.stitch([
+      `${task.id} is open again and is ${R.status(task.status)}.`,
+      task.unclaimed ? R.wrap(task.unclaimed) : null,
+    ]),
+  };
 }
 
 // ---------------------------------------------------------------------- derive

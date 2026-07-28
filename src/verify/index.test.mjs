@@ -20,12 +20,19 @@
 
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { refuseReason, tokenize } from "./index.mjs";
 
 /** Reads better than comparing against null at every call. */
-const allowed = (command) => refuseReason(command) === null;
-const refused = (command) => typeof refuseReason(command) === "string";
+// Containment cannot be judged without knowing what the script would be inside
+// of, so every case names a root. The repository itself is a real project root and
+// serves as one; cases that must be refused for reasons other than containment
+// are refused before the root is consulted.
+const ROOT = fileURLToPath(new URL("../..", import.meta.url));
+
+const allowed = (command) => refuseReason(command, ROOT) === null;
+const refused = (command) => typeof refuseReason(command, ROOT) === "string";
 
 describe("refuseReason", () => {
   it("allows this project's own scripts", () => {
@@ -103,6 +110,41 @@ describe("refuseReason", () => {
     assert.ok(refused("node /tmp/evil.mjs"));
     assert.ok(refused("node ../outside/thing.mjs"));
     assert.ok(refused("node node_modules/.bin/something"));
+  });
+
+  it("allows a script anywhere inside the project, whatever the layout", () => {
+    // The allowlist used to be Superdev's own two paths, so a check at
+    // apps/web/lib/thing.check.mjs or lib/check.mjs was permanently unrunnable in
+    // anybody else's repository, and the refusal called them "not this project's
+    // own scripts" while describing a different project entirely.
+    assert.ok(allowed("node src/cli.mjs status"));
+    assert.ok(allowed("node scripts/check/release-criteria.mjs"));
+    assert.ok(allowed("node apps/web/lib/thing.check.mjs"));
+    assert.ok(allowed("node lib/check.mjs"));
+    assert.ok(allowed("node tools/verify/data.cjs"));
+  });
+
+  it("refuses a path that climbs out of the project even with a script name", () => {
+    assert.ok(refused("node ../../etc/hosts.mjs"));
+    assert.ok(refused("node subdir/../../outside.mjs"));
+  });
+
+  it("refuses an option in the script position even when it ends in .js", () => {
+    // The reason this is its own case: checking the extension first let
+    // --require=./evil.js through, because it does end in .js and names no script.
+    assert.ok(refused("node --require=./evil.js src/cli.mjs status"));
+    assert.ok(refused("node --import=./evil.mjs src/cli.mjs"));
+  });
+
+  it("refuses a node command when no project root is known", () => {
+    // Whether a relative path is inside the project is not answerable without
+    // one, and guessing would be the wrong way to be wrong.
+    assert.equal(typeof refuseReason("node lib/check.mjs"), "string");
+  });
+
+  it("refuses something that is not a script at all", () => {
+    assert.ok(refused("node tools/check.txt"));
+    assert.ok(refused("node README.md"));
   });
 
   it("refuses node with no script at all", () => {

@@ -17,6 +17,8 @@
 // saying plainly that a check is manual.
 
 import { execFile } from "node:child_process";
+import { realpathSync } from "node:fs";
+import { basename, dirname, isAbsolute, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 
 import { mutate, query } from "../db/store.mjs";
@@ -50,8 +52,86 @@ const run = promisify(execFile);
  * should be run by a person who has read it.
  */
 
-/** Scripts of this project that may be run, and nothing else. */
-const SCRIPT = /^(src\/cli\.mjs|scripts\/[A-Za-z0-9_\/-]+\.mjs)$/;
+/**
+ * A script inside the project may be run. Whether it is inside is a containment
+ * question, not a question about its path's shape.
+ *
+ * This was `/^(src\/cli\.mjs|scripts\/[A-Za-z0-9_\/-]+\.mjs)$/`, which is
+ * Superdev's own entry point and Superdev's own script directory, hardcoded. Every
+ * other repository layout was refused however plainly the script sat inside the
+ * project: a workspace package, `tools/`, `bin/`, `lib/`, `apps/web/lib/`. The
+ * refusal even said "node may only run this project's own scripts", and the
+ * allowlist did not describe this project. It described Superdev.
+ *
+ * That mattered more than a wrong message. The recorded command is the whole
+ * mechanism by which evidence stops being a one-time opinion, so on any project
+ * whose scripts are not at `scripts/*.mjs` the mechanism quietly did nothing, and
+ * a reader was pushed into moving their files to suit the tool.
+ *
+ * The real risk was never the path's shape. It is a node option before the script
+ * path, which can load arbitrary code, and that rule is enforced separately and
+ * unchanged. What containment has to add is that the script is under the project
+ * root once symlinks are resolved, so a link pointing out of the tree is refused
+ * even though its path looks local.
+ */
+const SCRIPT_EXTENSION = /\.(mjs|cjs|js)$/;
+
+function outsideProject(root, script) {
+  // A flag in the script position is the actual risk, and it is refused on shape
+  // rather than on containment: `--require=./evil.js` ends in `.js` and names no
+  // script at all. Checking the extension first let exactly that through.
+  if (script.startsWith("-")) {
+    return "node may not be given an option before the script path, because an option can load arbitrary code";
+  }
+  if (!SCRIPT_EXTENSION.test(script)) return `not a script: ${script}`;
+  if (isAbsolute(script)) return `an absolute path names a place rather than something in this project: ${script}`;
+  if (!root) {
+    return `the project root is not known here, so whether ${script} is inside it cannot be decided`;
+  }
+  const base = realpathOrSelf(resolve(root));
+  const target = resolvedWithin(base, script);
+  if (target !== base && !target.startsWith(base + sep)) {
+    return `node may only run scripts inside this project, and ${script} resolves outside it`;
+  }
+  return null;
+}
+
+/**
+ * The script's real location, resolving every symlink on the way to it.
+ *
+ * realpath on the whole path answers nothing when the file does not exist yet, and
+ * falling back to the unresolved path let a directory symlink out of the tree
+ * pass: `escape/hosts.mjs`, where `escape` links to somewhere else, resolves under
+ * the root only because the leaf could not be resolved. So the deepest ancestor
+ * that does exist is resolved instead, and the rest is appended to it.
+ */
+function resolvedWithin(base, script) {
+  const full = resolve(base, script);
+  let head = full;
+  const tail = [];
+  for (;;) {
+    const real = realpathSafe(head);
+    if (real) return tail.length ? resolve(real, ...tail.reverse()) : real;
+    const parent = dirname(head);
+    // Reached the filesystem root without finding anything that exists.
+    if (parent === head) return full;
+    tail.push(basename(head));
+    head = parent;
+  }
+}
+
+const realpathSafe = (path) => {
+  try {
+    return realpathSync(path);
+  } catch {
+    return null;
+  }
+};
+
+/** Symlinks resolved where possible, so a link out of the tree cannot hide. */
+function realpathOrSelf(path) {
+  return realpathSafe(path) ?? path;
+}
 
 /**
  * Flags each program may carry.
@@ -71,7 +151,7 @@ const CHANGES_STATE = /^--(apply|force|write|fix|delete|remove)\b/;
 export const E = { UNSAFE: "E_UNSAFE_CHECK" };
 
 /** Why a command will not be run here, or null when it will. */
-export function refuseReason(command) {
+export function refuseReason(command, root = null) {
   const text = String(command ?? "").trim();
   if (!text) return "no command recorded";
   // Shell punctuation cannot do anything through execFile, but its presence
@@ -96,7 +176,8 @@ export function refuseReason(command) {
     // arbitrary code, which is the whole risk with running node at all.
     const [script, ...args] = rest;
     if (!script) return "node with no script";
-    if (!SCRIPT.test(script)) return `node may only run this project's own scripts, not ${script}`;
+    const outside = outsideProject(root, script);
+    if (outside) return outside;
     for (const a of args) {
       if (CHANGES_STATE.test(a)) return "it would change something, and a check must not";
     }
@@ -152,7 +233,7 @@ export function tokenize(command) {
  * validator which starts finding things is how a claim stops being true.
  */
 export async function runCheck(root, command, { timeoutMs = 120000 } = {}) {
-  const refused = refuseReason(command);
+  const refused = refuseReason(command, root);
   if (refused) return { result: "error", detail: refused };
 
   const [bin, ...rest] = tokenize(command);

@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3341 hash=b73535c6df8a78fbe46b6f05d4a9b3c56533d2ae2d3f9c88dbd6e82ef971872d -->
+<!-- superdev:generated source=PRJ-0001 revision=3365 hash=14f95ed35583e0c2226e947afc2e155fa52ceb06bfb509e7afb79d56566c0fc8 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,29 @@ Specification and decision changes, newest first, taken from the append-only act
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3365 | 2026-07-28 | Change recorded: A verification script is judged by containment, and an active task always has an owner | superdev |
+| 3364 | 2026-07-28 | Linked memory MEM-0099 to feature FEAT-0088 | superdev |
+| 3363 | 2026-07-28 | Linked memory MEM-0099 to task TASK-0031 | superdev |
+| 3362 | 2026-07-28 | Remembered outcome: TASK-0031 complete: Judge a verification script by whether it is inside the proj | superdev |
+| 3361 | 2026-07-28 | TASK-0031 completed, assignment released. | superdev |
+| 3360 | 2026-07-28 | Task TASK-0031 moved to complete | superdev |
+| 3359 | 2026-07-28 | Passing evidence recorded for TASK-0031: verify now accepts a script anywhere inside the project, and refuses everything that leaves it | superdev |
+| 3358 | 2026-07-28 | Task TASK-0031 moved to in progress | superdev |
+| 3357 | 2026-07-28 | TASK-0031 claimed. | superdev |
+| 3356 | 2026-07-28 | TASK-0031 now implements acceptance_criterion AC-0088. | superdev |
+| 3355 | 2026-07-28 | Created task TASK-0031 | superdev |
+| 3354 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
+| 3353 | 2026-07-28 | Linked memory MEM-0098 to feature FEAT-0088 | superdev |
+| 3352 | 2026-07-28 | Linked memory MEM-0098 to task TASK-0030 | superdev |
+| 3351 | 2026-07-28 | Remembered outcome: TASK-0030 complete: Never leave a task in an active status that no session owns | superdev |
+| 3350 | 2026-07-28 | TASK-0030 completed, assignment released. | superdev |
+| 3349 | 2026-07-28 | Task TASK-0030 moved to complete | superdev |
+| 3348 | 2026-07-28 | Passing evidence recorded for TASK-0030: A task can no longer be in an active status that no session owns, by either route in | superdev |
+| 3347 | 2026-07-28 | Changed 6 files in src/runtime, talks/changes, talks/modules/hooks-and-session-continuity/features and 2 more places. | superdev |
+| 3346 | 2026-07-28 | Task TASK-0030 moved to in progress | superdev |
+| 3345 | 2026-07-28 | TASK-0030 claimed. | superdev |
+| 3344 | 2026-07-28 | TASK-0030 now implements acceptance_criterion AC-0088. | superdev |
+| 3343 | 2026-07-28 | Created task TASK-0030 | superdev |
 | 3341 | 2026-07-28 | Change recorded: Work is untracked only when it is newly changed, not when git keeps reporting an old edit | superdev |
 | 3340 | 2026-07-28 | Linked memory MEM-0097 to feature FEAT-0088 | superdev |
 | 3339 | 2026-07-28 | Linked memory MEM-0097 to task TASK-0029 | superdev |
@@ -184,26 +207,3 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3156 | 2026-07-28 | Session SES-0005 ended. No outcome recorded. | superdev |
 | 3154 | 2026-07-28 | Session SES-0004 ended. No outcome recorded. | superdev |
 | 3153 | 2026-07-28 | Session SES-0003 ended. No outcome recorded. | superdev |
-| 3152 | 2026-07-28 | Session SES-0002 ended. No outcome recorded. | superdev |
-| 3151 | 2026-07-28 | Session SES-0001 ended. No outcome recorded. | superdev |
-| 3149 | 2026-07-28 | Resolve sync conflicts is complete: its contract is satisfied | self-host |
-| 3148 | 2026-07-28 | Preview a sync is complete: its contract is satisfied | self-host |
-| 3147 | 2026-07-28 | Synchronize with the cloud is complete: its contract is satisfied | self-host |
-| 3146 | 2026-07-28 | Connect cloud sync is complete: its contract is satisfied | self-host |
-| 3144 | 2026-07-27 | AC-0062 re-proven after its one-time check was consumed | self-host |
-| 3142 | 2026-07-27 | Linked memory MEM-0084 to feature FEAT-0075 | superdev |
-| 3141 | 2026-07-27 | Linked memory MEM-0084 to task TASK-0018 | superdev |
-| 3140 | 2026-07-27 | Remembered outcome: TASK-0018 complete: Finish: Preview a sync | superdev |
-| 3139 | 2026-07-27 | TASK-0018 completed, assignment released. | superdev |
-| 3138 | 2026-07-27 | Task TASK-0018 moved to complete | superdev |
-| 3137 | 2026-07-27 | Linked memory MEM-0083 to feature FEAT-0076 | superdev |
-| 3136 | 2026-07-27 | Linked memory MEM-0083 to task TASK-0019 | superdev |
-| 3135 | 2026-07-27 | Remembered outcome: TASK-0019 complete: Finish: Resolve sync conflicts | superdev |
-| 3134 | 2026-07-27 | TASK-0019 completed, assignment released. | superdev |
-| 3133 | 2026-07-27 | Task TASK-0019 moved to complete | superdev |
-| 3132 | 2026-07-27 | Linked memory MEM-0082 to feature FEAT-0074 | superdev |
-| 3131 | 2026-07-27 | Linked memory MEM-0082 to task TASK-0017 | superdev |
-| 3130 | 2026-07-27 | Remembered outcome: TASK-0017 complete: Finish: Synchronize with the cloud | superdev |
-| 3129 | 2026-07-27 | TASK-0017 completed, assignment released. | superdev |
-| 3128 | 2026-07-27 | Task TASK-0017 moved to complete | superdev |
-| 3127 | 2026-07-27 | Linked memory MEM-0081 to feature FEAT-0072 | superdev |

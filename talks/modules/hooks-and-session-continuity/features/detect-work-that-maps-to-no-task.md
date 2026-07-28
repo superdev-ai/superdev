@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0088 revision=3341 hash=baed24f6c931ee6d3192b9823f3cfe25d5382e5712f9de04f984343942053921 -->
+<!-- superdev:generated source=FEAT-0088 revision=3365 hash=e527ce2e25d086e234588745693249ce8c735dab9173ae76fb4839749e18e41f -->
 # Feature: Detect work that maps to no task
 
 - **Status:** Complete
@@ -46,6 +46,8 @@
 | A prompt asking for product changing work with no task claimed produced the warning naming what to do: find or create the task, link it to a feature and a contract, check the decisions in force, claim it, then move it to in progress. A prompt that only asks a question produces nothing, so the warning stays worth reading. | manual_check | pass | src/runtime/hooks.mjs user-prompt-submit |
 | Claiming a task now points the session at it, so work under a claim stops being reported as untracked | manual_check | pass | - |
 | Work already accounted for is no longer reported as untracked when git re-reports it | manual_check | pass | - |
+| A task can no longer be in an active status that no session owns, by either route in | manual_check | pass | - |
+| verify now accepts a script anywhere inside the project, and refuses everything that leaves it | manual_check | pass | - |
 
 ## Delivery state
 
