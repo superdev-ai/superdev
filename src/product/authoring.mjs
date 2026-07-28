@@ -582,3 +582,68 @@ export async function scopeList(root) {
   return query(root, (db) => db.all(
     "SELECT * FROM project_scope_items ORDER BY direction, sequence, id"));
 }
+
+// -------------------------------------------------------- capability areas
+
+/** States a settled area can be in, and how each one reads. */
+const SETTLED = { specified: "specified", not_applicable: "not applicable", deferred: "deferred" };
+
+/**
+ * Settle a readiness area: say what was chosen, or say it does not apply.
+ *
+ * The readiness checklist warned, at high severity, that an area was "awaiting a
+ * decision with no question raised", and told the reader to "raise the question,
+ * or record the area as not applicable with a reason". Neither was a command.
+ * capability_areas was written by init and by answering a question that init had
+ * linked to an area, so an area init left unquestioned could never move, and the
+ * warning's own remedy was unreachable.
+ *
+ * Nothing here can quieten the checklist without saying something: specifying
+ * needs the choice, and not applicable needs the reason.
+ */
+export async function settleCapabilityArea(root, areaId, { choice = null, evidence = null, reason = null, notApplicable = false, actor = "superdev", apply = false } = {}) {
+  if (notApplicable && !clean(reason)) {
+    throw new AuthoringError(E.REQUIRED,
+      "Say why it does not apply. An area dismissed without a reason is indistinguishable from one nobody looked at.");
+  }
+  if (!notApplicable && !clean(choice)) {
+    throw new AuthoringError(E.REQUIRED,
+      "Say what was chosen. An area cannot be specified by declaring it specified.");
+  }
+  const found = await query(root, (db) => db.get("SELECT * FROM capability_areas WHERE id = ?", areaId));
+  if (!found) {
+    throw new AuthoringError(E.NOT_FOUND, `There is no capability area ${areaId}. List them with superdev capability list.`);
+  }
+  const plan = {
+    areaId,
+    area: found.area,
+    was: found.state,
+    state: notApplicable ? "not_applicable" : "specified",
+    choice: clean(choice, 1000),
+    evidence: clean(evidence, 500),
+    reason: clean(reason, 1000),
+  };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const area = await db.get("SELECT * FROM capability_areas WHERE id = ?", areaId);
+    await patch(db, "capability_area", areaId, area.version, plan.state === "not_applicable"
+      ? { state: "not_applicable", reason: plan.reason, choice: null, evidence_ref: plan.evidence, revisit_trigger: null }
+      : { state: "specified", choice: plan.choice, evidence_ref: plan.evidence, reason: null, revisit_trigger: null },
+      { projectId: area.project_id, actor, activityType: "specification_changed",
+        activitySummary: clean(plan.state === "not_applicable"
+          ? `${area.area} recorded as not applicable`
+          : `${area.area} specified`, 200) });
+    return { applied: true, ...plan };
+  });
+}
+
+/** Every readiness area and stack slot, with what settled it. */
+export async function capabilityList(root, { catalog = null, unsettled = false } = {}) {
+  return query(root, (db) => db.all(
+    `SELECT * FROM capability_areas
+      WHERE (? IS NULL OR catalog = ?)
+        AND (? = 0 OR state IN ('awaiting_decision','deferred'))
+      ORDER BY catalog, sequence, id`,
+    catalog, catalog, unsettled ? 1 : 0));
+}

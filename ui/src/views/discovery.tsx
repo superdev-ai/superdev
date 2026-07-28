@@ -11,11 +11,12 @@
  * `layout.save`, which are two of the actions the service accepts.
  */
 
-import { Ban, ChevronRight, CircleHelp, Layers, Lightbulb, Lock, Puzzle, Shapes, ShieldAlert, Target, Users } from "lucide-react";
+import { Ban, CircleHelp, Layers, Lightbulb, Lock, Puzzle, Shapes, ShieldAlert, Target, Users } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import type * as React from "react";
 
 import { ViewBody, ViewHeader } from "@/components/shell/app-shell";
+import { AnswerQuestion } from "@/components/discovery/answer-question";
 import { Markdown } from "@/components/ui/markdown";
 import {
   DetailField,
@@ -475,34 +476,23 @@ export function DiscoveryView() {
                     ) : null}
                     {/*
                       The options are the half of section 8.4 that makes a
-                      question answerable rather than merely stated. Folded, so
-                      a page of open questions stays readable, and open on
-                      demand for whoever is actually deciding.
+                      question answerable rather than merely stated. They used to
+                      be folded into a read-only list, so somebody holding a
+                      question with four worked-out options could read them here
+                      and then had to retype one at a terminal. An open question
+                      is now answerable where it is asked; an answered one shows
+                      what was decided and stays quiet.
                     */}
-                    {(question.alternatives_json ?? []).length > 0 ? (
-                      <details className="group">
-                        <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 rounded-sd font-chassis text-chassis-sm text-ink-3 focus-ring hover:text-ink-2">
-                          <ChevronRight
-                            aria-hidden="true"
-                            className="size-3 transition-transform duration-[120ms] ease-sd group-open:rotate-90"
-                          />
-                          {countPhrase((question.alternatives_json ?? []).length, "option")} to weigh
-                        </summary>
-                        <ul className="mt-1 flex flex-col gap-1 pl-4">
-                          {(question.alternatives_json ?? []).map((option) => (
-                            <li
-                              key={option}
-                              className="font-prose text-small text-ink-2 prose-measure"
-                            >
-                              {option}
-                            </li>
-                          ))}
-                        </ul>
-                      </details>
-                    ) : null}
                     {question.answer ? (
                       <span className="font-prose text-small text-ink-2 prose-measure">
                         Answered: {question.answer}
+                      </span>
+                    ) : (
+                      <AnswerQuestion question={question} onAnswered={refresh} />
+                    )}
+                    {question.deferral_reason ? (
+                      <span className="font-prose text-small text-ink-2 prose-measure">
+                        {question.deferral_reason}
                       </span>
                     ) : null}
                   </li>

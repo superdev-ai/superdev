@@ -42,6 +42,9 @@ const MATERIAL = [
       "Give the outcome now and the measure once the first feature is real",
       "Declare the project exploratory, with no success measure yet",
     ],
+    selectMode: "one",
+    recommended: ["Give the outcome now and the measure once the first feature is real"],
+    recommendedWhy: "An outcome with no measure is still worth recording, and the measure is easier to name once one real feature exists. Declaring the project exploratory is honest but leaves readiness unable to report better than unknown.",
     ifDeferred: "Goals and milestones stay unmeasurable and readiness can never report better than unknown.",
   },
   {
@@ -55,6 +58,9 @@ const MATERIAL = [
       "Several roles, data shared",
       "Several roles with per-account separation (multi-tenant)",
     ],
+    selectMode: "one",
+    recommended: ["One role, all data shared"],
+    recommendedWhy: "It is the only one of the three that can be widened later without reworking every query. Separation added early costs a column; separation added late costs every surface at once, so this is the cheap direction to be wrong in.",
     ifDeferred: "Authorization is designed after the data model, which is the most expensive order to do it in.",
   },
   {
@@ -64,6 +70,10 @@ const MATERIAL = [
       "The delivery shape decides whether surfaces, UI actions and accessibility are part of the specification at all, or deliberately not applicable.",
     recommendation: "Name the one surface the first user will touch. A second one can be added when it exists.",
     alternatives: ["A web application", "A command line tool", "An API or library only", "An existing host application"],
+    // No recommendation. Nothing about a product in general makes one of these
+    // likelier, and a tag with no reason behind it is an instruction wearing a
+    // recommendation's clothes.
+    selectMode: "one",
     ifDeferred: "Surface and UI-action specifications cannot be started, so a whole layer of the product has no home.",
   },
   {
@@ -73,6 +83,7 @@ const MATERIAL = [
       "A shared server turns authentication, authorization and data ownership from optional into mandatory, and turns a local tool into an operated service.",
     recommendation: "Say whether anything runs outside the user's own machine. If nothing does, several capability areas become genuinely not applicable.",
     alternatives: ["Local only", "A single service", "Several services with separate ownership"],
+    selectMode: "one",
     ifDeferred: "Backend boundaries, authentication and operational response are all left undecided together.",
   },
   {
@@ -82,6 +93,9 @@ const MATERIAL = [
       "A contract with an outside caller cannot be changed quietly. That single fact decides versioning, error contracts and how much of the specification is public.",
     recommendation: "Assume no external caller until one exists. Declare it the moment one does.",
     alternatives: ["No external caller", "An internal client only", "A published, versioned public API"],
+    selectMode: "one",
+    recommended: ["No external caller"],
+    recommendedWhy: "A contract with an outside caller cannot be withdrawn quietly, so it is worth declaring only when one actually exists. Nothing is lost by declaring it the day it does.",
     ifDeferred: "An internal shape becomes a public contract by accident, which is the most expensive kind of accident.",
   },
   {
@@ -91,6 +105,7 @@ const MATERIAL = [
       "Sessions, tokens and the enforcement point for every permission hang off this answer, and retrofitting identity touches every route.",
     recommendation: "If anything is per-user or private, decide identity now rather than after the first data model.",
     alternatives: ["No sign in", "Identity from an existing provider", "Identity issued by this product"],
+    selectMode: "one",
     ifDeferred: "Every permission question gets deferred with it, and the data model is designed without an owner column.",
   },
   {
@@ -100,6 +115,7 @@ const MATERIAL = [
       "Data ownership decides the store, the retention rules, the backup posture and whether deletion is a real feature or a database statement.",
     recommendation: "Name the one or two things the product is the authority on. Say whether losing them is an inconvenience or a catastrophe.",
     alternatives: ["Nothing durable yet", "Local data only", "Shared durable data with a recovery expectation"],
+    selectMode: "one",
     ifDeferred: "Entities are invented per feature and the same fact ends up stored in two places.",
   },
   {
@@ -109,6 +125,9 @@ const MATERIAL = [
       "Every integration adds an authentication approach, a failure behavior and an environment to configure. Discovering one late reopens the architecture.",
     recommendation: "List the services you already know about, even the obvious ones. An empty list is a fine answer and is recorded as one.",
     alternatives: ["None", "Payment or billing", "An email or messaging provider", "A model or inference provider"],
+    // Several of these are true at once on most products, and a question that
+    // forces one answer gets a wrong one rather than an incomplete one.
+    selectMode: "many",
     ifDeferred: "Integration failure behavior is invented at the moment of the first outage.",
   },
   {
@@ -118,6 +137,9 @@ const MATERIAL = [
       "Compliance is only specified when it is declared. Declaring it late means auditing work that is already shipped, which is the expensive direction.",
     recommendation: "Answer no unless you can name the regime. A named regime turns retention, deletion and audit into required specification.",
     alternatives: ["No regulated data", "Personal data under a privacy regime", "Payment or health data"],
+    selectMode: "many",
+    recommended: ["No regulated data"],
+    recommendedWhy: "Compliance is specified only when it is declared, and a regime nobody can name is not one. Naming one turns retention, deletion and audit into required specification, so this is worth answering yes to only deliberately.",
     ifDeferred: "Retention and deletion are designed as convenience features and have to be rebuilt as obligations.",
   },
   {
@@ -127,6 +149,9 @@ const MATERIAL = [
       "Superdev refuses to store a credential anywhere, so it needs to know where secrets do live before it can specify configuration honestly.",
     recommendation: "Name the environments you will really have. Two is usually right; one is a valid answer for a local tool.",
     alternatives: ["Local only", "Local and production", "Local, staging and production"],
+    selectMode: "one",
+    recommended: ["Local and production"],
+    recommendedWhy: "Two environments is what most products actually have, and configuration specified against environments that do not exist diverges from the real ones. One is a valid answer for a local tool.",
     ifDeferred: "Configuration is specified per feature and diverges between environments before anybody notices.",
   },
 ];
@@ -397,7 +422,7 @@ export async function materialQuestions(db, projectId) {
     const area = byArea.get(entry.area);
     // No seeded row yet means discovery has not run; the question still applies.
     if (area && area.state !== "awaiting_decision") return false;
-    if (entry.scopeId === "statement" && clean(project.statement)) return false;
+    if (ALREADY_ANSWERED[entry.area]?.(project)) return false;
     return true;
   });
 
@@ -412,6 +437,76 @@ export async function materialQuestions(db, projectId) {
  * `planInit` prints the exact questions before a project row exists, so the
  * wording has to be derivable from the area name alone.
  */
+/**
+ * Material areas the project already answers, and what answers them.
+ *
+ * This used to be one inline condition inside the question filter, and the same
+ * fact was not consulted when the area was seeded. So supplying a purpose
+ * statement suppressed the purpose question while leaving the area awaiting a
+ * decision, and readiness then reported, at high severity, that the product's
+ * purpose was awaiting a decision with nobody asked about it. To somebody who had
+ * just stated it. Neither remedy the warning named was a command that existed.
+ *
+ * Holding the rule in one place is what lets `settleAnsweredAreas` agree with the
+ * filter by construction rather than by both being edited together.
+ */
+const ALREADY_ANSWERED = {
+  [AREA.purpose]: (project) => Boolean(clean(project?.statement)),
+};
+
+/** What the project's own record says, for an area that needs no question. */
+const ANSWERED_BY = {
+  [AREA.purpose]: (project) => ({
+    choice: clean(project.statement),
+    evidence: "stated at initialization",
+  }),
+};
+
+/**
+ * Settle every material area that needs no question because the project already
+ * answers it.
+ *
+ * Run after questions are raised, so "awaiting a decision with no question
+ * raised" is unreachable for these areas rather than merely unlikely. An area
+ * this cannot settle keeps its state and keeps its warning: the point is to close
+ * a hole, not to quieten the checklist.
+ */
+export async function settleAnsweredAreas(db, projectId, { at = nowIso(), actor = "superdev" } = {}) {
+  const project = await db.get("SELECT * FROM projects WHERE id = ?", projectId);
+  if (!project) return [];
+  const areas = await db.all(
+    `SELECT * FROM capability_areas
+      WHERE project_id = ? AND catalog = 'readiness'
+        AND state = 'awaiting_decision' AND question_id IS NULL`,
+    projectId,
+  );
+  const settled = [];
+  for (const area of areas) {
+    if (!ALREADY_ANSWERED[area.area]?.(project)) continue;
+    const answer = ANSWERED_BY[area.area]?.(project);
+    if (!answer?.choice) continue;
+    await patch(db, "capability_area", area.id, area.version, {
+      state: "specified",
+      choice: answer.choice,
+      evidence_ref: answer.evidence,
+      reason: null,
+      owner: null,
+      revisit_trigger: null,
+      consequence: null,
+    }, { projectId, activity: false, at });
+    settled.push({ id: area.id, area: area.area, evidence: answer.evidence });
+  }
+  if (settled.length) {
+    await recordActivity(db, projectId, {
+      type: "specification_changed",
+      actor,
+      summary: `${settled.length === 1 ? "1 capability area" : `${settled.length} capability areas`} settled from what the project already records`,
+      metadata: { areas: settled.map((a) => a.id) },
+    });
+  }
+  return settled;
+}
+
 export function questionCatalog(areas, { project = null } = {}) {
   const wanted = new Set(areas);
   return MATERIAL.filter((entry) => wanted.has(entry.area)).map((entry) => ({
@@ -425,6 +520,11 @@ export function questionCatalog(areas, { project = null } = {}) {
     whyItMatters: `${entry.whyItMatters} If this is deferred: ${entry.ifDeferred}`,
     recommendation: entry.recommendation,
     alternatives: entry.alternatives,
+    // How many of the options can be true at once, which options are recommended,
+    // and why. A question whose options nobody can select is a paragraph.
+    selectMode: entry.selectMode ?? "one",
+    recommended: entry.recommended ?? [],
+    recommendedWhy: entry.recommendedWhy ?? null,
     ifDeferred: entry.ifDeferred,
     revisitTrigger: REVISIT[entry.area] ?? "the next specification touches it",
     projectId: project?.id ?? null,
@@ -463,12 +563,12 @@ export async function answerQuestion(root, questionId, opts = {}) {
       question.project_id, questionId,
     );
 
-    if (unknown) return recordAssumption(db, { question, area, opts, at, actor, answeredBy });
-    return recordAnswer(db, { question, area, answer, at, actor, answeredBy });
+      if (unknown) return recordAssumption(db, { question, area, opts, at, actor, answeredBy });
+    return recordAnswer(db, { question, area, answer, inOwnWords: clean(opts.inOwnWords), at, actor, answeredBy });
   });
 }
 
-async function recordAnswer(db, { question, area, answer, at, actor, answeredBy }) {
+async function recordAnswer(db, { question, area, answer, inOwnWords = null, at, actor, answeredBy }) {
   const updated = await patch(db, "question", question.id, question.version, {
     answer,
     answered_by: answeredBy,
@@ -497,10 +597,20 @@ async function recordAnswer(db, { question, area, answer, at, actor, answeredBy 
 
   // The two project-level questions write straight through to the field they
   // exist to fill, so an answer does not have to be copied by hand afterwards.
+  //
+  // What gets written through is the reader's own words when there are any. The
+  // purpose question's options are strategies for answering it ("give the outcome
+  // now and the measure once the first feature is real"), not the answer, so
+  // selecting one and writing the whole composed answer into projects.statement
+  // put advice where the product statement belongs. The question keeps the full
+  // answer, because what was chosen is part of the record; the field gets the
+  // sentence that was meant for it.
   let project = null;
   if (question.scope_type === "project" && ["statement", "problem"].includes(question.scope_id)) {
     const current = await db.get("SELECT * FROM projects WHERE id = ?", question.project_id);
-    project = await patch(db, "project", current.id, current.version, { [question.scope_id]: answer }, {
+    project = await patch(db, "project", current.id, current.version, {
+      [question.scope_id]: inOwnWords ?? answer,
+    }, {
       projectId: current.id, activity: false, at,
     });
   }

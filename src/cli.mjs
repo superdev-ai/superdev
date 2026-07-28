@@ -39,7 +39,7 @@ class Refusal extends Error {
 // Flags that carry no value. Everything else must be given one, so that
 // `--reason --apply` fails loudly instead of silently recording "true" as the
 // reason a task is blocked.
-const BOOLEAN = new Set(["apply", "json", "help", "all", "enabling", "end", "reports", "partial", "adopt", "dryRun", "resolve", "version", "noUpdateCheck", "updateCheck", "entry", "remove"]);
+const BOOLEAN = new Set(["apply", "json", "help", "all", "enabling", "end", "reports", "partial", "adopt", "dryRun", "resolve", "version", "noUpdateCheck", "updateCheck", "entry", "remove", "open"]);
 
 const camel = (name) => name.replace(/-([a-z0-9])/g, (_, c) => c.toUpperCase());
 
@@ -81,6 +81,14 @@ function parseArgs(argv) {
 }
 
 const asList = (value) => (value === undefined ? [] : [].concat(value).map(String));
+
+/** A JSON column's value, or the fallback when it is absent or malformed. */
+const json = (value, fallback) => {
+  try {
+    const parsed = JSON.parse(value ?? "null");
+    return parsed ?? fallback;
+  } catch { return fallback; }
+};
 
 /** A path with its symlinks resolved, or the path itself when it cannot be. */
 const realpathOf = (path) => {
@@ -188,6 +196,9 @@ Knowledge
   milestone update <id>     Rename it, restate it, or move its target date
   module record        Record a slice of the product
   module rename <id>   Rename a module, or restate what it owns
+  capability list      Readiness areas and stack slots, and what settled each
+  capability specify <id>   Record what was chosen for an area
+  capability not-applicable <id>  Record that an area does not apply, with why
   scope record         Record what the product will not do, and why
   scope list           What is in scope, out of scope, and a non-goal
   scope remove <id>    Take a scope line back out
@@ -2325,41 +2336,63 @@ async function cmdMemorySearch(ctx) {
 
 // -------------------------------------------------------- questions, decisions
 
+/**
+ * Answer a question, from its options or in your own words.
+ *
+ * This wrote the answer and set the status itself, which is a third
+ * implementation of answering alongside the engine's and the control centre's.
+ * The engine's is the complete one: it settles the capability area the question
+ * belongs to, turns "I do not know" into a reversible assumption with a revisit
+ * trigger rather than a decision, and writes a project-level answer through to the
+ * field it exists to fill. This one did none of that, so the same question
+ * answered here and answered there left the project in different states. Both
+ * surfaces now call the engine.
+ */
 async function cmdQuestionAnswer(ctx) {
-  const id = requireWord(ctx.words, 2, "Say which question to answer: superdev question answer <id> --answer <text>.");
-  const answer = ctx.flags.answer !== undefined
-    ? String(ctx.flags.answer)
-    : ctx.words.slice(3).join(" ");
-  if (!answer) throw new UsageError("An answer needs text. Pass --answer <text>.");
+  const id = requireWord(ctx.words, 2, "Say which question to answer: superdev question answer <id> --answer <text> or --option <one of its options>.");
+  const chosen = asList(ctx.flags.option);
+  const typed = ctx.flags.answer !== undefined ? String(ctx.flags.answer) : ctx.words.slice(3).join(" ");
+  if (!chosen.length && !typed) {
+    throw new UsageError("An answer needs an option or some text. Pass --option <one of its options>, or --answer <text>. Run superdev question list to read the options.");
+  }
 
-  const { query, mutate, patch, setStatus } = await store();
+  const { query } = await store();
   const question = await query(ctx.root, (db) => db.get("SELECT * FROM questions WHERE id = ?", id));
   if (!question) throw new Refusal(`There is no question ${id}.`, "E_NOT_FOUND");
   if (question.status === "answered") {
     throw new Refusal(`${id} was already answered: ${question.answer}`, "E_ALREADY_ANSWERED");
   }
 
+  const offered = json(question.alternatives_json, []);
+  const unknown = chosen.filter((choice) => !offered.includes(choice));
+  if (unknown.length) {
+    throw new UsageError(`${id} does not offer ${unknown.map((u) => JSON.stringify(u)).join(", ")}. Its options are: ${offered.length ? offered.map((o) => JSON.stringify(o)).join(", ") : "none, so answer it in your own words with --answer"}.`);
+  }
+  if (question.select_mode !== "many" && chosen.length > 1) {
+    throw new UsageError(`${id} takes one answer, and ${chosen.length} options were given. Pick one, or write what you mean with --answer.`);
+  }
+
+  const answer = [chosen.join("; "), typed].filter(Boolean).join(". ");
+
   if (!ctx.apply) {
-    return planned({ id, answer }, "record it", R.stitch([
+    return planned({ id, answer, selected: chosen }, "record it", R.stitch([
       `Would answer ${id}: ${question.question}`,
       R.wrap(`Answer: ${answer}`, R.WIDTH, "  "),
       question.recommendation ? R.wrap(`The recommendation on file was: ${question.recommendation}`, R.WIDTH, "  ") : null,
     ]));
   }
 
-  const row = await mutate(ctx.root, async (db) => {
-    const current = await db.get("SELECT * FROM questions WHERE id = ?", id);
-    await patch(db, "question", id, current.version, {
-      answer,
-      answered_by: ctx.actor,
-      answered_at: nowIso(),
-    }, { projectId: current.project_id, actor: ctx.actor, activitySummary: `Answered ${id}: ${question.question}` });
-    return setStatus(db, "question", id, "answered", {
-      projectId: current.project_id, actor: ctx.actor, note: answer,
-    });
+  const { answerQuestion } = await import("./init/questions.mjs");
+  const out = await answerQuestion(ctx.root, id, {
+    answer, inOwnWords: typed || null, actor: ctx.actor, answeredBy: ctx.actor,
   });
-
-  return { data: { applied: true, question: row }, text: `${id} is answered.` };
+  if (out.changed === false) throw new Refusal(out.reason, "E_ALREADY_ANSWERED");
+  return {
+    data: { applied: true, question: out.question ?? { id }, selected: chosen },
+    text: R.wrap(out.area
+      ? `${id} is answered, and ${out.area.id} ${out.area.area} is settled by it, which is what readiness counts.`
+      : `${id} is answered.`),
+  };
 }
 
 async function cmdDecisionList(ctx) {
@@ -2606,6 +2639,69 @@ async function cmdFeatureCreate(ctx) {
     text: R.stitch([
       R.wrap(`${out.feature.id} drafted in ${out.module.name}: ${out.feature.name}`),
       R.wrap(`It is Draft at microspec depth. Write its specification with superdev feature specify ${out.feature.id}, then accept it. The depth gate refuses acceptance while anything it promises is missing.`),
+    ]),
+  };
+}
+
+async function cmdCapabilitySpecify(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which area: superdev capability specify <CAP-id> --choice \"<what was chosen>\".");
+  const { settleCapabilityArea } = await import("./product/authoring.mjs");
+  const out = await settleCapabilityArea(ctx.root, id, {
+    choice: requireFlag(ctx.flags, "choice", "Say what was chosen for this area."),
+    evidence: ctx.flags.evidence ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would specify ${out.area}: ${out.choice}`));
+  }
+  return {
+    data: out,
+    text: R.wrap(`${id} ${out.area} is specified: "${out.choice}". It was ${R.status(out.was)}, and readiness now counts it as answered.`),
+  };
+}
+
+async function cmdCapabilityNotApplicable(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which area: superdev capability not-applicable <CAP-id> --reason \"<why>\".");
+  const { settleCapabilityArea } = await import("./product/authoring.mjs");
+  const out = await settleCapabilityArea(ctx.root, id, {
+    notApplicable: true,
+    reason: requireFlag(ctx.flags, "reason", "Say why this area does not apply to this product."),
+    evidence: ctx.flags.evidence ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would record ${out.area} as not applicable: ${out.reason}`));
+  }
+  return {
+    data: out,
+    // The reason is somebody's sentence and may not end in a full stop, so it is
+    // quoted rather than run into the next sentence.
+    text: R.wrap(`${id} ${out.area} is recorded as not applicable: "${out.reason}". A reason is required precisely so this stays different from an area nobody looked at.`),
+  };
+}
+
+async function cmdCapabilityList(ctx) {
+  const { capabilityList } = await import("./product/authoring.mjs");
+  const rows = await capabilityList(ctx.root, {
+    catalog: ctx.flags.catalog ? String(ctx.flags.catalog) : null,
+    unsettled: Boolean(ctx.flags.open),
+  });
+  if (!rows.length) {
+    return { data: { areas: [] }, text: R.wrap("No capability area matches. Superdev seeds them during init.") };
+  }
+  return {
+    data: { areas: rows },
+    text: R.stitch([
+      R.heading(`Capability areas (${rows.length})`),
+      R.table(["Id", "Area", "State", "What settled it"],
+        rows.map((a) => [
+          a.id,
+          a.area,
+          R.status(a.state),
+          a.choice ?? a.reason ?? "Nothing yet",
+        ])),
+      "",
+      "Settle one with superdev capability specify <id> --choice, or capability not-applicable <id> --reason.",
     ]),
   };
 }
@@ -3030,6 +3126,9 @@ const COMMANDS = {
   "feature goal": cmdFeatureGoal,
   "milestone update": cmdMilestoneUpdate,
   "module rename": cmdModuleRename,
+  "capability list": cmdCapabilityList,
+  "capability specify": cmdCapabilitySpecify,
+  "capability not-applicable": cmdCapabilityNotApplicable,
   "scope record": cmdScopeRecord,
   "scope remove": cmdScopeRemove,
   "scope list": cmdScopeList,

@@ -22,6 +22,7 @@ import {
   questionCatalog,
   seedCapabilityAreas,
   seedModuleCompleteness,
+  settleAnsweredAreas,
   seedTaskCategories,
 } from "./questions.mjs";
 
@@ -345,6 +346,9 @@ export async function applyInit(root, opts = {}) {
         why_it_matters: descriptor.whyItMatters,
         recommendation: descriptor.recommendation,
         alternatives_json: JSON.stringify(descriptor.alternatives ?? []),
+        select_mode: descriptor.selectMode ?? "one",
+        recommended_json: JSON.stringify(descriptor.recommended ?? []),
+        recommendation_why: descriptor.recommendedWhy ?? null,
         status: "open",
         created_at: stamp,
       }, { projectId: created.project.id, activity: false });
@@ -368,6 +372,11 @@ export async function applyInit(root, opts = {}) {
         metadata: { questions: rows.map((r) => r.id) },
       });
     }
+    // A material area whose question was not raised because the project already
+    // answers it is settled here, in the same transaction that raised the rest.
+    // Otherwise it sits awaiting a decision that nobody was asked about, which is
+    // the one state this checklist exists to make impossible.
+    await settleAnsweredAreas(db, created.project.id, { at: stamp, actor });
     return rows;
   });
   record(7, questions.length ? "done" : "skipped", questions.length ? `${count(questions.length, "question")} raised: ${questions.map((q) => q.id).join(", ")}` : "every material area is answered by the repository or already asked");

@@ -317,12 +317,40 @@ function dependencyIds(payload) {
 
 // ----------------------------------------------------------------- questions
 
+/** The question's own options. The row is read unhydrated, so the JSON is text. */
+function offeredOptions(question) {
+  try {
+    const parsed = JSON.parse(question.alternatives_json ?? "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Answer a question, from its options or in the reader's own words.
+ *
+ * `selected` carries the options chosen; `answer` carries typed text. Either is
+ * enough, both together is fine (an option plus a qualification), neither is
+ * refused. A question that takes one answer refuses several, because a record
+ * saying "a single service, several services" says nothing.
+ *
+ * The work is delegated to the engine rather than repeated here. This handler
+ * used to write the answer and set the status itself, which looked equivalent and
+ * was not: the engine also settles the capability area the question belongs to,
+ * records a reversible assumption when the answer is "I do not know", and writes a
+ * project-level answer through to the field it exists to fill. So a question
+ * answered in the control centre left its readiness area awaiting a decision,
+ * while the same question answered from the command line settled it. One answer
+ * path is the fix; two that agree by coincidence is the defect.
+ */
 async function answerQuestion(root, payload) {
   const questionId = identifier(payload, "questionId", { required: true });
   const status = oneOf(payload, "status", ["answered", "deferred", "withdrawn"], {
     fallback: "answered",
   });
-  const answer = text(payload, "answer", { required: status === "answered" });
+  const selected = list(payload, "selected") ?? [];
+  const typed = text(payload, "answer", { required: status === "answered" && !selected.length });
   const deferralReason = text(payload, "deferralReason", {
     required: status === "deferred",
     max: LIMIT.prose,
@@ -330,40 +358,60 @@ async function answerQuestion(root, payload) {
   const answeredBy = text(payload, "answeredBy", { max: LIMIT.actor });
   const actor = actorOf(payload);
 
-  return mutate(root, async (db) => {
-    const question = await db.get("SELECT * FROM questions WHERE id = ?", questionId);
-    if (!question) throw new MutationError(E.NOT_FOUND, `There is no question ${questionId}.`);
-    if (question.status !== "open" && question.status !== "deferred") {
+  const question = await query(root, (db) => db.get("SELECT * FROM questions WHERE id = ?", questionId));
+  if (!question) throw new MutationError(E.NOT_FOUND, `There is no question ${questionId}.`);
+  if (question.status !== "open" && question.status !== "deferred") {
+    throw new MutationError(
+      E.INVALID_TRANSITION,
+      `${questionId} is already ${question.status} and is not waiting on an answer.`,
+    );
+  }
+
+  if (selected.length) {
+    const offered = offeredOptions(question);
+    const unknown = selected.filter((choice) => !offered.includes(choice));
+    if (unknown.length) {
       throw new MutationError(
-        E.INVALID_TRANSITION,
-        `${questionId} is already ${question.status} and is not waiting on an answer.`,
+        E.INVALID_PAYLOAD,
+        `${questionId} does not offer ${unknown.map((u) => JSON.stringify(u)).join(", ")}. Choose from its own options, or type an answer instead.`,
       );
     }
-    const project = await currentProject(db);
-    await patch(
-      db,
-      "question",
-      questionId,
-      question.version,
-      pick(
-        {
-          answer,
-          answered_by: answeredBy ?? actor,
-          answered_at: new Date().toISOString(),
-          deferral_reason: deferralReason,
-        },
-        ["answer", "answered_by", "answered_at", "deferral_reason"],
-      ),
-      { projectId: project.id, actor, activity: false },
-    );
-    return setStatus(db, "question", questionId, status, {
-      projectId: project.id,
-      actor,
-      note: answer ?? deferralReason,
-      activityType: "specification_changed",
-      activitySummary: `${questionId} ${status}: ${(answer ?? deferralReason ?? "").slice(0, 160)}`,
+    if (question.select_mode !== "many" && selected.length > 1) {
+      throw new MutationError(
+        E.INVALID_PAYLOAD,
+        `${questionId} takes one answer, and ${selected.length} were chosen. Pick one, or type an answer that says what you mean.`,
+      );
+    }
+  }
+
+  if (status === "withdrawn") {
+    return mutate(root, async (db) => {
+      const project = await currentProject(db);
+      return setStatus(db, "question", questionId, "withdrawn", {
+        projectId: project.id,
+        actor,
+        note: typed ?? deferralReason,
+        activityType: "specification_changed",
+        activitySummary: `${questionId} withdrawn: ${(typed ?? deferralReason ?? "no reason given").slice(0, 160)}`,
+      });
     });
+  }
+
+  // The chosen options and the typed words become one sentence, in that order,
+  // because the options are the shared vocabulary and the typing qualifies them.
+  const answer = [selected.join("; "), typed].filter(Boolean).join(". ") || null;
+  const { answerQuestion: record } = await import("../init/questions.mjs");
+  const outcome = await record(root, questionId, {
+    answer: status === "deferred" ? null : answer,
+    // Kept apart from the composed answer so a question that writes through to a
+    // project field gets the sentence somebody wrote, not the option they picked.
+    inOwnWords: typed,
+    unknown: status === "deferred",
+    revisitTrigger: status === "deferred" ? deferralReason : null,
+    actor,
+    answeredBy: answeredBy ?? actor,
   });
+  return { id: questionId, status, answer, selected, outcome };
 }
 
 // ----------------------------------------------------------------- decisions

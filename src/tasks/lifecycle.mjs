@@ -129,6 +129,13 @@ async function release(db, task, actor, note) {
     summary: note ?? `Assignment on ${task.id} released.`,
     metadata: { assignment: assignment.id },
   });
+  // Every path that ends a claim runs through here: releasing it, completing it,
+  // cancelling it. So this is the one place that has to stop pointing a session at
+  // a task it no longer holds, and only the session that held it is cleared.
+  await db.run(
+    "UPDATE work_sessions SET active_task_id = NULL WHERE project_id = ? AND active_task_id = ?",
+    task.project_id, task.id,
+  );
   return assignment;
 }
 
@@ -382,8 +389,46 @@ export async function claimTask(root, taskId, who = {}) {
       throw new TaskError(E.ALREADY_CLAIMED,
         `${taskId} was claimed by ${await holderOf(db, now)} a moment before this claim. Pick up another task.`);
     }
+    // The session is pointed at the task it just claimed.
+    //
+    // Claiming recorded an assignment and nothing else, so work_sessions.active_task_id
+    // stayed null on every session on every project. The session-start hook reads
+    // exactly that field to decide whether work is tracked, so it recorded an
+    // "untracked work" marker on every file edit, including edits made under a
+    // task that was claimed and in progress. The readiness report then raised its
+    // only high-severity warning, "changes were made while no task was claimed",
+    // against work that was properly tracked. A warning that fires when the rule
+    // was followed teaches the reader to stop reading warnings, and this is the
+    // one that means the record has fallen behind.
+    //
+    // Written here rather than in each caller, because the control centre claims
+    // tasks too and the field has to mean the same thing whichever surface moved it.
+    await pointSessionAt(db, task.project_id, sessionId, taskId);
+
     return db.get("SELECT * FROM tasks WHERE id = ?", taskId);
   });
+}
+
+/**
+ * Point a session at the task it is working on, or at nothing.
+ *
+ * The session is the one named, or the most recently active one on this machine,
+ * because a claim from the command line does not carry a session identifier and
+ * the hook that reads this field cannot ask.
+ */
+async function pointSessionAt(db, projectId, sessionId, taskId) {
+  const session = sessionId
+    ? await db.get("SELECT id FROM work_sessions WHERE id = ?", sessionId)
+    : await db.get(
+        `SELECT id FROM work_sessions
+          WHERE project_id = ? AND ended_at IS NULL
+          ORDER BY last_activity_at DESC, started_at DESC LIMIT 1`, projectId);
+  if (!session) return null;
+  await db.run(
+    "UPDATE work_sessions SET active_task_id = ?, last_activity_at = ? WHERE id = ?",
+    taskId, nowIso(), session.id,
+  );
+  return session.id;
 }
 
 /** Hand a task back. The task keeps its status; only the claim ends. */

@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3235 hash=581427558e87d845bed8b693d246b63bf025601e658dda790e4a834673630fb0 -->
+<!-- superdev:generated source=PRJ-0001 revision=3312 hash=5401fb7fd3567f9cb95b5095f5541bae0281621582fe6292489c3eded0882b0b -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,80 @@ Specification and decision changes, newest first, taken from the append-only act
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3312 | 2026-07-28 | Change recorded: A claim points the session at its task, so the record stops accusing tracked work of being untracked | superdev |
+| 3311 | 2026-07-28 | Linked memory MEM-0095 to feature FEAT-0088 | superdev |
+| 3310 | 2026-07-28 | Linked memory MEM-0095 to task TASK-0027 | superdev |
+| 3309 | 2026-07-28 | Remembered outcome: TASK-0027 complete: Point the session at the task it claimed, so tracked work st | superdev |
+| 3308 | 2026-07-28 | TASK-0027 completed, assignment released. | superdev |
+| 3307 | 2026-07-28 | Task TASK-0027 moved to complete | superdev |
+| 3306 | 2026-07-28 | Task TASK-0027 moved to in progress | superdev |
+| 3305 | 2026-07-28 | TASK-0027 now implements acceptance_criterion AC-0088. | superdev |
+| 3304 | 2026-07-28 | Passing evidence recorded for TASK-0027: Claiming a task now points the session at it, so work under a claim stops being reported as untracked | superdev |
+| 3303 | 2026-07-28 | Changed 19 files in src, src/init, src/product and 12 more places. | superdev |
+| 3302 | 2026-07-28 | TASK-0027 claimed. | superdev |
+| 3301 | 2026-07-28 | Created task TASK-0027 | superdev |
+| 3300 | 2026-07-28 | Changed 18 files in ui/src/views, src, src/init and 11 more places. | superdev |
+| 3298 | 2026-07-28 | Change recorded: One answer path for a question, replacing three that disagreed | superdev |
+| 3297 | 2026-07-28 | Linked memory MEM-0094 to feature FEAT-0095 | superdev |
+| 3296 | 2026-07-28 | Linked memory MEM-0094 to task TASK-0026 | superdev |
+| 3295 | 2026-07-28 | Remembered outcome: TASK-0026 complete: Prove Answer a question by choosing from its options or typi | superdev |
+| 3294 | 2026-07-28 | Answer a question by choosing from its options or typing your own is complete: its contract is satisfied | superdev |
+| 3293 | 2026-07-28 | TASK-0026 completed, assignment released. | superdev |
+| 3292 | 2026-07-28 | Task TASK-0026 moved to complete | superdev |
+| 3291 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
+| 3290 | 2026-07-28 | Acceptance criterion AC-0103 is met, evidenced by EV-0140. | superdev |
+| 3289 | 2026-07-28 | Passing evidence recorded for TASK-0026: A typed answer is accepted alone or alongside an option, and the right half of it reaches the project field | superdev |
+| 3288 | 2026-07-28 | Acceptance criterion AC-0102 is met, evidenced by EV-0139. | superdev |
+| 3287 | 2026-07-28 | Passing evidence recorded for TASK-0026: One-answer questions refuse several options; many-answer questions accept them | superdev |
+| 3286 | 2026-07-28 | Acceptance criterion AC-0101 is met, evidenced by EV-0138. | superdev |
+| 3285 | 2026-07-28 | Passing evidence recorded for TASK-0026: The API carries each question's options, select mode, recommended options and why, and the control centre renders them as choices | superdev |
+| 3284 | 2026-07-28 | Changed 8 files in src, src/init, src/product and 4 more places. | superdev |
+| 3283 | 2026-07-28 | Changed 5 files in src/init, src/product, src and 1 more places. | superdev |
+| 3281 | 2026-07-28 | Task TASK-0026 moved to in progress | superdev |
+| 3280 | 2026-07-28 | TASK-0026 claimed. | superdev |
+| 3279 | 2026-07-28 | Derived tasks for FEAT-0095: 1 new, 0 updated, 0 superseded. | superdev |
+| 3278 | 2026-07-28 | Derived Prove Answer a question by choosing from its options or typing your own meets its acceptance criteria | superdev |
+| 3277 | 2026-07-28 | FEAT-0095 now serves Complete, structured product model | superdev |
+| 3276 | 2026-07-28 | Accepted Answer a question by choosing from its options or typing your own at microspec depth | superdev |
+| 3275 | 2026-07-28 | Edge case recorded for FEAT-0095: state_machine_violations | superdev |
+| 3274 | 2026-07-28 | Edge case recorded for FEAT-0095: invalid_input | superdev |
+| 3273 | 2026-07-28 | Acceptance criterion recorded for FEAT-0095 | superdev |
+| 3272 | 2026-07-28 | Acceptance criterion recorded for FEAT-0095 | superdev |
+| 3271 | 2026-07-28 | Acceptance criterion recorded for FEAT-0095 | superdev |
+| 3270 | 2026-07-28 | Primary flow recorded for FEAT-0095 | superdev |
+| 3269 | 2026-07-28 | Primary flow recorded for FEAT-0095 | superdev |
+| 3268 | 2026-07-28 | Primary flow recorded for FEAT-0095 | superdev |
+| 3267 | 2026-07-28 | Primary flow recorded for FEAT-0095 | superdev |
+| 3266 | 2026-07-28 | Feature drafted in Local Control Center: Answer a question by choosing from its options or typing your own | superdev |
+| 3265 | 2026-07-28 | Linked memory MEM-0093 to feature FEAT-0094 | superdev |
+| 3264 | 2026-07-28 | Linked memory MEM-0093 to task TASK-0025 | superdev |
+| 3263 | 2026-07-28 | Remembered outcome: TASK-0025 complete: Prove Resolve a capability area through a command meets its | superdev |
+| 3262 | 2026-07-28 | Resolve a capability area through a command is complete: its contract is satisfied | superdev |
+| 3261 | 2026-07-28 | TASK-0025 completed, assignment released. | superdev |
+| 3260 | 2026-07-28 | Task TASK-0025 moved to complete | superdev |
+| 3259 | 2026-07-28 | Acceptance criterion AC-0100 is met, evidenced by EV-0137. | superdev |
+| 3258 | 2026-07-28 | Passing evidence recorded for TASK-0025: No area is left awaiting a decision with no question raised | superdev |
+| 3257 | 2026-07-28 | Acceptance criterion AC-0099 is met, evidenced by EV-0136. | superdev |
+| 3256 | 2026-07-28 | Passing evidence recorded for TASK-0025: capability not-applicable records a reason, and refuses without one | superdev |
+| 3255 | 2026-07-28 | Acceptance criterion AC-0098 is met, evidenced by EV-0135. | superdev |
+| 3254 | 2026-07-28 | Passing evidence recorded for TASK-0025: capability specify settled the area doctor was warning about, and the warning cleared | superdev |
+| 3253 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
+| 3252 | 2026-07-28 | Changed 20 files in the project root, scripts/validate, skills/docs/scripts and 8 more places. | superdev |
+| 3251 | 2026-07-28 | Task TASK-0025 moved to in progress | superdev |
+| 3250 | 2026-07-28 | TASK-0025 claimed. | superdev |
+| 3249 | 2026-07-28 | Derived tasks for FEAT-0094: 1 new, 0 updated, 0 superseded. | superdev |
+| 3248 | 2026-07-28 | Derived Prove Resolve a capability area through a command meets its acceptance criteria | superdev |
+| 3247 | 2026-07-28 | FEAT-0094 now serves No unmapped or disconnected implementation work | superdev |
+| 3246 | 2026-07-28 | Accepted Resolve a capability area through a command at microspec depth | superdev |
+| 3245 | 2026-07-28 | Edge case recorded for FEAT-0094: invalid_input | superdev |
+| 3244 | 2026-07-28 | Edge case recorded for FEAT-0094: empty_states | superdev |
+| 3243 | 2026-07-28 | Acceptance criterion recorded for FEAT-0094 | superdev |
+| 3242 | 2026-07-28 | Acceptance criterion recorded for FEAT-0094 | superdev |
+| 3241 | 2026-07-28 | Acceptance criterion recorded for FEAT-0094 | superdev |
+| 3240 | 2026-07-28 | Primary flow recorded for FEAT-0094 | superdev |
+| 3239 | 2026-07-28 | Primary flow recorded for FEAT-0094 | superdev |
+| 3238 | 2026-07-28 | Primary flow recorded for FEAT-0094 | superdev |
+| 3237 | 2026-07-28 | Feature drafted in Discovery and Onboarding: Resolve a capability area through a command | superdev |
 | 3235 | 2026-07-28 | Change recorded: Fixed eight defects an independent first-run report found, and added the checks that would have caught three of them | superdev |
 | 3234 | 2026-07-28 | Linked memory MEM-0092 to feature FEAT-0093 | superdev |
 | 3233 | 2026-07-28 | Linked memory MEM-0092 to task TASK-0024 | superdev |
@@ -133,77 +207,3 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3102 | 2026-07-27 | Task TASK-0020 moved to ready | superdev |
 | 3101 | 2026-07-27 | Task TASK-0019 moved to ready | superdev |
 | 3100 | 2026-07-27 | Task TASK-0018 moved to ready | superdev |
-| 3099 | 2026-07-27 | Task TASK-0017 moved to ready | superdev |
-| 3098 | 2026-07-27 | Question Q-0008 moved to answered | self-host |
-| 3097 | 2026-07-27 | Updated question Q-0008 | self-host |
-| 3096 | 2026-07-27 | DEC-TBD-008 decided: How a remote copy is encrypted and who holds the key | self-host |
-| 3095 | 2026-07-27 | Question Q-0007 moved to answered | self-host |
-| 3094 | 2026-07-27 | Updated question Q-0007 | self-host |
-| 3093 | 2026-07-27 | DEC-TBD-007 decided: What may cross the boundary between people and organizations | self-host |
-| 3092 | 2026-07-27 | Question Q-0006 moved to answered | self-host |
-| 3091 | 2026-07-27 | Updated question Q-0006 | self-host |
-| 3090 | 2026-07-27 | DEC-TBD-006 decided: How synchronization works | self-host |
-| 3089 | 2026-07-27 | Question Q-0005 moved to answered | self-host |
-| 3088 | 2026-07-27 | Updated question Q-0005 | self-host |
-| 3087 | 2026-07-27 | DEC-TBD-005 decided: What memory keeps and what it lets go | self-host |
-| 3086 | 2026-07-27 | Question Q-0004 moved to answered | self-host |
-| 3085 | 2026-07-27 | Updated question Q-0004 | self-host |
-| 3084 | 2026-07-27 | DEC-TBD-004 decided: Semantic retrieval would be a bounded local scan, and is described as one | self-host |
-| 3083 | 2026-07-27 | Question Q-0003 moved to answered | self-host |
-| 3082 | 2026-07-27 | Updated question Q-0003 | self-host |
-| 3081 | 2026-07-27 | DEC-TBD-003 decided: Embeddings stay disabled | self-host |
-| 3080 | 2026-07-27 | Question Q-0002 moved to answered | self-host |
-| 3079 | 2026-07-27 | Updated question Q-0002 | self-host |
-| 3078 | 2026-07-27 | DEC-TBD-002 decided: The threshold that would let Claude Mem be dropped | self-host |
-| 3077 | 2026-07-27 | Question Q-0001 moved to answered | self-host |
-| 3076 | 2026-07-27 | Updated question Q-0001 | self-host |
-| 3075 | 2026-07-27 | DEC-TBD-001 decided: Long-term memory stays database backed | self-host |
-| 3072 | 2026-07-27 | Linked memory MEM-0080 to feature FEAT-0052 | superdev |
-| 3071 | 2026-07-27 | Linked memory MEM-0080 to task TASK-0022 | superdev |
-| 3070 | 2026-07-27 | Remembered outcome: TASK-0022 complete: Gate completion on the accepted test plan | superdev |
-| 3069 | 2026-07-27 | TASK-0022 completed, assignment released. | superdev |
-| 3068 | 2026-07-27 | Task TASK-0022 moved to complete | superdev |
-| 3067 | 2026-07-27 | Passing evidence recorded for TASK-0022: All eight accepted test plans carry a passing run: three from running their own command, five from journeys carried out and recorded with what was observed. | superdev |
-| 3066 | 2026-07-27 | Passing evidence recorded for TASK-0022: Completion is refused while a covering plan has no passing run: the lifecycle journey in a throwaway project hit the refusal, and E_TEST_PLAN_UNSATISFIED names the plan and the command that runs it. | superdev |
-| 3065 | 2026-07-27 | Task TASK-0022 moved to in progress | superdev |
-| 3064 | 2026-07-27 | TASK-0022 claimed. | superdev |
-| 3063 | 2026-07-27 | TASK-0022 now implements acceptance_criterion AC-0052. | superdev |
-| 3062 | 2026-07-27 | Created task TASK-0022 | superdev |
-| 3061 | 2026-07-27 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
-| 3060 | 2026-07-27 | Changed 2 files in hooks, src/runtime. | superdev |
-| 3058 | 2026-07-27 | Stack slot answered: Product analytics is not applicable | self-host |
-| 3057 | 2026-07-27 | Stack slot answered: Secret management is envx owns any environment value. The product holds no credential of its own and refuses to | self-host |
-| 3056 | 2026-07-27 | Stack slot answered: Continuous integration is The validators, runnable from one command, with no hosted pipeline | self-host |
-| 3055 | 2026-07-27 | Stack slot answered: Hosting and deployment is not applicable | self-host |
-| 3054 | 2026-07-27 | Stack slot answered: Testing is Deterministic validators and real journeys rather than an internal suite, which section 20 | self-host |
-| 3053 | 2026-07-27 | Stack slot answered: Observability is Doctor, the deterministic validators, and an append only activity trail enforced by trigge | self-host |
-| 3052 | 2026-07-27 | Stack slot answered: Notifications and delivery is not applicable | self-host |
-| 3051 | 2026-07-27 | Stack slot answered: Background jobs is not applicable | self-host |
-| 3050 | 2026-07-27 | Stack slot answered: Realtime transport is Polling. The service reads the activity sequence every second and the page refetches when | self-host |
-| 3049 | 2026-07-27 | Stack slot answered: Search is An inverted lexical index over memory, and deterministic filters everywhere else | self-host |
-| 3048 | 2026-07-27 | Stack slot answered: File and object storage is not applicable | self-host |
-| 3047 | 2026-07-27 | Stack slot answered: Migrations is Ordered SQL migrations applied forward only, with a checksum each and a backup before ever | self-host |
-| 3046 | 2026-07-27 | Stack slot answered: Database is Turso, the SQLite compatible engine, as one local file with a single writer | self-host |
-| 3045 | 2026-07-27 | Stack slot answered: Authentication is not applicable | self-host |
-| 3044 | 2026-07-27 | Stack slot answered: API style is Read routes returning JSON over the loopback interface, plus one mutation endpoint, same o | self-host |
-| 3043 | 2026-07-27 | Stack slot answered: Backend framework is The Node http module directly, with no framework | self-host |
-| 3042 | 2026-07-27 | Stack slot answered: Styling and design system is Tailwind v4 with semantic tokens over a shadcn foundation, light and dark | self-host |
-| 3041 | 2026-07-27 | Stack slot answered: Navigation and routing is Hash routing inside the single page, with every area reachable from the rail | self-host |
-| 3040 | 2026-07-27 | Stack slot answered: Frontend framework is React 19 with TypeScript, compiled by Vite into one inlined HTML file | self-host |
-| 3039 | 2026-07-27 | Stack slot answered: Language and runtime is Node.js with ECMAScript modules, no build step for the engine | self-host |
-| 3037 | 2026-07-27 | TP-0007 ran and passed: Opened all nineteen areas against the running service and read each against the database through its own API. Every area rendered live data with no empty page, no load failure, | superdev |
-| 3035 | 2026-07-27 | TP-0002 ran and passed: node src/cli.mjs db status passed. branches                     1 | superdev |
-| 3034 | 2026-07-27 | TP-0003 ran and passed: node src/cli.mjs docs diff passed. Every generated document matches the database. 290 files checked. | superdev |
-| 3033 | 2026-07-27 | TP-0001 ran and passed: node scripts/validate/validate-all.mjs passed. clean | superdev |
-| 3032 | 2026-07-27 | TP-0002 ran and failed: node src/cli.mjs doctor failed. 1 check found a problem. | superdev |
-| 3030 | 2026-07-27 | TP-0008 ran and passed: Took a backup in a throwaway project, cancelled a task, restored the backup and read the state back: the task returned to draft and integrity reported no page damage and no dan | superdev |
-| 3029 | 2026-07-27 | TP-0006 ran and passed: Ran resume in a process with an empty environment and no conversation. It returned the objective, the blocked task with its reason, the blocker, the last verified evidence and | superdev |
-| 3028 | 2026-07-27 | TP-0005 ran and passed: Ran the full lifecycle in a throwaway project: create, claim, start refused while the task implemented nothing, link, start, complete refused with no evidence, complete refused | superdev |
-| 3027 | 2026-07-27 | TP-0004 ran and passed: Ran init against a three feature brief in a throwaway directory. It planned before writing anything, then produced exactly the three features the document lists, named the proj | superdev |
-| 3026 | 2026-07-27 | TP-0006 ran and passed: node src/cli.mjs resume passed. No session was started. Re-run with --apply to open one. | superdev |
-| 3025 | 2026-07-27 | TP-0003 ran and passed: node src/cli.mjs docs diff passed. Every generated document matches the database. 290 files checked. | superdev |
-| 3024 | 2026-07-27 | TP-0002 ran and failed: node src/cli.mjs doctor failed. 1 check found a problem. | superdev |
-| 3023 | 2026-07-27 | TP-0001 ran and passed: node scripts/validate/validate-all.mjs passed. clean | superdev |
-| 3021 | 2026-07-27 | Retrieval benchmark recorded | self-host |
-| 3019 | 2026-07-27 | Cloud synchronization recorded as deferred, with its owner, trigger and consequence | self-host |
-| 3018 | 2026-07-27 | Readiness area answered: Release and rollback is specified | self-host |

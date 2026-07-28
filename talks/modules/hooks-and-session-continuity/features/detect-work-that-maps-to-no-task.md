@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0088 revision=2943 hash=c91eb346868dded3d330aca08231675ce99433e974233105637cbff8ab07a2b7 -->
+<!-- superdev:generated source=FEAT-0088 revision=3312 hash=071d646f8cd957877269668d8aa409488052adc10d122320b2e876103564ed6c -->
 # Feature: Detect work that maps to no task
 
 - **Status:** Complete
@@ -44,6 +44,7 @@
 | Evidence | Type | Result | Reference |
 |---|---|---|---|
 | A prompt asking for product changing work with no task claimed produced the warning naming what to do: find or create the task, link it to a feature and a contract, check the decisions in force, claim it, then move it to in progress. A prompt that only asks a question produces nothing, so the warning stays worth reading. | manual_check | pass | src/runtime/hooks.mjs user-prompt-submit |
+| Claiming a task now points the session at it, so work under a claim stops being reported as untracked | manual_check | pass | - |
 
 ## Delivery state
 

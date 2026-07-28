@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0009 revision=3058 hash=35b3408877b77f5ce70ef879edc732fd821b31d39b520e2c217b34ec251e9d04 -->
+<!-- superdev:generated source=MOD-0009 revision=3298 hash=bc976b9165002417937ce996d4ab11c5db5c0eed94be842e04ddf432b14e94d1 -->
 # Local Control Center - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -20,15 +20,18 @@
 | Drill down between related records | Clicking a feature in the control center navigates to its workflows and tasks | Do it through the surface a person would use and record what was observed. | Met |
 | Manage tasks in the control center | A task can be created, claimed, started, and completed entirely through the control center UI | Do it through the surface a person would use and record what was observed. | Met |
 | View the interactive blueprint canvas | The Blueprint renders a pannable, zoomable canvas that highlights connected records on selection and persists the user's layout separately from product data | Do it through the surface a person would use and record what was observed. | Met |
+| Answer a question by choosing from its options or typing your own | A question offers its options with the recommended one tagged and explained | Open the discovery area of the control centre against a project with open questions | Met |
+| Answer a question by choosing from its options or typing your own | A question that takes one answer refuses several, and one that takes several accepts them | Post question.answer with two selections against each kind and read the refusal and the record | Met |
+| Answer a question by choosing from its options or typing your own | A typed answer is accepted when no option fits | Answer a question with free text and read it back on the question | Met |
 
 ## Coverage map
 
 | Area | Level | Cases | Status |
 |---|---|---|---|
-| Happy paths per feature | command | 12 | exists |
-| Applicable edge-case categories | command | 46 | exists |
-| Permission boundaries | command | 0 | missing |
-| State machines including illegal transitions | command | 0 | missing |
+| Happy paths per feature | command, manual_check | 13 | exists |
+| Applicable edge-case categories | command, manual_check | 48 | exists |
+| Permission boundaries | command, manual_check | 0 | missing |
+| State machines including illegal transitions | command, manual_check | 0 | missing |
 
 ## Evidence conventions
 
@@ -50,3 +53,6 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | Checked by hand: the command that shows this needs a shell, so nothing can re-run it unattended. ui/src/views/blueprint.tsx:1-58 documents and implements the goals->milestones->modules->features->workflows->tasks map using components/canvas/graph-canvas and components/canvas/layout (saved layout, detail panel, relationship filter); 'blueprint' is a listed route in ui/src/lib/route.ts:12-29; curl http://127.0.0.1:4317/api/product, /api/workflows, /api/tasks each returned HTTP 200 with real relational data (e.g. WF-0007/WF-0008 tied to FEAT-0081/FEAT-0082). | command | pass | Navigate to #/blueprint -> ui/src/views/blueprint.tsx reads GET /api/product, /api/workflows, /api/tasks and renders them on a GraphCanvas with containment and cross-cutting relationship lines | Current |
 | Drilling from a feature to what hangs off it works: feature show prints the module, milestone, goals served, acceptance criteria, workflows, test plans and tasks, each by identifier, so every related record is reachable from the one in hand. The same links are navigable in the control centre. | command | pass | node src/cli.mjs feature show FEAT-0001 | Current |
 | Task management is reachable from both surfaces over one engine: service/mutations.mjs imports createTask, updateTask, claimTask, startTask and releaseTask from tasks/lifecycle.mjs, the same functions the CLI calls, so the control centre and the terminal cannot diverge. task list returns the live board. | command | pass | node src/cli.mjs task list | Current |
+| The API carries each question's options, select mode, recommended options and why, and the control centre renders them as choices | manual_check | pass | - | Current |
+| One-answer questions refuse several options; many-answer questions accept them | manual_check | pass | - | Current |
+| A typed answer is accepted alone or alongside an option, and the right half of it reaches the project field | manual_check | pass | - | Current |

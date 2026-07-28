@@ -253,10 +253,17 @@ export interface Question {
   why_it_matters: string | null;
   recommendation: string | null;
   alternatives_json: string[] | null;
+  /** Whether the options are exclusive. "many" for a question several answers fit. */
+  select_mode: "one" | "many";
+  /** Which of the options carry the recommended tag. Empty when none does. */
+  recommended_json: string[] | null;
+  /** Why those are recommended, so somebody can disagree with it on purpose. */
+  recommendation_why: string | null;
   status: RecordStatus;
   answer: string | null;
   answered_by: string | null;
   answered_at: string | null;
+  deferral_reason: string | null;
   version: number;
 }
 
