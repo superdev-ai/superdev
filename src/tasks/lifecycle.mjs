@@ -814,13 +814,36 @@ export async function cancelTask(root, taskId, { reason, actor = "superdev" } = 
 export async function attachEvidence(root, taskId, evidence = {}) {
   const {
     evidenceType = "manual_check", summary, reference = null, result = "pass",
-    acceptanceCriterionId = null, contentHash = null, recordedBy = null,
+    acceptanceCriterionId = null, goalCriterionId = null, contentHash = null, recordedBy = null,
     actor = "superdev", sessionId = null, checkCommand = null, testPlanId = null,
   } = evidence;
   if (!summary) throw new TaskError(E.REASON_REQUIRED, "Evidence needs a one-line summary of what was observed, not just a result.");
 
   return mutate(root, async (db) => {
     const task = await taskOr404(db, taskId);
+    // A goal criterion is a different target from an acceptance criterion, and the
+    // identifier says which. Resolved here, before anything is written, because
+    // this is what used to be decided by the foreign key: the plan resolved the id
+    // and promised to mark it met, the write put it in the acceptance-criterion
+    // column, and the driver answered `FOREIGN KEY constraint failed` with no
+    // record, column or remedy named.
+    if (goalCriterionId) {
+      const goalCriterion = await db.get(
+        "SELECT id FROM goal_success_criteria WHERE id = ?", goalCriterionId);
+      if (!goalCriterion) {
+        throw new TaskError(E.UNKNOWN_TARGET,
+          `There is no goal success criterion ${goalCriterionId}. superdev goal show <GOAL-id> lists the criteria a goal carries.`);
+      }
+    }
+    if (acceptanceCriterionId) {
+      const criterion = await db.get(
+        "SELECT id FROM feature_acceptance_criteria WHERE id = ?", acceptanceCriterionId);
+      if (!criterion) {
+        throw new TaskError(E.UNKNOWN_TARGET,
+          `There is no acceptance criterion ${acceptanceCriterionId}. superdev feature show <FEAT-id> lists the criteria a feature carries.`);
+      }
+    }
+
     // What already proves this criterion, read before the new row is written.
     //
     // Two current records for one criterion is legitimate: two different checks can
@@ -861,6 +884,7 @@ export async function attachEvidence(root, taskId, evidence = {}) {
       task_id: taskId,
       feature_id: task.feature_id,
       acceptance_criterion_id: acceptanceCriterionId,
+      goal_criterion_id: goalCriterionId,
       evidence_type: evidenceType,
       summary,
       reference,
@@ -915,6 +939,27 @@ export async function attachEvidence(root, taskId, evidence = {}) {
           actor, sessionId, taskId, featureId: task.feature_id,
           summary: `Acceptance criterion ${acceptanceCriterionId} is no longer met: ${row.id} records a failure.`,
           metadata: { criterion: acceptanceCriterionId, evidence: row.id },
+        });
+      }
+    }
+
+    // A measured outcome moves on the same rule: proof makes it met, a failure
+    // takes it back. Without this the goal criteria component of progress was a
+    // permanent zero on every project, and no command could move it.
+    if (goalCriterionId) {
+      const before = await db.get(
+        "SELECT * FROM goal_success_criteria WHERE id = ?", goalCriterionId);
+      const wanted = result === "pass" ? "met" : "unmet";
+      if (before && before.status !== wanted) {
+        await db.run(
+          "UPDATE goal_success_criteria SET status = ? WHERE id = ?", wanted, goalCriterionId);
+        await recordActivity(db, task.project_id, {
+          type: "specification_changed",
+          actor, sessionId, taskId, featureId: task.feature_id,
+          summary: result === "pass"
+            ? `Goal success criterion ${goalCriterionId} is met, evidenced by ${row.id}.`
+            : `Goal success criterion ${goalCriterionId} is no longer met: ${row.id} records a failure.`,
+          metadata: { goalCriterion: goalCriterionId, evidence: row.id },
         });
       }
     }

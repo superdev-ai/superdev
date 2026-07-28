@@ -108,6 +108,40 @@ export async function recordStatusChange(db, projectId, recordType, recordId, fr
 const AUTO = new Set(["created_at", "updated_at", "version"]);
 
 /**
+ * Turn a driver constraint failure into a sentence that names what broke.
+ *
+ * `FOREIGN KEY constraint failed` is the entire message the engine gives: no
+ * table, no column, no value, no remedy. A reader got that single line, and
+ * nothing else, when evidence was written against a goal success criterion, in a
+ * product where every other refusal explains itself and names the fix. The
+ * reference columns and their values are right here, so the diagnosis costs
+ * nothing.
+ *
+ * That specific case is prevented by validating the target before writing. This is
+ * the net underneath it, so the next one arrives as an explanation rather than as
+ * driver noise.
+ */
+async function explain(table, row, write) {
+  try {
+    return await write();
+  } catch (err) {
+    if (/FOREIGN KEY constraint failed/i.test(String(err?.message ?? ""))) {
+      const pointers = Object.entries(row)
+        .filter(([key, value]) => key.endsWith("_id") && value !== null && value !== undefined)
+        .map(([key, value]) => `${key}=${value}`);
+      throw new DbError(
+        "E_UNKNOWN_REFERENCE",
+        `A row for ${table} points at a record that does not exist. One of these is wrong: ${
+          pointers.join(", ") || "no reference column was set"
+        }. Check that each identifier exists and is of the kind that column expects.`,
+        { table, pointers },
+      );
+    }
+    throw err;
+  }
+}
+
+/**
  * Insert a record of `kind`. Mints the id, screens every field, stamps
  * timestamps, and records the creation as activity when the table has a
  * project.
@@ -136,10 +170,10 @@ export async function create(db, kind, values, opts = {}) {
   assertRecordStorable(row);
 
   const cols = Object.keys(row);
-  await db.run(
+  await explain(table, row, () => db.run(
     `INSERT INTO ${table} (${cols.join(",")}) VALUES (${cols.map(() => "?").join(",")})`,
     ...cols.map((c) => row[c]),
-  );
+  ));
 
   if (opts.projectId && opts.activity !== false) {
     await recordActivity(db, opts.projectId, {

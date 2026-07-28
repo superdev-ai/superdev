@@ -647,3 +647,64 @@ export async function capabilityList(root, { catalog = null, unsettled = false }
       ORDER BY catalog, sequence, id`,
     catalog, catalog, unsettled ? 1 : 0));
 }
+
+/**
+ * Mark a milestone condition met, with the reading that decided it.
+ *
+ * Conditions could be added and never satisfied, so a milestone showed `0 of 5 met`
+ * while four of the five were demonstrably true, and no command could move any of
+ * them. A milestone that cannot be reached is a milestone that measures nothing.
+ *
+ * The reading is required, not decorative. "Met" on its own is an assertion; the
+ * reading is what somebody else can check, and it is the same standard evidence is
+ * held to everywhere else in this product.
+ */
+export async function markMilestoneCondition(root, milestoneId, { condition, reading, entry = false, actor = "superdev", apply = false } = {}) {
+  if (!clean(condition)) {
+    throw new AuthoringError(E.REQUIRED, "Say which condition, by its text. superdev milestone show lists them.");
+  }
+  if (!clean(reading)) {
+    throw new AuthoringError(E.REQUIRED,
+      "Say what was observed. A condition marked met with nothing to read is an assertion, not a measurement.");
+  }
+  const column = entry ? "entry_conditions_json" : "exit_conditions_json";
+  const wanted = clean(condition, 500);
+
+  const found = await query(root, (db) => db.get(
+    `SELECT id, name, ${column} AS conditions FROM milestones WHERE id = ?`, milestoneId));
+  if (!found) {
+    throw new AuthoringError(E.NOT_FOUND, `There is no milestone ${milestoneId}. List them with superdev milestone list.`);
+  }
+  const conditions = json(found.conditions, []).map((c) =>
+    typeof c === "string" ? { condition: c, met: false, reading: null, check: null } : c);
+  const match = conditions.find((c) => c.condition === wanted)
+    ?? conditions.find((c) => c.condition.toLowerCase().startsWith(wanted.toLowerCase()));
+  if (!match) {
+    throw new AuthoringError(E.NOT_FOUND,
+      `${milestoneId} carries no ${entry ? "entry" : "exit"} condition matching ${JSON.stringify(wanted)}. Its conditions are: ${conditions.map((c) => JSON.stringify(c.condition)).join(", ") || "none"}.`);
+  }
+  if (match.met) {
+    throw new AuthoringError(E.EXISTS, `That condition is already met: ${match.reading ?? "no reading recorded"}`);
+  }
+
+  const plan = { milestoneId, condition: match.condition, reading: clean(reading, 500), entry };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const milestone = await db.get(
+      `SELECT id, project_id, name, ${column} AS conditions, version FROM milestones WHERE id = ?`, milestoneId);
+    const rows = json(milestone.conditions, []).map((c) =>
+      typeof c === "string" ? { condition: c, met: false, reading: null, check: null } : c);
+    const target = rows.find((c) => c.condition === match.condition);
+    target.met = true;
+    target.reading = plan.reading;
+    await patch(db, "milestone", milestoneId, milestone.version, {
+      [column]: JSON.stringify(rows),
+    }, {
+      projectId: milestone.project_id, actor, activityType: "scope_changed",
+      activitySummary: clean(`${entry ? "Entry" : "Exit"} condition met on ${milestone.name}: ${plan.reading}`, 200),
+    });
+    const met = rows.filter((c) => c.met).length;
+    return { applied: true, ...plan, met, total: rows.length, name: milestone.name };
+  });
+}

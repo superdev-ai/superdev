@@ -196,6 +196,7 @@ Knowledge
   milestone record     Record a delivery stage
   milestone condition <id>  Add an exit condition, or --entry for an entry one
   milestone update <id>     Rename it, restate it, or move its target date
+  milestone met <id>        Mark a condition met, with the reading that decided it
   module record        Record a slice of the product
   module rename <id>   Rename a module, or restate what it owns
   capability list      Readiness areas and stack slots, and what settled each
@@ -2003,6 +2004,27 @@ async function cmdVerify(ctx) {
   return { data: report, text: R.stitch(lines), exit: report.noLongerPassing > 0 ? 1 : 0 };
 }
 
+/**
+ * Which kind of criterion `--criterion` names, decided from the identifier.
+ *
+ * One flag for two targets, because a reader asking what proves something does not
+ * care which table it lives in. The kind is read from the identifier's own prefix,
+ * and anything else is refused here rather than becoming a foreign key failure: the
+ * plan used to resolve a GSC id, promise to mark it met, and then die on
+ * `FOREIGN KEY constraint failed`, which named no record, no column and no remedy.
+ */
+function criterionTarget(flag) {
+  if (flag === undefined || flag === null) {
+    return { acceptanceCriterionId: null, goalCriterionId: null };
+  }
+  const id = String(flag).trim();
+  if (/^AC-/i.test(id)) return { acceptanceCriterionId: id.toUpperCase(), goalCriterionId: null };
+  if (/^GSC-/i.test(id)) return { acceptanceCriterionId: null, goalCriterionId: id.toUpperCase() };
+  throw new UsageError(
+    `--criterion takes an acceptance criterion (AC-nnnn) or a goal success criterion (GSC-nnnn), and ${JSON.stringify(id)} is neither. superdev feature show <FEAT-id> lists a feature's acceptance criteria, and superdev goal show <GOAL-id> lists a goal's success criteria.`,
+  );
+}
+
 async function cmdTaskEvidence(ctx) {
   const id = requireWord(ctx.words, 2, "Say which task was verified: superdev task evidence <id>.");
   const summary = requireFlag(ctx.flags, "summary",
@@ -2016,7 +2038,7 @@ async function cmdTaskEvidence(ctx) {
     result,
     evidenceType: ctx.flags.type ? String(ctx.flags.type) : "manual_check",
     reference: ctx.flags.reference ? String(ctx.flags.reference) : null,
-    acceptanceCriterionId: ctx.flags.criterion ? String(ctx.flags.criterion) : null,
+    ...criterionTarget(ctx.flags.criterion),
     checkCommand: ctx.flags.command ? String(ctx.flags.command) : null,
     testPlanId: ctx.flags.plan ? String(ctx.flags.plan) : null,
     actor: ctx.actor,
@@ -2025,6 +2047,9 @@ async function cmdTaskEvidence(ctx) {
   if (!ctx.apply) {
     return planned({ id, ...evidence }, "record it", R.stitch([
       `Would record ${result === "pass" ? "passing" : result === "fail" ? "failing" : "inconclusive"} evidence for ${id}: ${summary}`,
+      evidence.goalCriterionId
+        ? R.wrap(`It is attached to goal success criterion ${evidence.goalCriterionId}, which ${result === "pass" ? "this marks met" : "this leaves unmet"}.`)
+        : null,
       evidence.acceptanceCriterionId
         ? R.wrap(`It is attached to acceptance criterion ${evidence.acceptanceCriterionId}, which ${result === "pass" ? "this marks met" : "this leaves unmet"}.`)
         : null,
@@ -2898,6 +2923,24 @@ async function cmdScopeList(ctx) {
 
 const SAID_AS = { in: "in scope", out: "out of scope", non_goal: "a non-goal" };
 
+async function cmdMilestoneMet(ctx) {
+  const id = requireWord(ctx.words, 2, 'Say which milestone: superdev milestone met <MS-id> --condition "<its text>" --reading "<what was observed>".');
+  const { markMilestoneCondition } = await import("./product/authoring.mjs");
+  const out = await markMilestoneCondition(ctx.root, id, {
+    condition: requireFlag(ctx.flags, "condition", "Say which condition, by its text. superdev milestone show lists them."),
+    reading: requireFlag(ctx.flags, "reading", "Say what was observed. A condition marked met with nothing to read is an assertion."),
+    entry: Boolean(ctx.flags.entry),
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would mark met on ${id}: ${out.condition}`));
+  }
+  return {
+    data: out,
+    text: R.wrap(`${id} ${out.name} now has ${out.met} of ${out.total} ${out.entry ? "entry" : "exit"} conditions met. The reading is on the record: ${out.reading}`),
+  };
+}
+
 async function cmdMilestoneUpdate(ctx) {
   const id = requireWord(ctx.words, 2, "Say which milestone: superdev milestone update <MS-id> [--name <text>] [--outcome <text>] [--target <date>].");
   const { updateMilestone } = await import("./product/authoring.mjs");
@@ -3263,6 +3306,7 @@ const COMMANDS = {
   "feature create": cmdFeatureCreate,
   "feature move": cmdFeatureMove,
   "feature goal": cmdFeatureGoal,
+  "milestone met": cmdMilestoneMet,
   "milestone update": cmdMilestoneUpdate,
   "module rename": cmdModuleRename,
   "capability list": cmdCapabilityList,

@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3235 hash=603de913405be17a6baa22d7016bf15a30f1d44d3f3a4b1374ffe1ad8fe321a7 -->
+<!-- superdev:generated source=MOD-0002 revision=3481 hash=8a2059f5fc459942e6015ad54be7b360491baa92c11dc5b5dd962fa1e90de166 -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -30,13 +30,16 @@
 | Record what the product deliberately does not do | A brief's out-of-scope section reaches the generated foundations | Initialize from a brief with an Out of scope section and read talks/foundations/product.md | Met |
 | Record what the product deliberately does not do | Scope can be recorded, listed and removed after init | Run superdev scope record, scope list and scope remove against a project | Met |
 | Record what the product deliberately does not do | A hand edit to the Non-goals section is refused by naming the command that writes it | Edit the section in a generated document and run superdev docs accept | Met |
+| Prove a goal success criterion with evidence | Evidence against a goal success criterion is stored and marks it met | Record passing evidence against a GSC id and read the criterion and the goal | Met |
+| Prove a goal success criterion with evidence | A milestone exit condition can be marked met with its reading | Mark a condition met and read the milestone back | Met |
+| Prove a goal success criterion with evidence | An identifier the write cannot store is refused in the plan, naming what it is and what to do | Plan evidence against an identifier of the wrong kind | Met |
 
 ## Coverage map
 
 | Area | Level | Cases | Status |
 |---|---|---|---|
-| Happy paths per feature | command, validator, manual_check | 18 | exists |
-| Applicable edge-case categories | command, validator, manual_check | 51 | exists |
+| Happy paths per feature | command, validator, manual_check | 19 | exists |
+| Applicable edge-case categories | command, validator, manual_check | 53 | exists |
 | Permission boundaries | command, validator, manual_check | 0 | missing |
 | State machines including illegal transitions | command, validator, manual_check | 0 | missing |
 
@@ -71,3 +74,6 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | A brief's out-of-scope line reached the generated Non-goals section, with its provenance | manual_check | pass | - | Current |
 | Scope was recorded, listed and removed through the CLI on a real project | manual_check | pass | - | Current |
 | A hand edit to Non-goals is refused with the command that writes it | manual_check | pass | - | Current |
+| Evidence against a goal success criterion is stored and marks it met, and a failure takes it back | manual_check | pass | - | Current |
+| A milestone condition can be marked met with the reading that decided it | manual_check | pass | - | Current |
+| An unstorable identifier is refused in the plan, and a driver failure is now a sentence | manual_check | pass | - | Current |

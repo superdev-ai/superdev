@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3452 hash=58e94575a3410550e1ac7da7a822114a044e91026c3b3b9cfc42a37c31848f21 -->
+<!-- superdev:generated source=PRJ-0001 revision=3481 hash=fe530608db710be145a91a5e41857e7a710d97779f03a621500ae980dddc0278 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,33 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3481 | 2026-07-28 | Linked memory MEM-0104 to feature FEAT-0098 | superdev |
+| 3480 | 2026-07-28 | Linked memory MEM-0104 to task TASK-0036 | superdev |
+| 3479 | 2026-07-28 | Remembered outcome: TASK-0036 complete: Prove Prove a goal success criterion with evidence meets its | superdev |
+| 3478 | 2026-07-28 | Prove a goal success criterion with evidence is complete: its contract is satisfied | superdev |
+| 3477 | 2026-07-28 | TASK-0036 completed, assignment released. | superdev |
+| 3476 | 2026-07-28 | Task TASK-0036 moved to complete | superdev |
+| 3475 | 2026-07-28 | Acceptance criterion AC-0112 is met, evidenced by EV-0157. | superdev |
+| 3474 | 2026-07-28 | Passing evidence recorded for TASK-0036: An unstorable identifier is refused in the plan, and a driver failure is now a sentence | superdev |
+| 3473 | 2026-07-28 | Acceptance criterion AC-0111 is met, evidenced by EV-0156. | superdev |
+| 3472 | 2026-07-28 | Passing evidence recorded for TASK-0036: A milestone condition can be marked met with the reading that decided it | superdev |
+| 3471 | 2026-07-28 | Acceptance criterion AC-0110 is met, evidenced by EV-0155. | superdev |
+| 3470 | 2026-07-28 | Passing evidence recorded for TASK-0036: Evidence against a goal success criterion is stored and marks it met, and a failure takes it back | superdev |
+| 3468 | 2026-07-28 | Task TASK-0036 moved to in progress | superdev |
+| 3467 | 2026-07-28 | TASK-0036 claimed. | superdev |
+| 3466 | 2026-07-28 | Derived tasks for FEAT-0098: 1 new, 0 updated, 0 superseded. | superdev |
+| 3465 | 2026-07-28 | Derived Prove Prove a goal success criterion with evidence meets its acceptance criteria | superdev |
+| 3464 | 2026-07-28 | FEAT-0098 now serves Complete, structured product model | superdev |
+| 3463 | 2026-07-28 | Accepted Prove a goal success criterion with evidence at microspec depth | superdev |
+| 3462 | 2026-07-28 | Edge case recorded for FEAT-0098: state_machine_violations | superdev |
+| 3461 | 2026-07-28 | Edge case recorded for FEAT-0098: invalid_input | superdev |
+| 3460 | 2026-07-28 | Acceptance criterion recorded for FEAT-0098 | superdev |
+| 3459 | 2026-07-28 | Acceptance criterion recorded for FEAT-0098 | superdev |
+| 3458 | 2026-07-28 | Acceptance criterion recorded for FEAT-0098 | superdev |
+| 3457 | 2026-07-28 | Primary flow recorded for FEAT-0098 | superdev |
+| 3456 | 2026-07-28 | Primary flow recorded for FEAT-0098 | superdev |
+| 3455 | 2026-07-28 | Primary flow recorded for FEAT-0098 | superdev |
+| 3454 | 2026-07-28 | Feature drafted in Product Model and Orchestration: Prove a goal success criterion with evidence | superdev |
 | 3452 | 2026-07-28 | Change recorded: Superdev regenerating its own documents is not the product changing untracked | superdev |
 | 3451 | 2026-07-28 | Linked memory MEM-0103 to feature FEAT-0088 | superdev |
 | 3450 | 2026-07-28 | Linked memory MEM-0103 to task TASK-0035 | superdev |
@@ -180,30 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3255 | 2026-07-28 | Acceptance criterion AC-0098 is met, evidenced by EV-0135. | superdev |
 | 3254 | 2026-07-28 | Passing evidence recorded for TASK-0025: capability specify settled the area doctor was warning about, and the warning cleared | superdev |
 | 3251 | 2026-07-28 | Task TASK-0025 moved to in progress | superdev |
-| 3250 | 2026-07-28 | TASK-0025 claimed. | superdev |
-| 3249 | 2026-07-28 | Derived tasks for FEAT-0094: 1 new, 0 updated, 0 superseded. | superdev |
-| 3248 | 2026-07-28 | Derived Prove Resolve a capability area through a command meets its acceptance criteria | superdev |
-| 3247 | 2026-07-28 | FEAT-0094 now serves No unmapped or disconnected implementation work | superdev |
-| 3246 | 2026-07-28 | Accepted Resolve a capability area through a command at microspec depth | superdev |
-| 3245 | 2026-07-28 | Edge case recorded for FEAT-0094: invalid_input | superdev |
-| 3244 | 2026-07-28 | Edge case recorded for FEAT-0094: empty_states | superdev |
-| 3243 | 2026-07-28 | Acceptance criterion recorded for FEAT-0094 | superdev |
-| 3242 | 2026-07-28 | Acceptance criterion recorded for FEAT-0094 | superdev |
-| 3241 | 2026-07-28 | Acceptance criterion recorded for FEAT-0094 | superdev |
-| 3240 | 2026-07-28 | Primary flow recorded for FEAT-0094 | superdev |
-| 3239 | 2026-07-28 | Primary flow recorded for FEAT-0094 | superdev |
-| 3238 | 2026-07-28 | Primary flow recorded for FEAT-0094 | superdev |
-| 3237 | 2026-07-28 | Feature drafted in Discovery and Onboarding: Resolve a capability area through a command | superdev |
-| 3235 | 2026-07-28 | Change recorded: Fixed eight defects an independent first-run report found, and added the checks that would have caught three of them | superdev |
-| 3234 | 2026-07-28 | Linked memory MEM-0092 to feature FEAT-0093 | superdev |
-| 3233 | 2026-07-28 | Linked memory MEM-0092 to task TASK-0024 | superdev |
-| 3232 | 2026-07-28 | Remembered outcome: TASK-0024 complete: Prove Record what the product deliberately does not do meets | superdev |
-| 3231 | 2026-07-28 | Record what the product deliberately does not do is complete: its contract is satisfied | superdev |
-| 3230 | 2026-07-28 | TASK-0024 completed, assignment released. | superdev |
-| 3229 | 2026-07-28 | Task TASK-0024 moved to complete | superdev |
-| 3228 | 2026-07-28 | Acceptance criterion AC-0097 is met, evidenced by EV-0134. | superdev |
-| 3227 | 2026-07-28 | Passing evidence recorded for TASK-0024: A hand edit to Non-goals is refused with the command that writes it | superdev |
-| 3226 | 2026-07-28 | Acceptance criterion AC-0096 is met, evidenced by EV-0133. | superdev |
-| 3225 | 2026-07-28 | Passing evidence recorded for TASK-0024: Scope was recorded, listed and removed through the CLI on a real project | superdev |
-| 3224 | 2026-07-28 | Acceptance criterion AC-0095 is met, evidenced by EV-0132. | superdev |
-| 3223 | 2026-07-28 | Passing evidence recorded for TASK-0024: A brief's out-of-scope line reached the generated Non-goals section, with its provenance | superdev |
