@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3326 hash=77d9ad83eeb9a12fe87f1d2edaef1bf587372a842e132622d0e3f2b02daf8a51 -->
+<!-- superdev:generated source=PRJ-0001 revision=3341 hash=b73535c6df8a78fbe46b6f05d4a9b3c56533d2ae2d3f9c88dbd6e82ef971872d -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,20 @@ Specification and decision changes, newest first, taken from the append-only act
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3341 | 2026-07-28 | Change recorded: Work is untracked only when it is newly changed, not when git keeps reporting an old edit | superdev |
+| 3340 | 2026-07-28 | Linked memory MEM-0097 to feature FEAT-0088 | superdev |
+| 3339 | 2026-07-28 | Linked memory MEM-0097 to task TASK-0029 | superdev |
+| 3338 | 2026-07-28 | Remembered outcome: TASK-0029 complete: Only call work untracked when it is newly changed, not when | superdev |
+| 3337 | 2026-07-28 | TASK-0029 completed, assignment released. | superdev |
+| 3336 | 2026-07-28 | Task TASK-0029 moved to complete | superdev |
+| 3335 | 2026-07-28 | Passing evidence recorded for TASK-0029: Work already accounted for is no longer reported as untracked when git re-reports it | superdev |
+| 3334 | 2026-07-28 | Changed 7 files in src, src/service, talks/changes and 3 more places. | superdev |
+| 3333 | 2026-07-28 | Task TASK-0029 moved to in progress | superdev |
+| 3332 | 2026-07-28 | TASK-0029 claimed. | superdev |
+| 3331 | 2026-07-28 | TASK-0029 now implements acceptance_criterion AC-0088. | superdev |
+| 3330 | 2026-07-28 | Created task TASK-0029 | superdev |
+| 3329 | 2026-07-28 | The product changed while no task was claimed, so this work is not attached to any feature or contract. Claim or create a task to bring the record back in line. | superdev |
+| 3328 | 2026-07-28 | Changed 6 files in src, src/service, talks/changes and 2 more places. | superdev |
 | 3326 | 2026-07-28 | Change recorded: A busy port says whose it is, and stops claiming the reader is blocked when they are not | superdev |
 | 3325 | 2026-07-28 | Linked memory MEM-0096 to feature FEAT-0016 | superdev |
 | 3324 | 2026-07-28 | Linked memory MEM-0096 to task TASK-0028 | superdev |
@@ -193,17 +207,3 @@ Specification and decision changes, newest first, taken from the append-only act
 | 3129 | 2026-07-27 | TASK-0017 completed, assignment released. | superdev |
 | 3128 | 2026-07-27 | Task TASK-0017 moved to complete | superdev |
 | 3127 | 2026-07-27 | Linked memory MEM-0081 to feature FEAT-0072 | superdev |
-| 3126 | 2026-07-27 | Linked memory MEM-0081 to task TASK-0020 | superdev |
-| 3125 | 2026-07-27 | Remembered outcome: TASK-0020 complete: Finish: Connect cloud sync | superdev |
-| 3124 | 2026-07-27 | TASK-0020 completed, assignment released. | superdev |
-| 3123 | 2026-07-27 | Task TASK-0020 moved to complete | superdev |
-| 3122 | 2026-07-27 | Acceptance criterion AC-0076 is met, evidenced by EV-0127. | superdev |
-| 3121 | 2026-07-27 | Passing evidence recorded for TASK-0019: sync --resolve CONF-0001 --keep remote changed the local purpose to the remote value and marked the conflict resolved. The next sync on both copies reported zero conflicts, so they were left consistent. | superdev |
-| 3120 | 2026-07-27 | Acceptance criterion AC-0075 is met, evidenced by EV-0126. | superdev |
-| 3119 | 2026-07-27 | Passing evidence recorded for TASK-0018: sync --dry-run listed 55 going out and 0 coming in, and the directory and database were unchanged afterwards. The applied run then reported the same counts. | superdev |
-| 3118 | 2026-07-27 | Acceptance criterion AC-0074 is met, evidenced by EV-0125. | superdev |
-| 3117 | 2026-07-27 | Passing evidence recorded for TASK-0017: After the sync, the second copy held the first copy's five new records and the first copy held the second's, and both reported the same tracked base. Local and remote state matched. | superdev |
-| 3116 | 2026-07-27 | Acceptance criterion AC-0072 is met, evidenced by EV-0124. | superdev |
-| 3115 | 2026-07-27 | Passing evidence recorded for TASK-0020: cloud connect established a connection to the directory transport, created the project key and recorded the peer as connected with its fingerprint. cloud status then reported it reachable. | superdev |
-| 3114 | 2026-07-27 | Passing evidence recorded for TASK-0018: superdev sync --dry-run reported the same counts the applied run then produced, and wrote nothing locally or remotely: the preview and the run share every line that decides anything, so they cannot describe different syncs. | superdev |
-| 3113 | 2026-07-27 | Task TASK-0018 moved to in progress | superdev |

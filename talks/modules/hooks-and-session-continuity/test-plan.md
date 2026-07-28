@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0008 revision=3312 hash=338aafd915eb706e261dd1855c9f1ba1650534d2a8ed22265395fb83c1eca188 -->
+<!-- superdev:generated source=MOD-0008 revision=3341 hash=5724883f9278bc4a6678f04ba187f0b40454a6876f72ae81602469950ff37653 -->
 # Hooks and Session Continuity - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -40,3 +40,4 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | Every hook behaviour names the command that replaces it. The session start hook printed the list on this harness: claim, start, scope correction, block and unblock, each with its command, and ended with the rule that Superdev never treats a hook as proof that something happened. | manual_check | pass | src/runtime/hooks.mjs session-start | Current |
 | Every hook behaviour names the command that replaces it, and the session start hook prints that list on every run: claim, start, scope correction, block and unblock. Verified by running the hook, which reported five named fallbacks and the rule that Superdev never treats a hook as proof that something happened. | manual_check | pass | src/runtime/hooks.mjs session-start | Current |
 | Claiming a task now points the session at it, so work under a claim stops being reported as untracked | manual_check | pass | - | Current |
+| Work already accounted for is no longer reported as untracked when git re-reports it | manual_check | pass | - | Current |

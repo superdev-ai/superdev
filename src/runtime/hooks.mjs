@@ -22,7 +22,7 @@
 // Secrets never reach the output: everything user facing goes through
 // sanitizeExternal, which strips secret-shaped values and home paths.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, writeSync, realpathSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync, writeSync, realpathSync } from "node:fs";
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { paths, query } from "../db/store.mjs";
 import { availableMigrations } from "../db/migrate.mjs";
@@ -472,11 +472,28 @@ async function postToolUse(root, payload) {
   if (!MUTATING_TOOLS.has(tool) && !viaShell) return EMPTY;
 
   let file = payload?.tool_input?.file_path ?? payload?.tool_input?.notebook_path ?? payload?.tool_input?.path;
+  // Whether anything is newly changed, decided before the paths are marked.
+  //
+  // git reports a file as changed until it is committed, so a shell command run
+  // after a task is completed re-reported the very files that task had produced,
+  // and the readiness report raised its only high-severity warning about work
+  // that had just been finished, evidenced and recorded. Any redirect or heredoc
+  // is enough to make the hook look, so this happened on the first command after
+  // every completion.
+  //
+  // The paths already seen are the answer. Work noticed twice is one piece of
+  // work; a path not seen before is a genuine change. Computed here because
+  // markTouched below would otherwise record these paths and make every one of
+  // them look familiar.
+  let fresh = true;
   if (viaShell) {
     const changed = await changedFiles(root);
     // A command that looked like a write and changed nothing is not work.
     if (!changed.length) return EMPTY;
+    const moved = movedSince(root, changed, readTouched(root).attributed);
+    fresh = moved.length > 0;
     markTouched(root, changed);
+    attribute(root, moved);
     file = file ?? changed[0];
   }
   markTouched(root, [file]);
@@ -487,7 +504,7 @@ async function postToolUse(root, payload) {
   // files touched by the active task; when there is no active task, that
   // absence is the fact worth keeping. Rate limited so a long editing run
   // leaves one honest marker rather than one per keystroke.
-  await noteUntrackedWork(root, file).catch(() => {});
+  if (fresh) await noteUntrackedWork(root, file).catch(() => {});
   await markDocsPossiblyStale(root, file).catch(() => {});
   return EMPTY;
 }
@@ -521,9 +538,12 @@ function readTouched(root) {
       total: Number.isFinite(parsed.total) ? parsed.total : 0,
       since: typeof parsed.since === "string" ? parsed.since : null,
       lastEventAt: typeof parsed.lastEventAt === "string" ? parsed.lastEventAt : null,
+      // When each path was last accounted for, which `paths` cannot answer
+      // because a flush empties it.
+      attributed: parsed.attributed && typeof parsed.attributed === "object" ? parsed.attributed : {},
     };
   } catch {
-    return { paths: [], total: 0, since: null, lastEventAt: null };
+    return { paths: [], total: 0, since: null, lastEventAt: null, attributed: {} };
   }
 }
 
@@ -535,6 +555,61 @@ function writeTouched(root, state) {
   } catch {
     return false;
   }
+}
+
+/**
+ * Whether a path is the product, rather than Superdev's own bookkeeping about it.
+ *
+ * markTouched has always skipped `.superdev/`, and the freshness comparison did
+ * not, so the runtime directory was picking up modification stamps. One of those
+ * files is the database write-ahead log, which moves on every single command, so
+ * every command would have looked like new work and the comparison would have
+ * decided nothing. Both callers now ask the same question in the same place.
+ */
+const isProjectWork = (rel) => Boolean(rel) && !rel.startsWith(".superdev/");
+
+/**
+ * Which of these paths have actually moved since they were last accounted for.
+ *
+ * git reports a file as changed until it is committed, so every shell command run
+ * between an edit and its commit re-reports the same files. That made the hook
+ * record fresh untracked work for edits a completed task had already produced and
+ * evidenced, and the readiness report then raised its only high-severity warning
+ * about work that was finished. Any redirect or heredoc is enough to make the hook
+ * look, so it happened on the first command after every completion.
+ *
+ * The pending path list cannot answer this, because a flush empties it. A
+ * modification time can: a path re-reported without moving is the same work seen
+ * again, and a path whose file has changed since is new work whoever is holding
+ * the task. Missing stats count as moved, because failing to notice real work is
+ * the worse mistake of the two.
+ */
+export function movedSince(root, candidates, attributed) {
+  candidates = candidates.filter(isProjectWork);
+  const moved = [];
+  for (const path of candidates) {
+    let stamp = null;
+    try {
+      stamp = statSync(join(root, path)).mtimeMs;
+    } catch {
+      // Deleted, or unreadable. Either way it is not the file we accounted for.
+      moved.push([path, Date.now()]);
+      continue;
+    }
+    if (stamp > (Number(attributed[path]) || 0)) moved.push([path, stamp]);
+  }
+  return moved;
+}
+
+/** Record that these paths are accounted for, at the state they are in now. */
+function attribute(root, moved) {
+  if (!moved.length) return;
+  const state = readTouched(root);
+  const next = { ...state.attributed };
+  for (const [path, stamp] of moved) next[path] = stamp;
+  // Bounded, oldest first, so a long-lived project does not grow this forever.
+  const entries = Object.entries(next).sort((a, b) => b[1] - a[1]).slice(0, MAX_TOUCHED);
+  writeTouched(root, { ...state, attributed: Object.fromEntries(entries) });
 }
 
 /**
@@ -550,7 +625,7 @@ export function markTouched(root, files) {
     if (!file) continue;
     const rel = relative(root, canonical(root, file)).split(sep).join("/");
     if (!rel || rel.startsWith("../") || isAbsolute(rel)) continue;
-    if (rel.startsWith(".superdev/")) continue; // Superdev's own runtime state is not project work.
+    if (!isProjectWork(rel)) continue;
     kept.push(rel);
   }
   if (!kept.length) return null;
@@ -562,6 +637,7 @@ export function markTouched(root, files) {
     total: state.total + kept.length,
     since: state.since ?? new Date().toISOString(),
     lastEventAt: state.lastEventAt,
+    attributed: state.attributed,
   };
   writeTouched(root, next);
   return next;
@@ -633,7 +709,10 @@ export async function flushTouched(root, { force = false } = {}) {
     metadata: { files: state.paths.length, changes: state.total },
   }).catch((err) => ({ recorded: false, reason: message(err) }));
 
-  writeTouched(root, { paths: [], total: 0, since: null, lastEventAt: new Date().toISOString() });
+  writeTouched(root, {
+    paths: [], total: 0, since: null, lastEventAt: new Date().toISOString(),
+    attributed: state.attributed,
+  });
   return result;
 }
 
