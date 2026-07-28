@@ -9,6 +9,13 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+## [0.1.2](https://github.com/superdev-ai/superdev/compare/v0.1.1...v0.1.2) (2026-07-28)
+
+
+### Bug Fixes
+
+* repair eight defects a first-run report found, and gate three of them ([659d576](https://github.com/superdev-ai/superdev/commit/659d576ff3bda764f760d890c15e6004a1c95a6d))
+
 ## [0.1.1](https://github.com/superdev-ai/superdev/compare/v0.1.0...v0.1.1) (2026-07-28)
 
 
