@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Superdev - tell it what you want to build, and it keeps the product map, documentation, decisions and status in step while specialist providers do the specialist work.",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "homepage": "https://github.com/superdev-ai/superdev"
   },
   "plugins": [
@@ -13,7 +13,7 @@
       "name": "superdev",
       "source": "./",
       "description": "Describe a product in ordinary language and get a living map of goals, features, workflows, tasks, integrations, UI surfaces, decisions and evidence - plus a self-contained visual dashboard. Routes specialist work to external providers and reports their readiness truthfully.",
-      "version": "0.1.2",
+      "version": "0.2.0",
       "author": {
         "name": "Rahul Retnan"
       },

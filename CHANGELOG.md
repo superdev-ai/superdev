@@ -9,6 +9,13 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+# [0.2.0](https://github.com/superdev-ai/superdev/compare/v0.1.2...v0.2.0) (2026-07-28)
+
+
+### Features
+
+* make a readiness area settleable, and its warning honest ([943d7cf](https://github.com/superdev-ai/superdev/commit/943d7cf29ab5f05ef44086644f9a44a4cbf89cab)), closes [hi#severity](https://github.com/hi/issues/severity) [hi#severity](https://github.com/hi/issues/severity)
+
 ## [0.1.2](https://github.com/superdev-ai/superdev/compare/v0.1.1...v0.1.2) (2026-07-28)
 
 
