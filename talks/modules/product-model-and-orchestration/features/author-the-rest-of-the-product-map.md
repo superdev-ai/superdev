@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0100 revision=3585 hash=2ecc47cf4c24e5118ce1e352b670eda21c1a251b8e71a8b54a1cfed3fb95da45 -->
+<!-- superdev:generated source=FEAT-0100 revision=3597 hash=bc79a7962a6fbce96cb5574e9274b75b96c97468cdf1f6db758a70e58e2b55e1 -->
 # Feature: Author the rest of the product map
 
 - **Status:** Complete
@@ -49,6 +49,7 @@
 | The ten remaining record types the interface reads now have authors, and three defects were found by exercising them | manual_check | pass | - |
 | The five empty states that told readers to wait now name the command | manual_check | pass | - |
 | All 21 alignment warnings name the command that clears them | manual_check | pass | - |
+| A concept can be converted from the command line, and unconverted ones are reported | manual_check | pass | - |
 
 ## Delivery state
 

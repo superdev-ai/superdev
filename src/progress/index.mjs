@@ -1396,6 +1396,26 @@ export async function alignmentWarnings(db, projectId) {
             WHERE project_id = ? AND event_type IN ('task_claimed', 'task_created')), '')`,
     projectId, projectId,
   );
+  // A concept from the brief that nobody turned into anything.
+  //
+  // Six of them sat at proposed on a real project and neither status nor doctor
+  // mentioned them, while the only command that could convert one lived in the
+  // control centre. So a terminal session read a clean report over a brief whose
+  // ideas had gone nowhere. Low severity because leaving a concept unconverted is a
+  // legitimate decision; the defect was that nobody was told they had made it.
+  const unconverted = await db.get(
+    `SELECT COUNT(*) AS n FROM discovery_items
+      WHERE project_id = ? AND status = 'proposed'
+        AND kind IN ('goal_candidate', 'feature_candidate', 'module_candidate')`,
+    projectId,
+  );
+  if (Number(unconverted?.n ?? 0) > 0) {
+    warn("low", "unconverted_concepts", "project", projectId,
+      `${count(Number(unconverted.n), "concept")} from the brief ${agrees(Number(unconverted.n), "is", "are")} still unconverted`,
+      "Discovery found them and nothing was made of them, so whatever they described is in no goal, module or feature.",
+      "Turn one into a record with superdev discovery convert <DIS-id> --to goal, --to module or --to feature, or leave it and the concept map keeps it as a concept.");
+  }
+
   if (Number(untracked?.n ?? 0) > 0) {
     warn("high", "work_without_a_task", "project", projectId,
       `${untracked.n} ${Number(untracked.n) === 1 ? "change was" : "changes were"} made while no task was claimed`,

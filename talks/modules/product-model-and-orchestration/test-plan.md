@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3585 hash=fc4d727a717b16f468ad3200369cb1da0e171c67ee1cf8bf230c500ba973cd44 -->
+<!-- superdev:generated source=MOD-0002 revision=3597 hash=2b68a86a7293f36b6160903e0069b2d95ef22c9047fdab777c481c37615dd191 -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -87,3 +87,4 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | The ten remaining record types the interface reads now have authors, and three defects were found by exercising them | manual_check | pass | - | Current |
 | The five empty states that told readers to wait now name the command | manual_check | pass | - | Current |
 | All 21 alignment warnings name the command that clears them | manual_check | pass | - | Current |
+| A concept can be converted from the command line, and unconverted ones are reported | manual_check | pass | - | Current |

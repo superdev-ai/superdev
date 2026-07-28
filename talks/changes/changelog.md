@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3585 hash=32a065b07d19da63e35dae9374b7bd263e25a5a6f4f9c64d7653ef4ec9109f5a -->
+<!-- superdev:generated source=PRJ-0001 revision=3597 hash=2e2252fc7cf99551afad6f479a879c14fb8e249066abc35b349c874bab011180 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,16 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3597 | 2026-07-28 | Linked memory MEM-0111 to feature FEAT-0100 | superdev |
+| 3596 | 2026-07-28 | Linked memory MEM-0111 to task TASK-0043 | superdev |
+| 3595 | 2026-07-28 | Remembered outcome: TASK-0043 complete: Convert a concept from the command line, and report the ones | superdev |
+| 3594 | 2026-07-28 | TASK-0043 completed, assignment released. | superdev |
+| 3593 | 2026-07-28 | Task TASK-0043 moved to complete | superdev |
+| 3592 | 2026-07-28 | Passing evidence recorded for TASK-0043: A concept can be converted from the command line, and unconverted ones are reported | superdev |
+| 3591 | 2026-07-28 | Task TASK-0043 moved to in progress | superdev |
+| 3590 | 2026-07-28 | TASK-0043 claimed. | superdev |
+| 3589 | 2026-07-28 | TASK-0043 now implements acceptance_criterion AC-0117. | superdev |
+| 3588 | 2026-07-28 | Created task TASK-0043 | superdev |
 | 3585 | 2026-07-28 | Change recorded: Empty states and warnings name the command that fills them | superdev |
 | 3584 | 2026-07-28 | Linked memory MEM-0110 to feature FEAT-0100 | superdev |
 | 3583 | 2026-07-28 | Linked memory MEM-0110 to task TASK-0042 | superdev |
@@ -197,13 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3378 | 2026-07-28 | Linked memory MEM-0100 to feature FEAT-0088 | superdev |
 | 3377 | 2026-07-28 | Linked memory MEM-0100 to task TASK-0032 | superdev |
 | 3376 | 2026-07-28 | Remembered outcome: TASK-0032 complete: Stop events about files and sessions from marking generated | superdev |
-| 3375 | 2026-07-28 | TASK-0032 completed, assignment released. | superdev |
-| 3374 | 2026-07-28 | Task TASK-0032 moved to complete | superdev |
-| 3373 | 2026-07-28 | Passing evidence recorded for TASK-0032: A note that files moved no longer marks every generated document stale | superdev |
-| 3371 | 2026-07-28 | Task TASK-0032 moved to in progress | superdev |
-| 3370 | 2026-07-28 | TASK-0032 claimed. | superdev |
-| 3369 | 2026-07-28 | TASK-0032 now implements acceptance_criterion AC-0088. | superdev |
-| 3368 | 2026-07-28 | Created task TASK-0032 | superdev |
-| 3365 | 2026-07-28 | Change recorded: A verification script is judged by containment, and an active task always has an owner | superdev |
-| 3364 | 2026-07-28 | Linked memory MEM-0099 to feature FEAT-0088 | superdev |
-| 3363 | 2026-07-28 | Linked memory MEM-0099 to task TASK-0031 | superdev |

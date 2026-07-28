@@ -224,6 +224,7 @@ Knowledge
   job record           Record something that runs in the background
   webhook record       Record an event this sends or receives
   runtime record       Record a piece of the running system
+  discovery convert <id>  Turn a concept from the brief into a goal, module or feature
   scope record         Record what the product will not do, and why
   scope list           What is in scope, out of scope, and a non-goal
   scope remove <id>    Take a scope line back out
@@ -3102,6 +3103,58 @@ async function cmdRuntimeRecord(ctx) {
     `${out.piece.id} ${out.piece.name} is recorded. It appears on the architecture map.`);
 }
 
+/**
+ * Turn a concept from the brief into a goal, a module or a feature.
+ *
+ * The control centre could do this and the command line could not, so a terminal
+ * session left every unconverted concept sitting at proposed forever, and nothing
+ * reported them. An operation reachable from one surface only is the same defect as
+ * one reachable from none: it depends on which door the reader came through.
+ *
+ * The engine is the control centre's own handler, called directly rather than
+ * reimplemented, because two conversions that agreed by coincidence is what the
+ * last four defects in this codebase were made of.
+ */
+async function cmdDiscoveryConvert(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which concept: superdev discovery convert <DIS-id> --to goal|module|feature.");
+  const to = String(requireFlag(ctx.flags, "to", "Say what it becomes: --to goal, --to module or --to feature."));
+  if (!["goal", "module", "feature"].includes(to)) {
+    throw new UsageError(`A concept becomes a goal, a module or a feature, not ${JSON.stringify(to)}.`);
+  }
+  const { query } = await store();
+  const item = await query(ctx.root, (db) => db.get("SELECT * FROM discovery_items WHERE id = ?", id));
+  if (!item) throw new Refusal(`There is no concept ${id}. Run superdev plan to see what discovery found.`, "E_NOT_FOUND");
+  if (item.status === "converted") {
+    throw new Refusal(`${id} is already ${item.converted_type} ${item.converted_id}.`, "E_ALREADY_CONVERTED");
+  }
+
+  if (!ctx.apply) {
+    return planned({ id, to, statement: item.statement }, "convert it", R.stitch([
+      R.wrap(`Would turn ${id} into a ${to}: ${item.statement}`),
+      to === "feature" && !ctx.flags.module
+        ? R.wrap("A feature needs a module. Pass --module <MOD-id>.")
+        : null,
+    ]));
+  }
+
+  const { applyMutation } = await import("./service/mutations.mjs");
+  const out = await applyMutation(ctx.root, "discovery.convert", {
+    id,
+    to,
+    name: ctx.flags.name ?? undefined,
+    moduleId: ctx.flags.module ?? undefined,
+    milestoneId: ctx.flags.milestone ?? undefined,
+    actor: ctx.actor,
+  });
+  return {
+    data: out,
+    // The handler returns { converted }, not { created }. Guessing the shape printed
+    // "is now feature ." with an empty identifier, which is the sort of half sentence
+    // that makes a reader doubt the write happened at all.
+    text: R.wrap(`${id} is now ${to} ${out?.converted?.id ?? ""}. The concept stays on the map, marked converted, next to the record it became.`),
+  };
+}
+
 async function cmdSurfaceRecord(ctx) {
   const { recordSurface } = await architecture();
   const out = await recordSurface(ctx.root, {
@@ -3673,6 +3726,7 @@ const COMMANDS = {
   "migration record": cmdMigrationRecord,
   "states record": cmdStatesRecord,
   "term record": cmdTermRecord,
+  "discovery convert": cmdDiscoveryConvert,
   "surface record": cmdSurfaceRecord,
   "surface state": cmdSurfaceState,
   "field add": cmdFieldAdd,
@@ -3707,7 +3761,7 @@ const COMMANDS = {
 
 const GROUPS = new Set(["db", "task", "docs", "memory", "question", "decision", "category", "feature", "evidence",
   "surface", "entity", "operation", "requirement", "migration", "states", "term",
-  "field", "relationship", "service", "transition", "job", "webhook", "runtime",
+  "field", "relationship", "service", "transition", "job", "webhook", "runtime", "discovery",
   "module", "goal", "milestone", "workflow", "architecture", "schema", "api", "integration", "change", "assumption", "cloud"]);
 
 function resolveCommand(words) {
