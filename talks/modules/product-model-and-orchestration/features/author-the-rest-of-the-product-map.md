@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0100 revision=3537 hash=c98ef78f590b0861fba41e472aaf1fd7af7726c7a33a9025bc886c9b894815cf -->
+<!-- superdev:generated source=FEAT-0100 revision=3562 hash=bb43463fb9403a7b340c85fb932a803c2bdb99b0baa340e790fe43de7d1040d4 -->
 # Feature: Author the rest of the product map
 
 - **Status:** Complete
@@ -45,6 +45,8 @@
 | A feature is accepted at standard depth, which no project could do before | manual_check | pass | - |
 | Each record refuses what would make it meaningless, and names the remedy | manual_check | pass | - |
 | A value the schema will not accept is refused by name, listing what it accepts | manual_check | pass | - |
+| Surface actions are written to ui_actions, which is where every interface counter reads them | manual_check | pass | - |
+| The ten remaining record types the interface reads now have authors, and three defects were found by exercising them | manual_check | pass | - |
 
 ## Delivery state
 

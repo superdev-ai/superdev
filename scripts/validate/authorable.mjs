@@ -58,24 +58,92 @@ const SATISFIED_BY = {
 };
 
 /**
- * Record kinds the control centre gives an area to, beyond what depth requires.
+ * What the control centre reads, taken from the read model's own queries.
  *
- * An area with nothing behind it is worse than an absent one, because it teaches a
- * reader to wait for something that will never arrive.
+ * This was a hand-written list of four kinds, and it was wrong the way every list
+ * like it is wrong: it named the areas somebody remembered. A sweep afterwards found
+ * twelve more record types with no writer, none of them on the list, and one of them
+ * mattered immediately. Surface actions had just been written into a JSON column
+ * while every counter in the interface reads the ui_actions table, so a surface
+ * recorded through the new command would have shown zero actions and counted as a
+ * surface with no action recorded, which is the exact figure that started the audit.
+ *
+ * So the subject is derived. Anything the interface selects from is something the
+ * interface shows, and something the interface shows must be something the product
+ * can write, or the reader is waiting for a row that will never arrive.
  */
-const SHOWN_IN_THE_INTERFACE = [
-  "integration",
-  "test_plan",
-  "glossary_term",
-  "state_machine",
-];
+function readByTheInterface(root) {
+  const text = readFileSync(join(root, "src/service/read-model.mjs"), "utf8");
+  const tables = new Set();
+  for (const match of text.matchAll(/FROM\s+([a-z_]+)/g)) tables.add(match[1]);
+  return tables;
+}
 
-/** Kinds only `init` is meant to write, and why that is the whole story for them. */
-const SEEDED_ONLY = {
-  capability_area: "seeded by init from the fixed checklist, then settled with superdev capability specify",
+/**
+ * Kinds written by the machinery rather than by a person, and why each one is
+ * complete without a command.
+ *
+ * Being on this list is a claim that needs a reason, which is why the reason is the
+ * value. A kind added here without one is a gap dressed as a decision.
+ */
+const SYSTEM_WRITTEN = {
+  activity_event: "appended by recordActivity on every write; the log is not authored",
+  status_history: "appended by setStatus, which is the only way a status moves",
+  memory_link: "written by memory consolidation from what it finds, not by hand",
+  layout_position: "written by the canvas when somebody drags a node, through layout.save",
+  applied_migration: "written by the migration runner",
+  sync_base: "written by synchronization to record what both sides held",
+  sync_conflict: "written by synchronization when two sides disagree",
+  task_assignment: "written by claiming and releasing a task",
+  status_transition: "part of the status machinery",
+  decision_transition: "written when a decision changes state",
+  discovery_link: "written when the concept map is built",
+  feature_flow: "written by feature specify as part of the specification",
+  feature_edge_case: "written by feature specify as part of the specification",
+  feature_acceptance_criterion: "written by feature specify as part of the specification",
+  change_target: "written by change record as part of the change",
+  decision_link: "written by decision record as part of the decision",
   module_completeness: "seeded by init per module from the fixed step list",
+  capability_area: "seeded by init, then settled with superdev capability specify",
   task_category: "seeded by init, then managed with superdev category",
+  test_plan_case: "written with its test plan",
+  workflow_step: "written with its workflow, and added with superdev workflow step",
+  state: "written with its state machine",
+  ui_action: "written with its surface",
+  goal_success_criterion: "written with superdev goal criterion",
+  runtime_piece_edge: "a join table with no identifier of its own",
+  schema_migration_entity: "a join table with no identifier of its own",
+  feature_goal: "a join table, written by superdev feature goal",
+  task_contract_link: "a join table, written by superdev task update --link",
+  task_dependency: "a join table, written when a dependency is recorded",
+  source_material: "written by init when it reads what it was given",
+  discovery_item: "written by init from the brief, and converted from the control centre",
+  document: "written by docs generate",
+  work_session: "written by the session hooks",
+  developer: "resolved from the machine and git identity",
+  agent: "resolved from the harness",
+  branch: "resolved from git",
+  project: "written by init",
+  verification_evidence: "written by superdev task evidence",
+  memory_entry: "written by the memory system as work happens",
+  question: "raised by init from the material catalogue",
+  assumption: "written by superdev assumption record",
+  change: "written by superdev change record",
+  decision: "written by superdev decision record",
 };
+
+/**
+ * Every record kind and the table it lives in, read from the id allocator.
+ *
+ * That map is the product's own list of what a record is, so deriving from it means
+ * a kind added later is checked without anybody remembering to add it here.
+ */
+function kindsAndTables(root) {
+  const text = readFileSync(join(root, "src/model/ids.mjs"), "utf8");
+  const start = text.indexOf("const TABLE = {");
+  const block = text.slice(start, text.indexOf("};", start));
+  return [...block.matchAll(/^\s{2}([a-z_]+):\s*"([a-z_]+)"/gm)].map((m) => [m[1], m[2]]);
+}
 
 export async function run(root) {
   const findings = [];
@@ -100,18 +168,16 @@ export async function run(root) {
       }
     }
   }
-  for (const kind of SHOWN_IN_THE_INTERFACE) {
+  const shown = readByTheInterface(root);
+  for (const [kind, table] of kindsAndTables(root)) {
+    if (!shown.has(table)) continue;
     if (!wanted.has(kind)) wanted.set(kind, new Set());
-    wanted.get(kind).add("the control centre gives it an area");
+    wanted.get(kind).add(`the control centre reads ${table}`);
   }
 
   for (const [kind, reasons] of [...wanted].sort(([a], [b]) => a.localeCompare(b))) {
     if (writers.has(kind)) continue;
-    if (SEEDED_ONLY[kind]) {
-      findings.push(finding("AU-002", WARNING, "src/",
-        `${kind} is written only by init: ${SEEDED_ONLY[kind]}`));
-      continue;
-    }
+    if (SYSTEM_WRITTEN[kind]) continue;
     findings.push(finding("AU-001", ERROR, "src/",
       `nothing in the product can create a ${kind}, and ${[...reasons].join("; ")}. A record type the product asks for has to be one the product can write.`));
   }

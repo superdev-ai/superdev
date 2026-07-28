@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3537 hash=e83a0bc6449996fb7d1e503307569e153b29adc593b461b4ca1e018c8a51459a -->
+<!-- superdev:generated source=MOD-0002 revision=3562 hash=eb9140927550af6c47f11b9540abf2e38e56091dec3e3a20228fdb53ed93c410 -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -83,3 +83,5 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | A feature is accepted at standard depth, which no project could do before | manual_check | pass | - | Current |
 | Each record refuses what would make it meaningless, and names the remedy | manual_check | pass | - | Current |
 | A value the schema will not accept is refused by name, listing what it accepts | manual_check | pass | - | Current |
+| Surface actions are written to ui_actions, which is where every interface counter reads them | manual_check | pass | - | Current |
+| The ten remaining record types the interface reads now have authors, and three defects were found by exercising them | manual_check | pass | - | Current |

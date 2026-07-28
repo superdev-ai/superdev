@@ -139,18 +139,39 @@ export async function recordSurface(root, { name, featureId = null, moduleId = n
       route: plan.route,
       purpose: plan.purpose,
       primary_role: plan.role,
-      // The actions are what a person can do here, which is the half of a surface
-      // that makes it more than a picture.
-      components_json: JSON.stringify(plan.actions),
+      components_json: JSON.stringify([]),
       entities_shown_json: JSON.stringify([]),
       responsive_behavior: plan.responsive,
       accessibility_notes: plan.accessibility,
       status: "planned",
-    }, {
-      projectId: module.project_id, actor, activityType: "specification_changed",
-      activitySummary: clean(`Surface recorded: ${plan.name}`, 200),
+    }, { projectId: module.project_id, activity: false });
+
+    // The actions go in ui_actions, which is where the interface reads them.
+    //
+    // They were first written into surfaces.components_json, and every count in the
+    // UI Surfaces area reads the ui_actions table, so a surface recorded that way
+    // showed zero actions and counted as a surface with no action recorded. That is
+    // the exact figure the reader was asking about when this whole gap was found, so
+    // shipping it again would have been the same defect in a new place. Found by
+    // auditing every record kind for a writer, not by reading this code.
+    const actions = [];
+    for (const name of plan.actions) {
+      actions.push(await create(db, "ui_action", {
+        surface_id: row.id,
+        name,
+        label: name,
+        status: "planned",
+      }, { projectId: module.project_id, activity: false }));
+    }
+
+    await recordActivity(db, module.project_id, {
+      type: "specification_changed",
+      actor,
+      featureId: feature?.id ?? null,
+      summary: clean(`Surface recorded: ${plan.name}${actions.length ? `, ${actions.length} action${actions.length === 1 ? "" : "s"}` : ""}`, 200),
+      metadata: { surface: row.id, actions: actions.length },
     });
-    return { applied: true, surface: row, module: module.name, feature: feature?.name ?? null };
+    return { applied: true, surface: row, actionsRecorded: actions.length, module: module.name, feature: feature?.name ?? null };
   });
 }
 
@@ -635,5 +656,331 @@ export async function recordTerm(root, { term, meaning, source = null, actor = "
       activitySummary: clean(`Glossary: ${plan.term}`, 200),
     });
     return { applied: true, term: row };
+  });
+}
+
+// ------------------------------------------------------- the detail records
+//
+// Every one of these is a part of something the previous section can already
+// write, and every one was read by the control centre with nothing able to create
+// it. They are small on purpose: a field of an entity, a transition between two
+// states, the empty state of a screen. The reason they matter is that the parent
+// without them is a name. An entity with no fields does not describe data, a state
+// machine with no transitions is a list, and a screen with no empty state is the
+// one that ships blank.
+
+/** Add a field to a data entity. An entity with no fields does not describe data. */
+export async function addField(root, entityId, { name, type, nullable = false, sensitivity = null, actor = "superdev", apply = false } = {}) {
+  if (!clean(name)) throw new ArchitectureError(E.REQUIRED, "A field needs a name.");
+  if (!clean(type)) {
+    throw new ArchitectureError(E.REQUIRED, "Say what type it is. A field with no type is a word.");
+  }
+  const plan = { entityId, name: clean(name, 120), type: clean(type, 120), nullable: Boolean(nullable), sensitivity: clean(sensitivity, 60) };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const entity = await db.get(
+      `SELECT e.id, e.name, m.project_id FROM data_entities e
+         JOIN modules m ON m.id = e.module_id WHERE e.id = ?`, entityId);
+    if (!entity) {
+      throw new ArchitectureError(E.NOT_FOUND, `There is no data entity ${entityId}. List them with superdev schema show.`);
+    }
+    const existing = await db.get("SELECT id FROM data_fields WHERE entity_id = ? AND name = ?", entityId, plan.name);
+    if (existing) throw new ArchitectureError(E.EXISTS, `${entity.name} already has a field called ${JSON.stringify(plan.name)}.`);
+    const row = await create(db, "data_field", {
+      entity_id: entityId,
+      name: plan.name,
+      type: plan.type,
+      nullable: plan.nullable ? 1 : 0,
+      sensitivity_class: plan.sensitivity,
+      sequence: await nextSequence(db, "data_fields", "entity_id", entityId),
+    }, {
+      projectId: entity.project_id, actor, activityType: "specification_changed",
+      activitySummary: clean(`Field added to ${entity.name}: ${plan.name}`, 200),
+    });
+    const total = await db.get("SELECT COUNT(*) AS n FROM data_fields WHERE entity_id = ?", entityId);
+    return { applied: true, field: row, entity: entity.name, total: Number(total.n) };
+  });
+}
+
+/** Record how two entities relate, and what happens when one is deleted. */
+export async function addRelationship(root, { from, to, name, cardinality = null, onDelete = null, actor = "superdev", apply = false } = {}) {
+  if (!clean(name)) throw new ArchitectureError(E.REQUIRED, "Say what the relationship is called.");
+  const plan = { from, to, name: clean(name, 120), cardinality: clean(cardinality, 60), onDelete: clean(onDelete, 120) };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const ends = [];
+    for (const id of [from, to]) {
+      const entity = await db.get(
+        `SELECT e.id, e.name, m.project_id FROM data_entities e
+           JOIN modules m ON m.id = e.module_id WHERE e.id = ?`, id);
+      if (!entity) throw new ArchitectureError(E.NOT_FOUND, `There is no data entity ${id}.`);
+      ends.push(entity);
+    }
+    const row = await create(db, "data_relationship", {
+      from_entity_id: from,
+      to_entity_id: to,
+      name: plan.name,
+      cardinality: plan.cardinality,
+      on_delete: plan.onDelete,
+    }, {
+      projectId: ends[0].project_id, actor, activityType: "specification_changed",
+      activitySummary: clean(`${ends[0].name} relates to ${ends[1].name}: ${plan.name}`, 200),
+    });
+    return { applied: true, relationship: row, from: ends[0].name, to: ends[1].name };
+  });
+}
+
+/** Group operations under a service, so an API has a shape rather than a list. */
+export async function recordService(root, { name, moduleId = null, purpose = null, style = null, basePath = null, actor = "superdev", apply = false } = {}) {
+  if (!clean(name)) throw new ArchitectureError(E.REQUIRED, "A service needs a name.");
+  const plan = { name: clean(name, 200), moduleId, purpose: clean(purpose, 1000), style: clean(style, 60), basePath: clean(basePath, 200) };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const project = await db.get("SELECT id FROM projects LIMIT 1");
+    if (!project) throw new ArchitectureError(E.NOT_FOUND, "There is no project here yet. Run superdev init first.");
+    let module = null;
+    if (moduleId) ({ module } = await placement(db, { moduleId }));
+    await refuseDuplicate(db, "api_services", "project_id", project.id, plan.name, "service");
+    const row = await create(db, "api_service", {
+      project_id: project.id,
+      module_id: module?.id ?? null,
+      name: plan.name,
+      purpose: plan.purpose,
+      style: plan.style,
+      base_path: plan.basePath,
+      status: "planned",
+      sequence: await nextSequence(db, "api_services", "project_id", project.id),
+    }, {
+      projectId: project.id, actor, activityType: "specification_changed",
+      activitySummary: clean(`Service recorded: ${plan.name}`, 200),
+    });
+    return { applied: true, service: row };
+  });
+}
+
+/** Record a transition between two states, and what causes it. */
+export async function addTransition(root, machineId, { from, to, event, guard = null, actor = "superdev", apply = false } = {}) {
+  if (!clean(event)) {
+    throw new ArchitectureError(E.REQUIRED, "Say what causes the transition. A transition with no event is an edge nobody can trigger.");
+  }
+  const plan = { machineId, from: clean(from, 120), to: clean(to, 120), event: clean(event, 200), guard: clean(guard, 300) };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const machine = await db.get(
+      `SELECT s.id, s.entity_name, m.project_id FROM state_machines s
+         JOIN modules m ON m.id = s.module_id WHERE s.id = ?`, machineId);
+    if (!machine) throw new ArchitectureError(E.NOT_FOUND, `There is no state machine ${machineId}.`);
+    const named = [];
+    for (const wanted of [plan.from, plan.to]) {
+      const state = await db.get(
+        "SELECT id, name FROM states WHERE state_machine_id = ? AND name = ?", machineId, wanted);
+      if (!state) {
+        const all = await db.all("SELECT name FROM states WHERE state_machine_id = ? ORDER BY sequence", machineId);
+        throw new ArchitectureError(E.NOT_FOUND,
+          `${machine.entity_name} has no state called ${JSON.stringify(wanted)}. Its states are: ${all.map((s) => s.name).join(", ")}.`);
+      }
+      named.push(state);
+    }
+    const row = await create(db, "state_transition", {
+      state_machine_id: machineId,
+      from_state_id: named[0].id,
+      to_state_id: named[1].id,
+      event: plan.event,
+      guard: plan.guard,
+    }, {
+      projectId: machine.project_id, actor, activityType: "specification_changed",
+      activitySummary: clean(`${machine.entity_name}: ${named[0].name} to ${named[1].name} on ${plan.event}`, 200),
+    });
+    return { applied: true, transition: row, entity: machine.entity_name, from: named[0].name, to: named[1].name };
+  });
+}
+
+const SURFACE_STATES = ["empty", "loading", "error", "partial", "stale", "offline", "unauthorized", "success"];
+
+/** Record what a screen does when it has nothing, is waiting, or has failed. */
+export async function addSurfaceState(root, surfaceId, { stateType, behavior = null, copy = null, actor = "superdev", apply = false } = {}) {
+  if (!SURFACE_STATES.includes(stateType)) {
+    throw new ArchitectureError(E.NOT_ALLOWED,
+      `A surface state is one of: ${SURFACE_STATES.join(", ")}. ${JSON.stringify(stateType)} is none of them.`);
+  }
+  if (!clean(behavior) && !clean(copy)) {
+    throw new ArchitectureError(E.REQUIRED,
+      "Say what it does, or what it says: --behaviour \"<what happens>\" or --copy \"<the words>\". A named state with neither is the blank screen it was meant to prevent.");
+  }
+  const plan = { surfaceId, stateType, behavior: clean(behavior, 500), copy: clean(copy, 500) };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const surface = await db.get(
+      `SELECT s.id, s.name, m.project_id FROM surfaces s
+         JOIN modules m ON m.id = s.module_id WHERE s.id = ?`, surfaceId);
+    if (!surface) throw new ArchitectureError(E.NOT_FOUND, `There is no surface ${surfaceId}.`);
+    const existing = await db.get(
+      "SELECT id FROM surface_states WHERE surface_id = ? AND state_type = ?", surfaceId, stateType);
+    if (existing) {
+      throw new ArchitectureError(E.EXISTS, `${surface.name} already describes its ${stateType} state.`);
+    }
+    const row = await create(db, "surface_state", {
+      surface_id: surfaceId,
+      state_type: stateType,
+      behavior: plan.behavior,
+      copy: plan.copy,
+    }, {
+      projectId: surface.project_id, actor, activityType: "specification_changed",
+      activitySummary: clean(`${surface.name}: ${stateType} state described`, 200),
+    });
+    return { applied: true, state: row, surface: surface.name };
+  });
+}
+
+/** Record who or what carries out part of a workflow. */
+export async function addWorkflowActor(root, workflowId, { actorName, actorType = "person", actor = "superdev", apply = false } = {}) {
+  if (!clean(actorName)) throw new ArchitectureError(E.REQUIRED, "Say who or what acts.");
+  const plan = { workflowId, actorName: clean(actorName, 200), actorType: clean(actorType, 60) };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const workflow = await db.get(
+      `SELECT w.id, w.name, f.project_id FROM workflows w
+         JOIN features f ON f.id = w.feature_id WHERE w.id = ?`, workflowId);
+    if (!workflow) throw new ArchitectureError(E.NOT_FOUND, `There is no workflow ${workflowId}.`);
+    const row = await create(db, "workflow_actor", {
+      workflow_id: workflowId,
+      actor: plan.actorName,
+      actor_type: plan.actorType,
+      sequence: await nextSequence(db, "workflow_actors", "workflow_id", workflowId),
+    }, {
+      projectId: workflow.project_id, actor, activityType: "specification_changed",
+      activitySummary: clean(`${workflow.name}: ${plan.actorName} acts`, 200),
+    });
+    return { applied: true, workflowActor: row, workflow: workflow.name };
+  });
+}
+
+/** Record where a workflow forks, on what condition. */
+export async function addWorkflowBranch(root, workflowId, { fromStep, condition, toStep = null, actor = "superdev", apply = false } = {}) {
+  if (!clean(condition)) {
+    throw new ArchitectureError(E.REQUIRED, "Say what decides the branch. A fork with no condition is two paths and no rule.");
+  }
+  const plan = { workflowId, fromStep: Number(fromStep), condition: clean(condition, 500), toStep: toStep === null ? null : Number(toStep) };
+  if (!Number.isInteger(plan.fromStep)) {
+    throw new ArchitectureError(E.REQUIRED, "Say which step it branches from, by its number: --from-step <n>.");
+  }
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const workflow = await db.get(
+      `SELECT w.id, w.name, f.project_id FROM workflows w
+         JOIN features f ON f.id = w.feature_id WHERE w.id = ?`, workflowId);
+    if (!workflow) throw new ArchitectureError(E.NOT_FOUND, `There is no workflow ${workflowId}.`);
+    const step = async (n) => (n === null ? null : await db.get(
+      "SELECT id, action FROM workflow_steps WHERE workflow_id = ? AND sequence = ?", workflowId, n));
+    const from = await step(plan.fromStep);
+    if (!from) {
+      const all = await db.all("SELECT sequence, action FROM workflow_steps WHERE workflow_id = ? ORDER BY sequence", workflowId);
+      throw new ArchitectureError(E.NOT_FOUND,
+        `${workflow.name} has no step ${plan.fromStep}. Its steps are: ${all.map((s) => `${s.sequence} ${s.action}`).join("; ")}.`);
+    }
+    const to = await step(plan.toStep);
+    const row = await create(db, "workflow_branch", {
+      workflow_id: workflowId,
+      from_step_id: from.id,
+      to_step_id: to?.id ?? null,
+      condition: plan.condition,
+    }, {
+      projectId: workflow.project_id, actor, activityType: "specification_changed",
+      activitySummary: clean(`${workflow.name} branches after ${from.action}: ${plan.condition}`, 200),
+    });
+    return { applied: true, branch: row, workflow: workflow.name, from: from.action };
+  });
+}
+
+/** Record something that runs on a schedule or in the background. */
+export async function recordJob(root, { name, featureId = null, moduleId = null, trigger = null, retry = null, observability = null, actor = "superdev", apply = false } = {}) {
+  if (!clean(name)) throw new ArchitectureError(E.REQUIRED, "A job needs a name.");
+  if (!clean(trigger)) {
+    throw new ArchitectureError(E.REQUIRED, "Say what starts it. A job with no trigger never runs, or runs for a reason nobody wrote down.");
+  }
+  const plan = { name: clean(name, 200), trigger: clean(trigger, 300), retry: clean(retry, 300), observability: clean(observability, 300), featureId, moduleId };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const { feature, module } = await placement(db, { featureId, moduleId });
+    await refuseDuplicate(db, "jobs", "module_id", module.id, plan.name, "job");
+    const row = await create(db, "job", {
+      feature_id: feature?.id ?? null,
+      module_id: module.id,
+      name: plan.name,
+      trigger: plan.trigger,
+      retry_policy: plan.retry,
+      observability: plan.observability,
+      status: "planned",
+    }, {
+      projectId: module.project_id, actor, activityType: "specification_changed",
+      activitySummary: clean(`Job recorded: ${plan.name}`, 200),
+    });
+    return { applied: true, job: row, module: module.name };
+  });
+}
+
+const DIRECTIONS = ["incoming", "outgoing"];
+
+/** Record an event this sends or receives, and how it is trusted. */
+export async function recordWebhook(root, { name, direction, featureId = null, moduleId = null, endpoint = null, verification = null, actor = "superdev", apply = false } = {}) {
+  if (!clean(name)) throw new ArchitectureError(E.REQUIRED, "A webhook needs a name.");
+  if (!DIRECTIONS.includes(direction)) {
+    throw new ArchitectureError(E.NOT_ALLOWED, `A webhook is ${DIRECTIONS.join(" or ")}, not ${JSON.stringify(direction)}.`);
+  }
+  if (direction === "inbound" && !clean(verification)) {
+    throw new ArchitectureError(E.REQUIRED,
+      "An inbound webhook needs to say how the sender is verified: --verification \"<how>\". An unverified inbound event is anybody's event.");
+  }
+  const plan = { name: clean(name, 200), direction, endpoint: clean(endpoint, 300), verification: clean(verification, 300), featureId, moduleId };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const { feature, module } = await placement(db, { featureId, moduleId });
+    await refuseDuplicate(db, "webhooks", "module_id", module.id, plan.name, "webhook");
+    const row = await create(db, "webhook", {
+      feature_id: feature?.id ?? null,
+      module_id: module.id,
+      name: plan.name,
+      direction: plan.direction,
+      endpoint_or_registration: plan.endpoint,
+      identity_verification: plan.verification,
+      status: "planned",
+    }, {
+      projectId: module.project_id, actor, activityType: "specification_changed",
+      activitySummary: clean(`${plan.direction} webhook recorded: ${plan.name}`, 200),
+    });
+    return { applied: true, webhook: row, module: module.name };
+  });
+}
+
+/** Record a piece of the running system, and where it runs. */
+export async function recordRuntimePiece(root, { name, runsWhere = null, evidence = null, actor = "superdev", apply = false } = {}) {
+  if (!clean(name)) throw new ArchitectureError(E.REQUIRED, "A runtime piece needs a name.");
+  const plan = { name: clean(name, 200), runsWhere: clean(runsWhere, 300), evidence: clean(evidence, 300) };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const project = await db.get("SELECT id FROM projects LIMIT 1");
+    if (!project) throw new ArchitectureError(E.NOT_FOUND, "There is no project here yet. Run superdev init first.");
+    await refuseDuplicate(db, "runtime_pieces", "project_id", project.id, plan.name, "runtime piece");
+    const row = await create(db, "runtime_piece", {
+      project_id: project.id,
+      name: plan.name,
+      runs_where: plan.runsWhere,
+      evidence_ref: plan.evidence,
+      sequence: await nextSequence(db, "runtime_pieces", "project_id", project.id),
+    }, {
+      projectId: project.id, actor, activityType: "specification_changed",
+      activitySummary: clean(`Runtime piece recorded: ${plan.name}`, 200),
+    });
+    return { applied: true, piece: row };
   });
 }

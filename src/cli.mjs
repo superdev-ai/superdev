@@ -214,6 +214,16 @@ Knowledge
   migration record     Record a schema change and how it is rolled back
   states record        Record the states something moves through
   term record          Record what a word means in this project
+  field add <id>       Add a field to a data entity
+  relationship add     Record how two entities relate
+  service record       Group operations under a service
+  transition add <id>  Record a transition between two states
+  surface state <id>   Describe an empty, loading or error state
+  workflow actor <id>  Record who carries out part of a workflow
+  workflow branch <id> Record where a workflow forks, and on what
+  job record           Record something that runs in the background
+  webhook record       Record an event this sends or receives
+  runtime record       Record a piece of the running system
   scope record         Record what the product will not do, and why
   scope list           What is in scope, out of scope, and a non-goal
   scope remove <id>    Take a scope line back out
@@ -2956,6 +2966,142 @@ async function cmdTermRecord(ctx) {
     `${out.term.id} records what ${out.term.term} means here. One meaning per term.`);
 }
 
+async function cmdFieldAdd(ctx) {
+  const id = requireWord(ctx.words, 2, 'Say which entity: superdev field add <ENT-id> --name "<field>" --type "<type>".');
+  const { addField } = await architecture();
+  const out = await addField(ctx.root, id, {
+    name: requireFlag(ctx.flags, "name", "A field needs a name."),
+    type: requireFlag(ctx.flags, "type", "Say what type it is. A field with no type is a word."),
+    nullable: Boolean(ctx.flags.nullable),
+    sensitivity: ctx.flags.sensitivity ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "add it", `Would add ${out.name} (${out.type}) to ${id}.`,
+    `${out.entity} now has ${countWord(out.total, "field")}.`);
+}
+
+async function cmdRelationshipAdd(ctx) {
+  const { addRelationship } = await architecture();
+  const out = await addRelationship(ctx.root, {
+    from: String(requireFlag(ctx.flags, "from", "Say which entity it is from: --from <ENT-id>.")),
+    to: String(requireFlag(ctx.flags, "to", "Say which entity it is to: --to <ENT-id>.")),
+    name: requireFlag(ctx.flags, "name", "Say what the relationship is called."),
+    cardinality: ctx.flags.cardinality ?? null,
+    onDelete: ctx.flags.onDelete ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it", `Would relate ${out.from} to ${out.to} as ${out.name}.`,
+    `${out.from} relates to ${out.to}: ${out.relationship.name}.`);
+}
+
+async function cmdServiceRecord(ctx) {
+  const { recordService } = await architecture();
+  const out = await recordService(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A service needs a name."),
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    purpose: ctx.flags.purpose ?? null,
+    style: ctx.flags.style ?? null,
+    basePath: ctx.flags.basePath ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it", `Would record the service ${out.name}.`,
+    `${out.service.id} ${out.service.name} is recorded. Operations can be grouped under it.`);
+}
+
+async function cmdTransitionAdd(ctx) {
+  const id = requireWord(ctx.words, 2, 'Say which state machine: superdev transition add <SM-id> --from "<state>" --to "<state>" --event "<what happens>".');
+  const { addTransition } = await architecture();
+  const out = await addTransition(ctx.root, id, {
+    from: requireFlag(ctx.flags, "from", "Say which state it leaves."),
+    to: requireFlag(ctx.flags, "to", "Say which state it reaches."),
+    event: requireFlag(ctx.flags, "event", "Say what causes it."),
+    guard: ctx.flags.guard ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it", `Would record ${out.from} to ${out.to} on ${out.event}.`,
+    `${out.entity}: ${out.from} to ${out.to} on ${out.transition.event}.`);
+}
+
+async function cmdSurfaceState(ctx) {
+  const id = requireWord(ctx.words, 2, 'Say which surface: superdev surface state <SRF-id> --state empty --copy "<the words>".');
+  const { addSurfaceState } = await architecture();
+  const out = await addSurfaceState(ctx.root, id, {
+    stateType: String(requireFlag(ctx.flags, "state", "Say which state: empty, loading, error, partial, stale, offline, unauthorized, success.")),
+    behavior: ctx.flags.behaviour ?? ctx.flags.behavior ?? null,
+    copy: ctx.flags.copy ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it", `Would describe the ${out.stateType} state of ${id}.`,
+    `${out.surface} now describes its ${out.state.state_type} state.`);
+}
+
+async function cmdWorkflowActor(ctx) {
+  const id = requireWord(ctx.words, 2, 'Say which workflow: superdev workflow actor <WF-id> --who "<who acts>".');
+  const { addWorkflowActor } = await architecture();
+  const out = await addWorkflowActor(ctx.root, id, {
+    actorName: requireFlag(ctx.flags, "who", "Say who or what acts."),
+    actorType: ctx.flags.kind ? String(ctx.flags.kind) : "person",
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it", `Would record ${out.actorName} as acting in ${id}.`,
+    `${out.workflow}: ${out.workflowActor.actor} acts.`);
+}
+
+async function cmdWorkflowBranch(ctx) {
+  const id = requireWord(ctx.words, 2, 'Say which workflow: superdev workflow branch <WF-id> --from-step 1 --condition "<what decides>".');
+  const { addWorkflowBranch } = await architecture();
+  const out = await addWorkflowBranch(ctx.root, id, {
+    fromStep: requireFlag(ctx.flags, "fromStep", "Say which step it branches from, by its number."),
+    condition: requireFlag(ctx.flags, "condition", "Say what decides the branch."),
+    toStep: ctx.flags.toStep ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it", `Would branch ${id} after step ${out.fromStep}: ${out.condition}`,
+    `${out.workflow} branches after ${out.from}.`);
+}
+
+async function cmdJobRecord(ctx) {
+  const { recordJob } = await architecture();
+  const out = await recordJob(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A job needs a name."),
+    featureId: ctx.flags.feature ? String(ctx.flags.feature) : null,
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    trigger: requireFlag(ctx.flags, "trigger", "Say what starts it."),
+    retry: ctx.flags.retry ?? null,
+    observability: ctx.flags.observability ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it", `Would record the job ${out.name}, started by ${out.trigger}.`,
+    `${out.job.id} ${out.job.name} is recorded on ${out.module}.`);
+}
+
+async function cmdWebhookRecord(ctx) {
+  const { recordWebhook } = await architecture();
+  const out = await recordWebhook(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A webhook needs a name."),
+    direction: String(requireFlag(ctx.flags, "direction", "Say whether it is inbound or outbound.")),
+    featureId: ctx.flags.feature ? String(ctx.flags.feature) : null,
+    moduleId: ctx.flags.module ? String(ctx.flags.module) : null,
+    endpoint: ctx.flags.endpoint ?? null,
+    verification: ctx.flags.verification ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it", `Would record the ${out.direction} webhook ${out.name}.`,
+    `${out.webhook.id} ${out.webhook.name} is recorded on ${out.module}.`);
+}
+
+async function cmdRuntimeRecord(ctx) {
+  const { recordRuntimePiece } = await architecture();
+  const out = await recordRuntimePiece(ctx.root, {
+    name: requireFlag(ctx.flags, "name", "A runtime piece needs a name."),
+    runsWhere: ctx.flags.runsWhere ?? null,
+    evidence: ctx.flags.evidence ?? null,
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  return landed(out, "record it", `Would record the runtime piece ${out.name}.`,
+    `${out.piece.id} ${out.piece.name} is recorded. It appears on the architecture map.`);
+}
+
 async function cmdSurfaceRecord(ctx) {
   const { recordSurface } = await architecture();
   const out = await recordSurface(ctx.root, {
@@ -2973,7 +3119,7 @@ async function cmdSurfaceRecord(ctx) {
   });
   return landed(out, "record it",
     `Would record the ${out.surfaceType} ${out.name}${out.actions?.length ? ` with ${countWord(out.actions.length, "action")}` : ""}.`,
-    `${out.surface.id} ${out.surface.name} is recorded on ${out.module}${out.feature ? `, for ${out.feature}` : ""}. It counts toward what standard depth asks for.`);
+    `${out.surface.id} ${out.surface.name} is recorded on ${out.module}${out.feature ? `, for ${out.feature}` : ""}, with ${countWord(out.actionsRecorded, "action")}. It counts toward what standard depth asks for.`);
 }
 
 async function cmdEntityRecord(ctx) {
@@ -3528,6 +3674,16 @@ const COMMANDS = {
   "states record": cmdStatesRecord,
   "term record": cmdTermRecord,
   "surface record": cmdSurfaceRecord,
+  "surface state": cmdSurfaceState,
+  "field add": cmdFieldAdd,
+  "relationship add": cmdRelationshipAdd,
+  "service record": cmdServiceRecord,
+  "transition add": cmdTransitionAdd,
+  "workflow actor": cmdWorkflowActor,
+  "workflow branch": cmdWorkflowBranch,
+  "job record": cmdJobRecord,
+  "webhook record": cmdWebhookRecord,
+  "runtime record": cmdRuntimeRecord,
   "entity record": cmdEntityRecord,
   "operation record": cmdOperationRecord,
   "workflow record": cmdWorkflowRecord,
@@ -3551,6 +3707,7 @@ const COMMANDS = {
 
 const GROUPS = new Set(["db", "task", "docs", "memory", "question", "decision", "category", "feature", "evidence",
   "surface", "entity", "operation", "requirement", "migration", "states", "term",
+  "field", "relationship", "service", "transition", "job", "webhook", "runtime",
   "module", "goal", "milestone", "workflow", "architecture", "schema", "api", "integration", "change", "assumption", "cloud"]);
 
 function resolveCommand(words) {

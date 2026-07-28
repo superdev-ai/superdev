@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3537 hash=5de458f3842e5934621bd25246bbee63e871cd8197b4ee6c5d0d1d282772f586 -->
+<!-- superdev:generated source=PRJ-0001 revision=3562 hash=e4dd43933e1e741962f09dae875e4f88c3d0c27ff26e092a81d3a8e41004417c -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,27 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3562 | 2026-07-28 | Change recorded: Every record type the interface reads can now be written, and the check that says so derives its own subject | superdev |
+| 3561 | 2026-07-28 | Linked memory MEM-0108 to feature FEAT-0100 | superdev |
+| 3560 | 2026-07-28 | Linked memory MEM-0108 to task TASK-0040 | superdev |
+| 3559 | 2026-07-28 | Remembered outcome: TASK-0040 complete: Author the detail records the interface reads | superdev |
+| 3558 | 2026-07-28 | TASK-0040 completed, assignment released. | superdev |
+| 3557 | 2026-07-28 | Task TASK-0040 moved to complete | superdev |
+| 3556 | 2026-07-28 | Passing evidence recorded for TASK-0040: The ten remaining record types the interface reads now have authors, and three defects were found by exercising them | superdev |
+| 3555 | 2026-07-28 | Task TASK-0040 moved to in progress | superdev |
+| 3554 | 2026-07-28 | TASK-0040 claimed. | superdev |
+| 3553 | 2026-07-28 | TASK-0040 now implements acceptance_criterion AC-0117. | superdev |
+| 3552 | 2026-07-28 | Created task TASK-0040 | superdev |
+| 3549 | 2026-07-28 | Linked memory MEM-0107 to feature FEAT-0100 | superdev |
+| 3548 | 2026-07-28 | Linked memory MEM-0107 to task TASK-0039 | superdev |
+| 3547 | 2026-07-28 | Remembered outcome: TASK-0039 complete: Write surface actions where the interface reads them | superdev |
+| 3546 | 2026-07-28 | TASK-0039 completed, assignment released. | superdev |
+| 3545 | 2026-07-28 | Task TASK-0039 moved to complete | superdev |
+| 3544 | 2026-07-28 | Passing evidence recorded for TASK-0039: Surface actions are written to ui_actions, which is where every interface counter reads them | superdev |
+| 3542 | 2026-07-28 | Task TASK-0039 moved to in progress | superdev |
+| 3541 | 2026-07-28 | TASK-0039 claimed. | superdev |
+| 3540 | 2026-07-28 | TASK-0039 now implements acceptance_criterion AC-0116. | superdev |
+| 3539 | 2026-07-28 | Created task TASK-0039 | superdev |
 | 3537 | 2026-07-28 | Change recorded: Eleven record types the product asked for and could not write now have authors, and readiness counts them | superdev |
 | 3536 | 2026-07-28 | Linked memory MEM-0106 to feature FEAT-0100 | superdev |
 | 3535 | 2026-07-28 | Linked memory MEM-0106 to task TASK-0038 | superdev |
@@ -186,24 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3341 | 2026-07-28 | Change recorded: Work is untracked only when it is newly changed, not when git keeps reporting an old edit | superdev |
 | 3340 | 2026-07-28 | Linked memory MEM-0097 to feature FEAT-0088 | superdev |
 | 3339 | 2026-07-28 | Linked memory MEM-0097 to task TASK-0029 | superdev |
-| 3338 | 2026-07-28 | Remembered outcome: TASK-0029 complete: Only call work untracked when it is newly changed, not when | superdev |
-| 3337 | 2026-07-28 | TASK-0029 completed, assignment released. | superdev |
-| 3336 | 2026-07-28 | Task TASK-0029 moved to complete | superdev |
-| 3335 | 2026-07-28 | Passing evidence recorded for TASK-0029: Work already accounted for is no longer reported as untracked when git re-reports it | superdev |
-| 3333 | 2026-07-28 | Task TASK-0029 moved to in progress | superdev |
-| 3332 | 2026-07-28 | TASK-0029 claimed. | superdev |
-| 3331 | 2026-07-28 | TASK-0029 now implements acceptance_criterion AC-0088. | superdev |
-| 3330 | 2026-07-28 | Created task TASK-0029 | superdev |
-| 3326 | 2026-07-28 | Change recorded: A busy port says whose it is, and stops claiming the reader is blocked when they are not | superdev |
-| 3325 | 2026-07-28 | Linked memory MEM-0096 to feature FEAT-0016 | superdev |
-| 3324 | 2026-07-28 | Linked memory MEM-0096 to task TASK-0028 | superdev |
-| 3323 | 2026-07-28 | Remembered outcome: TASK-0028 complete: Make the port refusal actionable: say which project holds it | superdev |
-| 3322 | 2026-07-28 | TASK-0028 completed, assignment released. | superdev |
-| 3321 | 2026-07-28 | Task TASK-0028 moved to complete | superdev |
-| 3320 | 2026-07-28 | Passing evidence recorded for TASK-0028: The port flag exists on both start and ui, and refuses what is not a port | superdev |
-| 3319 | 2026-07-28 | Passing evidence recorded for TASK-0028: A held port now names its holder, start takes a port, and the two messages that were wrong are right | superdev |
-| 3317 | 2026-07-28 | Task TASK-0028 moved to in progress | superdev |
-| 3316 | 2026-07-28 | TASK-0028 claimed. | superdev |
-| 3315 | 2026-07-28 | TASK-0028 now implements acceptance_criterion AC-0016. | superdev |
-| 3314 | 2026-07-28 | Created task TASK-0028 | superdev |
-| 3312 | 2026-07-28 | Change recorded: A claim points the session at its task, so the record stops accusing tracked work of being untracked | superdev |

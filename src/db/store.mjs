@@ -147,6 +147,18 @@ async function explain(table, row, write, db = null) {
         );
       }
     }
+    // A NOT NULL violation arrives as `table.column (19)`, which says the column
+    // and nothing else: not that the value was null, and not what the column is for.
+    const notNull = /NOT NULL constraint failed:?\s*([a-z_]+)\.([a-z_]+)/i.exec(message)
+      ?? /^\s*([a-z_]+)\.([a-z_]+)\s*\(19\)/.exec(message);
+    if (notNull) {
+      const column = notNull[2];
+      throw new DbError(
+        "E_FIELD_REQUIRED",
+        `${table}.${column} cannot be empty, and no value was given for it. It has no default, so the record cannot be written without it.`,
+        { table, column },
+      );
+    }
     if (/FOREIGN KEY constraint failed/i.test(message)) {
       const pointers = Object.entries(row)
         .filter(([key, value]) => key.endsWith("_id") && value !== null && value !== undefined)
@@ -161,6 +173,21 @@ async function explain(table, row, write, db = null) {
     }
     throw err;
   }
+}
+
+/**
+ * Columns the schema refuses null in but supplies a default for.
+ *
+ * Those are exactly the ones where a caller's null means "not given". A NOT NULL
+ * column with no default is a genuine requirement and keeps failing, with the
+ * explanation below rather than a bare column name.
+ */
+async function defaultedNotNull(db, table) {
+  const found = new Set();
+  for (const column of await db.all("SELECT name, [notnull], dflt_value FROM pragma_table_info(?)", table)) {
+    if (column.notnull && column.dflt_value !== null) found.add(column.name);
+  }
+  return found;
 }
 
 /**
@@ -203,6 +230,19 @@ export async function create(db, kind, values, opts = {}) {
       `${table} has no column named ${unknown.join(", ")}. Check the spelling against the migration that defines the table.`,
       { table, unknown },
     );
+  }
+  // A null for a column the schema will not accept null in, where it has a default,
+  // means "I did not specify this" rather than "store nothing". Dropping the key
+  // lets the default apply, which is what the caller meant.
+  //
+  // Sending it through instead produced `data_fields.sensitivity_class (19)`: a
+  // NOT NULL violation, reported as a column name and a number, with no hint that
+  // the value was null or that the column had a default all along. Every optional
+  // field on every author in this product passes null when it was not given, so
+  // this was one opaque failure per defaulted column.
+  const defaults = await defaultedNotNull(db, table);
+  for (const [key, value] of Object.entries(row)) {
+    if (value === null && defaults.has(key)) delete row[key];
   }
   assertRecordStorable(row);
 
