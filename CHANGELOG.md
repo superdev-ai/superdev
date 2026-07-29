@@ -9,6 +9,14 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+## [0.10.1](https://github.com/superdev-ai/superdev/compare/v0.10.0...v0.10.1) (2026-07-29)
+
+
+### Bug Fixes
+
+* a note reports without blocking a release ([08829a4](https://github.com/superdev-ai/superdev/commit/08829a47d343caaa05b08a4e1e4b2aa2eae8ba14))
+* seed a module's completeness checklist, and say when a component is empty ([9d6da30](https://github.com/superdev-ai/superdev/commit/9d6da30e57e730438d454860f71d11b845d35156))
+
 # [0.10.0](https://github.com/superdev-ai/superdev/compare/v0.9.0...v0.10.0) (2026-07-29)
 
 
