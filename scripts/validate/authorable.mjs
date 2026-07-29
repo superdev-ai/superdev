@@ -103,7 +103,6 @@ const SYSTEM_WRITTEN = {
   feature_acceptance_criterion: "written by feature specify as part of the specification",
   change_target: "written by change record as part of the change",
   decision_link: "written by decision record as part of the decision",
-  module_completeness: "seeded by init per module from the fixed step list",
   capability_area: "seeded by init, then settled with superdev capability specify",
   task_category: "seeded by init, then managed with superdev category",
   test_plan_case: "written with its test plan",

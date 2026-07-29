@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0009 revision=3752 hash=321d0205bbc23cd587811e1459068c791c0cefd70c5949e19efc9451e5fa3eb8 -->
+<!-- superdev:generated source=MOD-0009 revision=3969 hash=c4f2f8cfb2205c75bfd1c7d395156bc0161c896f3af72af75fdbbc631d81c5df -->
 # Module: Local Control Center
 
 - **Status:** Planned
@@ -87,23 +87,23 @@ No events recorded.
 
 | # | Step | State | Outcome |
 |---|---|---|---|
-| 1 | Pages and surfaces | Open | Not recorded |
+| 1 | Pages and surfaces | Filled | Ten live surfaces from Overview through Settings, Sync and Readiness; four are retired. Release condition 26 refuses a recorded surface that does not match the shipped route table. |
 | 2 | UI composition | Open | Not recorded |
 | 3 | Actions | Open | Not recorded |
-| 4 | API surface | Open | Not recorded |
-| 5 | Data | Open | Not recorded |
-| 6 | End-to-end wiring | Open | Not recorded |
+| 4 | API surface | Filled | Eight operations, plus the read model behind the control centre: one GET per view, one POST to /api/mutations with allowlisted actions, and a server-sent event stream at /api/events. |
+| 5 | Data | Filled | Two entities, surfaces and their actions, which is the record of the interface itself. |
+| 6 | End-to-end wiring | Filled | Proven by journey: a task created in the interface is written through /api/mutations and appears in every other open view over the event stream without a reload. |
 | 7 | State machines | Open | Not recorded |
-| 8 | Events | Open | Not recorded |
-| 9 | Edge cases | Open | Not recorded |
+| 8 | Events | Filled | Every mutation appends an activity event and is pushed to open clients over server-sent events, which is what keeps two views of the same record from disagreeing. |
+| 9 | Edge cases | Filled | Fifty-one across the fourteen features, including a port already in use, a database that moved underneath an open client, and a mutation the allowlist refuses. |
 | 10 | UI states | Open | Not recorded |
-| 11 | Telemetry | Open | Not recorded |
-| 12 | Accessibility | Open | Not recorded |
-| 13 | Internationalization | Open | Not recorded |
-| 14 | Feature flags | Open | Not recorded |
+| 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
+| 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
+| 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
+| 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
 | 15 | Responsive behavior | Open | Not recorded |
-| 16 | User-facing copy | Open | Not recorded |
-| 17 | URL state and deep links | Open | Not recorded |
-| 18 | Performance | Open | Not recorded |
-| 19 | Discoverability and SEO | Open | Not recorded |
-| 20 | Compliance and product tests | Open | Not recorded |
+| 16 | User-facing copy | Filled | Governed by the design direction: every number declares what it counts, with no naked figure and no naked percentage, and status is carried by glyph and label before colour. |
+| 17 | URL state and deep links | Filled | Every view is a hash route, so each is deep linkable and survives a reload, and release condition 26 holds the recorded surfaces to the shipped route table. |
+| 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
+| 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
+| 20 | Compliance and product tests | Filled | 124 assertions including the state token mapping, eight validators, twenty-six release conditions, and a build check that the interface ships as one self-contained file. |

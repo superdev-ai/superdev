@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0005 revision=2942 hash=b8dc01b373b4e6cc6f968ec5b06a0bcec4363cf6ff411c102014e87843b6abac -->
+<!-- superdev:generated source=MOD-0005 revision=3969 hash=fdb89af2633ec08c98b93b3d8b84cca482b585e96cd7eed96f36ef9c1e23e84e -->
 # Module: Decisions, Changes, and Questions
 
 - **Status:** Planned
@@ -80,23 +80,23 @@ No events recorded.
 
 | # | Step | State | Outcome |
 |---|---|---|---|
-| 1 | Pages and surfaces | Open | Not recorded |
+| 1 | Pages and surfaces | Filled | Two live surfaces: Decisions, and the Blueprint canvas where the architecture is laid out. |
 | 2 | UI composition | Open | Not recorded |
-| 3 | Actions | Open | Not recorded |
-| 4 | API surface | Open | Not recorded |
-| 5 | Data | Open | Not recorded |
-| 6 | End-to-end wiring | Open | Not recorded |
+| 3 | Actions | Filled | Thirteen recorded actions on Blueprint covering laying out and opening records; Decisions is a read surface where every write is a command. |
+| 4 | API surface | Filled | Six operations: listing and answering questions, recording, superseding and listing decisions, and the sync dry run. |
+| 5 | Data | Filled | Four entities: questions, assumptions, decisions and applied migrations. |
+| 6 | End-to-end wiring | Filled | Proven by journey: a decision recorded by command appears on the Blueprint and in the decisions in force that every session is handed. |
 | 7 | State machines | Open | Not recorded |
-| 8 | Events | Open | Not recorded |
-| 9 | Edge cases | Open | Not recorded |
+| 8 | Events | Filled | Decisions leave a transition row as well as an activity event, so superseding preserves the original and its reason rather than rewriting it. |
+| 9 | Edge cases | Filled | Nineteen across the six features, including a decision superseded by one that contradicts it and an assumption that outlived what it assumed. |
 | 10 | UI states | Open | Not recorded |
-| 11 | Telemetry | Open | Not recorded |
-| 12 | Accessibility | Open | Not recorded |
-| 13 | Internationalization | Open | Not recorded |
-| 14 | Feature flags | Open | Not recorded |
+| 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
+| 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
+| 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
+| 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
 | 15 | Responsive behavior | Open | Not recorded |
-| 16 | User-facing copy | Open | Not recorded |
+| 16 | User-facing copy | Filled | A superseded decision reads with its replacement named, which is what makes a correction different from a rewrite of the past. |
 | 17 | URL state and deep links | Open | Not recorded |
-| 18 | Performance | Open | Not recorded |
-| 19 | Discoverability and SEO | Open | Not recorded |
-| 20 | Compliance and product tests | Open | Not recorded |
+| 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
+| 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
+| 20 | Compliance and product tests | Filled | FEAT-0079 guards against silent decision overrides, and the decisions in force are re-read at the start of every session. |

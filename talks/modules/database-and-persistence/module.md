@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0006 revision=3706 hash=02acdc626cfbd030bff5d6eb3d434d4897f2b9c6acf79ebc7695366258454622 -->
+<!-- superdev:generated source=MOD-0006 revision=3969 hash=84d29d225403bdbce5f0abd6d561d38d40206bfcbe4df52a3208d537d193cfdf -->
 # Module: Database and Persistence
 
 - **Status:** Planned
@@ -69,23 +69,23 @@ No events recorded.
 
 | # | Step | State | Outcome |
 |---|---|---|---|
-| 1 | Pages and surfaces | Open | Not recorded |
+| 1 | Pages and surfaces | Filled | One live surface, Data at #/data. The Schema surface is retired. |
 | 2 | UI composition | Open | Not recorded |
-| 3 | Actions | Open | Not recorded |
-| 4 | API surface | Open | Not recorded |
-| 5 | Data | Open | Not recorded |
-| 6 | End-to-end wiring | Open | Not recorded |
+| 3 | Actions | Filled | One recorded action on the Data surface; every write to the store is a command. |
+| 4 | API surface | Filled | Seven operations: db status, db migrate, db backup, db restore, export, import and schema show. |
+| 5 | Data | Filled | The module owns the store itself, and its recorded entity is the catalogue of what is stored. |
+| 6 | End-to-end wiring | Filled | Proven by journey: a migration applies forward-only against a checksum, db status reports fifteen of fifteen, and the Data view reads the resulting schema. |
 | 7 | State machines | Open | Not recorded |
-| 8 | Events | Open | Not recorded |
-| 9 | Edge cases | Open | Not recorded |
+| 8 | Events | Filled | Each applied migration is recorded with its checksum, and every write appends an activity event. |
+| 9 | Edge cases | Filled | Twenty-six across the seven features, including a checksum that no longer matches, a restore from a backup of an older schema, and an append-only history refusing an edit. |
 | 10 | UI states | Open | Not recorded |
-| 11 | Telemetry | Open | Not recorded |
-| 12 | Accessibility | Open | Not recorded |
-| 13 | Internationalization | Open | Not recorded |
-| 14 | Feature flags | Open | Not recorded |
+| 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
+| 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
+| 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
+| 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
 | 15 | Responsive behavior | Open | Not recorded |
-| 16 | User-facing copy | Open | Not recorded |
+| 16 | User-facing copy | Filled | The store translates a constraint failure into a sentence: a foreign key, check or not-null violation is reported as what was wrong with the value, not as the constraint that caught it. |
 | 17 | URL state and deep links | Open | Not recorded |
-| 18 | Performance | Open | Not recorded |
-| 19 | Discoverability and SEO | Open | Not recorded |
-| 20 | Compliance and product tests | Open | Not recorded |
+| 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
+| 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
+| 20 | Compliance and product tests | Filled | Migrations are forward-only and checksummed, and the schema validator plus db status are re-run before every release. |

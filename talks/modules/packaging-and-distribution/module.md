@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0011 revision=3537 hash=09d36cd159e52cc9eb355da24375de29742af5706a593e2fdc6368900fd02b91 -->
+<!-- superdev:generated source=MOD-0011 revision=3969 hash=cfb9fa8b25b2bbd7a1acead1bdb37c513c4106ef26425e46cdeca6bed6c6a960 -->
 # Module: Packaging and Distribution
 
 - **Status:** Planned
@@ -51,23 +51,23 @@ No events recorded.
 
 | # | Step | State | Outcome |
 |---|---|---|---|
-| 1 | Pages and surfaces | Open | Not recorded |
-| 2 | UI composition | Open | Not recorded |
-| 3 | Actions | Open | Not recorded |
-| 4 | API surface | Open | Not recorded |
-| 5 | Data | Open | Not recorded |
-| 6 | End-to-end wiring | Open | Not recorded |
-| 7 | State machines | Open | Not recorded |
-| 8 | Events | Open | Not recorded |
+| 1 | Pages and surfaces | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
+| 2 | UI composition | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
+| 3 | Actions | Filled | The actions are installing, updating and removing: npm install for the command line tool, the git marketplace entry for the plugin, and the standalone skills bundle. |
+| 4 | API surface | Filled | The package manifest's bin entry exposes superdev, and the plugin manifest declares the marketplace entry. Both are shipped contracts rather than callable operations. |
+| 5 | Data | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
+| 6 | End-to-end wiring | Filled | Proven by journey: published to npm from the release workflow, installed from the registry, and the plugin loaded from the git marketplace. |
+| 7 | State machines | Not Applicable | N/A - A version is published or it is not; there is no state in between to model. |
+| 8 | Events | Filled | Each release writes a conventional changelog entry, and publishing happens in the release workflow on release creation rather than by hand. |
 | 9 | Edge cases | Open | Not recorded |
-| 10 | UI states | Open | Not recorded |
-| 11 | Telemetry | Open | Not recorded |
-| 12 | Accessibility | Open | Not recorded |
-| 13 | Internationalization | Open | Not recorded |
-| 14 | Feature flags | Open | Not recorded |
-| 15 | Responsive behavior | Open | Not recorded |
-| 16 | User-facing copy | Open | Not recorded |
-| 17 | URL state and deep links | Open | Not recorded |
+| 10 | UI states | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
+| 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
+| 12 | Accessibility | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
+| 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
+| 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
+| 15 | Responsive behavior | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
+| 16 | User-facing copy | Filled | The README and the package description are the copy somebody reads before installing anything. |
+| 17 | URL state and deep links | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
 | 18 | Performance | Open | Not recorded |
-| 19 | Discoverability and SEO | Open | Not recorded |
-| 20 | Compliance and product tests | Open | Not recorded |
+| 19 | Discoverability and SEO | Filled | The npm package page is the discovery surface: its name, description and keywords are how somebody finds this, which is why it is the one place discoverability applies. |
+| 20 | Compliance and product tests | Filled | The packaging validator compares every shipped import against the files list in the manifest, and prepublishOnly runs the whole gate before anything leaves the machine. |

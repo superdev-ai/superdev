@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0007 revision=3706 hash=dfa3459df747d26a31d4ef9832da252b3760f8ba8754fd6bfed4391a2720c6b1 -->
+<!-- superdev:generated source=MOD-0007 revision=3969 hash=e71056db6a1219ac195dd5d80903c95e65404768329a1f7450be48a64f8f5f4d -->
 # Module: Memory System
 
 - **Status:** Planned
@@ -74,23 +74,23 @@ No events recorded.
 
 | # | Step | State | Outcome |
 |---|---|---|---|
-| 1 | Pages and surfaces | Open | Not recorded |
+| 1 | Pages and surfaces | Filled | One live surface, Activity and Memory at #/activity. The standalone Memory surface is retired. |
 | 2 | UI composition | Open | Not recorded |
-| 3 | Actions | Open | Not recorded |
-| 4 | API surface | Open | Not recorded |
-| 5 | Data | Open | Not recorded |
-| 6 | End-to-end wiring | Open | Not recorded |
+| 3 | Actions | Filled | Two recorded actions on Activity and Memory; searching, verifying, consolidating and superseding are commands. |
+| 4 | API surface | Filled | Eight operations: resume and resume --end, memory search, show, verify, consolidate, supersede and status. |
+| 5 | Data | Filled | Four entities: memory entries, the links between them, their search terms and their optional embeddings. |
+| 6 | End-to-end wiring | Filled | Proven by journey: a memory written in one session is retrieved by search in the next, and a handoff survives context compaction. |
 | 7 | State machines | Open | Not recorded |
-| 8 | Events | Open | Not recorded |
-| 9 | Edge cases | Open | Not recorded |
+| 8 | Events | Filled | Consolidation and verification append activity events, and superseding leaves the original readable with its replacement named. |
+| 9 | Edge cases | Filled | Twenty-eight across the seven features, including unverified agent output offered as fact, a memory that contradicts an accepted decision, and embeddings being unavailable. |
 | 10 | UI states | Open | Not recorded |
-| 11 | Telemetry | Open | Not recorded |
-| 12 | Accessibility | Open | Not recorded |
-| 13 | Internationalization | Open | Not recorded |
-| 14 | Feature flags | Open | Not recorded |
+| 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
+| 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
+| 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
+| 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
 | 15 | Responsive behavior | Open | Not recorded |
-| 16 | User-facing copy | Open | Not recorded |
+| 16 | User-facing copy | Filled | A memory reads with how it was verified, so an unverified claim is never presented as a settled one. |
 | 17 | URL state and deep links | Open | Not recorded |
-| 18 | Performance | Open | Not recorded |
-| 19 | Discoverability and SEO | Open | Not recorded |
-| 20 | Compliance and product tests | Open | Not recorded |
+| 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
+| 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
+| 20 | Compliance and product tests | Filled | Retrieval is targeted rather than whole-database, which NFR-0003 requires, and the handoff path is exercised before every release. |

@@ -2853,6 +2853,72 @@ async function cmdFeatureCreate(ctx) {
   };
 }
 
+async function cmdModuleStep(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which module: superdev module step <MOD-id> <number> --summary \"<what is specified>\".");
+  const step = requireWord(ctx.words, 3, "Say which step, by its number. Read them with superdev module show " + id + ".");
+  const { settleModuleStep } = await import("./product/authoring.mjs");
+  const out = await settleModuleStep(ctx.root, id, step, {
+    summary: requireFlag(ctx.flags, "summary", "Say what is specified for this step."),
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would fill step ${out.step} of ${id}, ${out.stepName}: ${out.summary}`));
+  }
+  return {
+    data: out,
+    text: R.wrap(`${id} step ${out.step}, ${out.stepName}, is specified: "${out.summary}". Readiness now counts it as done.`),
+  };
+}
+
+async function cmdModuleNotApplicable(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which module: superdev module not-applicable <MOD-id> <number> --reason \"<why>\".");
+  const step = requireWord(ctx.words, 3, "Say which step, by its number. Read them with superdev module show " + id + ".");
+  const { settleModuleStep } = await import("./product/authoring.mjs");
+  const out = await settleModuleStep(ctx.root, id, step, {
+    notApplicable: true,
+    reason: requireFlag(ctx.flags, "reason", "Say why this step does not apply to this module."),
+    actor: ctx.actor, apply: ctx.apply,
+  });
+  if (!out.applied) {
+    return planned(out, "record it", R.wrap(`Would record step ${out.step} of ${id}, ${out.stepName}, as not applicable: ${out.reason}`));
+  }
+  return {
+    data: out,
+    text: R.wrap(`${id} step ${out.step}, ${out.stepName}, does not apply: "${out.reason}". It leaves the readiness total rather than counting against it, and the reason is required so this stays different from a step nobody looked at.`),
+  };
+}
+
+async function cmdModuleSteps(ctx) {
+  const id = requireWord(ctx.words, 2, "Say which module: superdev module steps <MOD-id>.");
+  const { moduleSteps } = await import("./product/authoring.mjs");
+  const rows = await moduleSteps(ctx.root, id, { openOnly: Boolean(ctx.flags.open) });
+  if (!rows.length) {
+    return {
+      data: { steps: [] },
+      text: R.wrap(ctx.flags.open
+        ? `Every step of ${id} is settled.`
+        : `${id} carries no completeness checklist. Seed it with superdev module rename ${id} --purpose "<what it owns>".`),
+    };
+  }
+  const settled = rows.filter((r) => r.state !== "open").length;
+  return {
+    data: { steps: rows },
+    text: R.stitch([
+      R.table(["Step", "Name", "State", "Says"],
+        rows.map((r) => [
+          String(r.step),
+          r.step_name,
+          SETTLED_STEP[r.state] ?? r.state,
+          r.summary ?? r.reason_not_applicable ?? "",
+        ])),
+      R.wrap(`${settled} of ${rows.length} settled. Fill one with superdev module step ${id} <number> --summary "<what is specified>", or set it aside with superdev module not-applicable ${id} <number> --reason "<why>".`),
+    ]),
+  };
+}
+
+/** How a checklist step's state reads to somebody scanning the table. */
+const SETTLED_STEP = { open: "Open", filled: "Specified", not_applicable: "Not applicable" };
+
 async function cmdCapabilitySpecify(ctx) {
   const id = requireWord(ctx.words, 2, "Say which area: superdev capability specify <CAP-id> --choice \"<what was chosen>\".");
   const { settleCapabilityArea } = await import("./product/authoring.mjs");
@@ -3749,6 +3815,9 @@ const COMMANDS = {
   "milestone met": cmdMilestoneMet,
   "milestone update": cmdMilestoneUpdate,
   "module rename": cmdModuleRename,
+  "module steps": cmdModuleSteps,
+  "module step": cmdModuleStep,
+  "module not-applicable": cmdModuleNotApplicable,
   "capability list": cmdCapabilityList,
   "capability specify": cmdCapabilitySpecify,
   "capability not-applicable": cmdCapabilityNotApplicable,

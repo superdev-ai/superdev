@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0001 revision=3706 hash=5d8b06f9ae5ea7985140317c263e9dd46f9a42544d46a5d9ac336b543e5db83c -->
+<!-- superdev:generated source=MOD-0001 revision=3969 hash=5ac1dcfaee742ec1ce61d31dfc2492518f4303226afc2697fe506049b5a57923 -->
 # Module: Discovery and Onboarding
 
 - **Status:** Planned
@@ -55,23 +55,23 @@ No events recorded.
 
 | # | Step | State | Outcome |
 |---|---|---|---|
-| 1 | Pages and surfaces | Open | Not recorded |
+| 1 | Pages and surfaces | Filled | One surface, SRF-0021 Discovery at #/discovery. The rest of the module is reached as commands: superdev init and superdev adopt. |
 | 2 | UI composition | Open | Not recorded |
-| 3 | Actions | Open | Not recorded |
-| 4 | API surface | Open | Not recorded |
+| 3 | Actions | Filled | Two actions on the Discovery surface: convert a concept into a record, and move a node on the map. |
+| 4 | API surface | Filled | superdev adopt (API-0002) and superdev init (API-0001), plus the control centre discovery read and the convert action on /api/mutations. |
 | 5 | Data | Open | Not recorded |
-| 6 | End-to-end wiring | Open | Not recorded |
+| 6 | End-to-end wiring | Filled | Proven by journey: init writes the record from a brief, the Discovery view reads it, and converting a concept writes back and appears without a reload. |
 | 7 | State machines | Open | Not recorded |
-| 8 | Events | Open | Not recorded |
-| 9 | Edge cases | Open | Not recorded |
+| 8 | Events | Filled | Every write appends an activity event through recordActivity; init writes are attributed to the session that ran it. |
+| 9 | Edge cases | Filled | Sixteen recorded across the five features, covering an unreadable brief, a directory already initialised, an absent git identity and a rejected product map. |
 | 10 | UI states | Open | Not recorded |
-| 11 | Telemetry | Open | Not recorded |
-| 12 | Accessibility | Open | Not recorded |
-| 13 | Internationalization | Open | Not recorded |
-| 14 | Feature flags | Open | Not recorded |
+| 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
+| 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
+| 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
+| 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
 | 15 | Responsive behavior | Open | Not recorded |
-| 16 | User-facing copy | Open | Not recorded |
-| 17 | URL state and deep links | Open | Not recorded |
-| 18 | Performance | Open | Not recorded |
-| 19 | Discoverability and SEO | Open | Not recorded |
-| 20 | Compliance and product tests | Open | Not recorded |
+| 16 | User-facing copy | Filled | The command output is the product here: every refusal names what was missing and the command that supplies it. |
+| 17 | URL state and deep links | Filled | The Discovery view is a hash route, so it is deep linkable and survives a reload. |
+| 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
+| 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
+| 20 | Compliance and product tests | Filled | src/init/discovery.test.mjs asserts the screening, and a disposable init journey is re-run before every release. |

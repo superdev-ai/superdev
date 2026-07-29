@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0003 revision=2942 hash=01fd0653ea08fa80ebd515dd3e11aae2cdebc8b3ade83fda5eeb3aa752948a15 -->
+<!-- superdev:generated source=MOD-0003 revision=3969 hash=b81c963cce61c7654e9803ec1565dc6688b2cb53de1ba6d0e3af8b3b9e6946c5 -->
 # Module: Documentation Generation and Sync
 
 - **Status:** Planned
@@ -61,23 +61,23 @@ No events recorded.
 
 | # | Step | State | Outcome |
 |---|---|---|---|
-| 1 | Pages and surfaces | Open | Not recorded |
-| 2 | UI composition | Open | Not recorded |
-| 3 | Actions | Open | Not recorded |
-| 4 | API surface | Open | Not recorded |
-| 5 | Data | Open | Not recorded |
-| 6 | End-to-end wiring | Open | Not recorded |
+| 1 | Pages and surfaces | Filled | The module renders no screen. Its output surfaces are the generated Markdown contracts under docs/, and its only recorded surface is retired. |
+| 2 | UI composition | Not Applicable | N/A - The module writes Markdown files read in an editor or on GitHub and renders no interface of its own. |
+| 3 | Actions | Filled | The actions are commands: generate, diff, and accepting or rejecting the proposal a manual edit creates. |
+| 4 | API surface | Filled | Five operations: doctor, docs generate, docs diff, docs accept and docs reject. |
+| 5 | Data | Filled | One entity, documents, which carries each generated file path, revision and sync status. |
+| 6 | End-to-end wiring | Filled | Proven by journey: generate writes the files, diff detects a hand edit as a proposal, and accepting folds it back into the record. |
 | 7 | State machines | Open | Not recorded |
-| 8 | Events | Open | Not recorded |
-| 9 | Edge cases | Open | Not recorded |
-| 10 | UI states | Open | Not recorded |
-| 11 | Telemetry | Open | Not recorded |
-| 12 | Accessibility | Open | Not recorded |
-| 13 | Internationalization | Open | Not recorded |
-| 14 | Feature flags | Open | Not recorded |
-| 15 | Responsive behavior | Open | Not recorded |
-| 16 | User-facing copy | Open | Not recorded |
-| 17 | URL state and deep links | Open | Not recorded |
-| 18 | Performance | Open | Not recorded |
-| 19 | Discoverability and SEO | Open | Not recorded |
-| 20 | Compliance and product tests | Open | Not recorded |
+| 8 | Events | Filled | Generation and every accept or reject append an activity event, so a document history is readable. |
+| 9 | Edge cases | Filled | Twenty-one across the six features, including a hand-edited document, a document whose record was retired, and a generation that would overwrite unaccepted edits. |
+| 10 | UI states | Not Applicable | N/A - The module writes Markdown files read in an editor or on GitHub and renders no interface of its own. |
+| 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
+| 12 | Accessibility | Not Applicable | N/A - The module writes Markdown files read in an editor or on GitHub and renders no interface of its own. |
+| 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
+| 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
+| 15 | Responsive behavior | Not Applicable | N/A - The module writes Markdown files read in an editor or on GitHub and renders no interface of its own. |
+| 16 | User-facing copy | Filled | The generated documents are the copy, and the alignment check refuses a document that no longer matches its record. |
+| 17 | URL state and deep links | Not Applicable | N/A - The module writes Markdown files read in an editor or on GitHub and renders no interface of its own. |
+| 18 | Performance | Filled | Covered by NFR-0002 for read speed, and generation rewrites the full document set in one pass rather than incrementally. |
+| 19 | Discoverability and SEO | Not Applicable | N/A - The generated documents are internal contracts, not published pages, and the interface is served on localhost. |
+| 20 | Compliance and product tests | Filled | The docs alignment validator plus the readiness check that 318 documents are in sync, both re-run before a release. |

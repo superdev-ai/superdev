@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0004 revision=3706 hash=d3f8ef1813953754e077dc4695476ef83374c5db6c2cecfb4263fad714f50a0e -->
+<!-- superdev:generated source=MOD-0004 revision=3969 hash=60a21c3388c30a1eb60776ac042abf6920be903ee3569242092bcb8611be5ce4 -->
 # Module: Task and Implementation Lifecycle
 
 - **Status:** Planned
@@ -107,23 +107,23 @@ No events recorded.
 
 | # | Step | State | Outcome |
 |---|---|---|---|
-| 1 | Pages and surfaces | Open | Not recorded |
+| 1 | Pages and surfaces | Filled | Three live surfaces: Tasks, Evidence and Test Plans. The Activity surface is retired. |
 | 2 | UI composition | Open | Not recorded |
-| 3 | Actions | Open | Not recorded |
-| 4 | API surface | Open | Not recorded |
-| 5 | Data | Open | Not recorded |
-| 6 | End-to-end wiring | Open | Not recorded |
+| 3 | Actions | Filled | Seventeen recorded actions, fifteen on Tasks covering claim, start, block, unblock, release, evidence, complete, cancel, reopen and merge, and two on Test Plans. |
+| 4 | API surface | Filled | Fifteen operations covering the whole task lifecycle, plus derive and verify. |
+| 5 | Data | Filled | Nine entities: tasks, their dependencies, contract links and assignments, plus developers, agents, branches, integrations and verification evidence. |
+| 6 | End-to-end wiring | Filled | Proven by journey: a task derived from an accepted feature is claimed, started, evidenced and completed, and each move appears in the control centre without a reload. |
 | 7 | State machines | Open | Not recorded |
-| 8 | Events | Open | Not recorded |
-| 9 | Edge cases | Open | Not recorded |
+| 8 | Events | Filled | Every lifecycle move appends an activity event and a status history row, which is why a status can only move through its own command. |
+| 9 | Edge cases | Filled | Seventy-eight across the twenty-two features, including a task that implements nothing, a blocked dependency, a superseded piece of evidence and a duplicate merged into another. |
 | 10 | UI states | Open | Not recorded |
-| 11 | Telemetry | Open | Not recorded |
-| 12 | Accessibility | Open | Not recorded |
-| 13 | Internationalization | Open | Not recorded |
-| 14 | Feature flags | Open | Not recorded |
+| 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
+| 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
+| 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
+| 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
 | 15 | Responsive behavior | Open | Not recorded |
-| 16 | User-facing copy | Open | Not recorded |
+| 16 | User-facing copy | Filled | Every refusal names the missing part and the command that supplies it, including the refusal to start a task that implements nothing. |
 | 17 | URL state and deep links | Open | Not recorded |
-| 18 | Performance | Open | Not recorded |
-| 19 | Discoverability and SEO | Open | Not recorded |
-| 20 | Compliance and product tests | Open | Not recorded |
+| 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
+| 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
+| 20 | Compliance and product tests | Filled | Eight recorded test plans, plus the assertion suite and the release conditions re-run before every release. |

@@ -24,12 +24,14 @@
 import { create, mutate, patch, query, recordActivity, setStatus, json } from "../db/store.mjs";
 import { slugify, uniqueSlug } from "../model/ids.mjs";
 import { sanitizeExternal } from "../model/screening.mjs";
+import { MODULE_STEPS } from "../model/vocabulary.mjs";
 
 export const E = {
   NOT_FOUND: "E_NOT_FOUND",
   EXISTS: "E_ALREADY_EXISTS",
   REQUIRED: "E_FIELD_REQUIRED",
   NOT_EDITABLE: "E_NOT_EDITABLE",
+  INVALID: "E_INVALID",
 };
 
 export class AuthoringError extends Error {
@@ -556,6 +558,103 @@ export async function renameModule(root, moduleId, { name = null, purpose = null
 
     return { applied: true, moduleId, was: module.name, changes, seeded };
   });
+}
+
+/**
+ * Settle one step of a module's twenty step checklist.
+ *
+ * The seed that writes those rows says a step "is closed by filling it or by
+ * marking it not applicable with a reason", and neither was a command. So init
+ * wrote two hundred and twenty rows as open, readiness counted them, and the
+ * component could only ever read zero of the total: not because the work was
+ * undone, but because the product had no way to say it was done.
+ *
+ * It hid for the same reason the last eleven gaps hid. Readiness excludes a
+ * module with no checklist rather than reporting one, so the number looked like a
+ * project early in its life rather than a counter wired to nothing. And
+ * authorable.mjs, the validator written to catch exactly this, carried
+ * module_completeness in SYSTEM_WRITTEN with the reason "seeded by init per
+ * module from the fixed step list", which is true and is not a reason: seeding a
+ * row open is not writing it. That entry is what the file's own comment calls a
+ * gap dressed as a decision.
+ *
+ * Both halves demand a sentence. A step cannot be filled by declaring it filled,
+ * and cannot be dismissed without saying why, which is what keeps not applicable
+ * from becoming a way to make a step disappear.
+ */
+export async function settleModuleStep(root, moduleId, step, { summary = null, reason = null, notApplicable = false, actor = "superdev", apply = false } = {}) {
+  const number = Number(step);
+  if (!Number.isInteger(number) || number < 1 || number > MODULE_STEPS.length) {
+    throw new AuthoringError(E.INVALID,
+      `A step is numbered 1 to ${MODULE_STEPS.length}. Read them with superdev module show ${moduleId}.`);
+  }
+  if (notApplicable && !clean(reason)) {
+    throw new AuthoringError(E.REQUIRED,
+      "Say why this step does not apply to this module. A step dismissed without a reason is indistinguishable from one nobody looked at.");
+  }
+  if (!notApplicable && !clean(summary)) {
+    throw new AuthoringError(E.REQUIRED,
+      "Say what is specified. A step cannot be filled by declaring it filled.");
+  }
+
+  const found = await query(root, (db) => db.get(
+    "SELECT * FROM module_completeness WHERE module_id = ? AND step = ?", moduleId, number));
+  if (!found) {
+    const module = await query(root, (db) => db.get("SELECT id FROM modules WHERE id = ?", moduleId));
+    throw new AuthoringError(E.NOT_FOUND, module
+      // Rename is where the repair lives, because it is the only command that
+      // edits a module. Naming it here means the reader is never told about a
+      // gap without being told what closes it.
+      ? `${moduleId} carries no completeness checklist, so step ${number} does not exist to settle. Seed it with superdev module rename ${moduleId} --purpose "<what it owns>".`
+      : `There is no module ${moduleId}. List them with superdev module list.`);
+  }
+
+  const plan = {
+    moduleId,
+    step: number,
+    stepName: found.step_name,
+    was: found.state,
+    state: notApplicable ? "not_applicable" : "filled",
+    summary: clean(summary, 1000),
+    reason: clean(reason, 1000),
+  };
+  if (!apply) return { applied: false, ...plan };
+
+  return mutate(root, async (db) => {
+    const row = await db.get(
+      "SELECT * FROM module_completeness WHERE module_id = ? AND step = ?", moduleId, number);
+    const module = await db.get("SELECT project_id, name FROM modules WHERE id = ?", moduleId);
+    // A direct update, because a checklist step carries no version column. That is
+    // the shape of every detail row here, and the same way a goal success criterion
+    // is marked met, so the activity is recorded by hand rather than by patch.
+    await db.run(
+      `UPDATE module_completeness
+        SET state = ?, summary = ?, reason_not_applicable = ?, updated_at = ?
+        WHERE id = ?`,
+      plan.state,
+      plan.state === "not_applicable" ? null : plan.summary,
+      plan.state === "not_applicable" ? plan.reason : null,
+      nowIso(),
+      row.id);
+    await recordActivity(db, module.project_id, {
+      type: "specification_changed",
+      actor,
+      summary: clean(plan.state === "not_applicable"
+        ? `${module.name}: ${found.step_name} recorded as not applicable`
+        : `${module.name}: ${found.step_name} specified`, 200),
+      metadata: { module: moduleId, step: number, state: plan.state },
+    });
+    return { applied: true, ...plan };
+  });
+}
+
+/** What a module still owes, and what has settled each step so far. */
+export async function moduleSteps(root, moduleId, { openOnly = false } = {}) {
+  return query(root, (db) => db.all(
+    `SELECT * FROM module_completeness
+      WHERE module_id = ? AND (? = 0 OR state = 'open')
+      ORDER BY step`,
+    moduleId, openOnly ? 1 : 0));
 }
 
 // ------------------------------------------------------------------- scope

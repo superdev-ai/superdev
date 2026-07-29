@@ -141,6 +141,22 @@ product tests.
 "Not yet considered" is not an answer. Either it is specified, or it is marked
 not applicable with a reason, or it is an open question with an owner.
 
+Each module carries those twenty as rows that start open, and readiness scores
+them:
+
+```
+SD module steps <MOD-id> --open
+SD module step <MOD-id> <number> --summary "<what is specified>"
+SD module not-applicable <MOD-id> <number> --reason "<why it does not apply here>"
+```
+
+Both refuse an empty sentence. A step cannot be filled by declaring it filled,
+and one marked not applicable leaves the readiness total rather than counting
+against it, which is why the reason is required: it is what separates a step
+somebody decided about from a step nobody read. Settle these as the module is
+specified, not in a sweep at the end. A step filled months after the decision
+records the memory of a judgement rather than the judgement.
+
 The readiness checklist holds the same idea for the project as a whole.
 `SD capability list --open` shows what is unsettled, `SD capability specify
 <CAP-id> --choice` records what was chosen, and `SD capability not-applicable

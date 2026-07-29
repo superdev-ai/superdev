@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0008 revision=3706 hash=5f84e03427ec0d5f1d1c9b0fecb63b51f359123eb019617afba37a7cde318f17 -->
+<!-- superdev:generated source=MOD-0008 revision=3969 hash=a39c5fe4dcda5b503d499818a35eff4cffa6e6fc01a64c28dc14044b806ce3d1 -->
 # Module: Hooks and Session Continuity
 
 - **Status:** Planned
@@ -65,23 +65,23 @@ No events recorded.
 
 | # | Step | State | Outcome |
 |---|---|---|---|
-| 1 | Pages and surfaces | Open | Not recorded |
+| 1 | Pages and surfaces | Filled | One live surface, Team and Agents at #/team. The module is otherwise invoked by the harness rather than opened. |
 | 2 | UI composition | Open | Not recorded |
-| 3 | Actions | Open | Not recorded |
-| 4 | API surface | Open | Not recorded |
-| 5 | Data | Open | Not recorded |
-| 6 | End-to-end wiring | Open | Not recorded |
+| 3 | Actions | Filled | One recorded action on Team and Agents; every other trigger is a harness lifecycle event. |
+| 4 | API surface | Filled | The contract is the harness hook set: session start, prompt submit, post tool use, pre compact and session end, with a command-based fallback for harnesses that support no hooks at all. |
+| 5 | Data | Filled | Three entities: work sessions, decision transitions and activity events. |
+| 6 | End-to-end wiring | Filled | Proven by journey: a session start restores the active task, decisions in force and blockers, and a session end records the outcome. |
 | 7 | State machines | Open | Not recorded |
-| 8 | Events | Open | Not recorded |
-| 9 | Edge cases | Open | Not recorded |
+| 8 | Events | Filled | This module is where events are produced: every tool run records what it touched, attributed to the session that ran it and bounded by age rather than by count. |
+| 9 | Edge cases | Filled | Twenty-seven across the seven features, including a harness with no hooks, work that maps to no task, and context lost before a handoff was written. |
 | 10 | UI states | Open | Not recorded |
-| 11 | Telemetry | Open | Not recorded |
-| 12 | Accessibility | Open | Not recorded |
-| 13 | Internationalization | Open | Not recorded |
-| 14 | Feature flags | Open | Not recorded |
+| 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
+| 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
+| 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
+| 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
 | 15 | Responsive behavior | Open | Not recorded |
-| 16 | User-facing copy | Open | Not recorded |
+| 16 | User-facing copy | Filled | The session start block names the active task, the decisions in force and the next action, and says plainly when no task is claimed. |
 | 17 | URL state and deep links | Open | Not recorded |
-| 18 | Performance | Open | Not recorded |
-| 19 | Discoverability and SEO | Open | Not recorded |
-| 20 | Compliance and product tests | Open | Not recorded |
+| 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
+| 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
+| 20 | Compliance and product tests | Filled | src/runtime/hooks.test.mjs asserts the attribution rules, and the no-hooks fallback is exercised before every release. |

@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3706 hash=6b022cb2f13098470d67d935806a8322227c85050ba010d2bfce1aa74a07d416 -->
+<!-- superdev:generated source=MOD-0002 revision=3981 hash=cfd2c285b8d5f815f95cb4dea3a09e4d3d62895fbc403d5433093076d32ad500 -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -36,13 +36,16 @@
 | Author the rest of the product map | A feature can be accepted at standard depth | Record a surface, an entity, a workflow and an observability requirement against a feature at standard depth, then accept it | Met |
 | Author the rest of the product map | Each record refuses what would make it meaningless, naming the remedy | Record a workflow with no steps, an integration with no absence behaviour, and a migration with no rollback | Met |
 | Author the rest of the product map | A value the schema does not accept is refused by name, with the accepted values | Record a data entity with an invalid sensitivity class | Met |
+| Settle a module completeness step | A step moves from open to filled with a summary, and readiness counts it as done. | Checked by hand against the running product. | Met |
+| Settle a module completeness step | A step marked not applicable requires a reason and leaves the readiness total rather than counting against it. | Checked by hand against the running product. | Met |
+| Settle a module completeness step | Both refuse an empty sentence, so a step cannot be closed by declaring it closed. | Checked by hand against the running product. | Met |
 
 ## Coverage map
 
 | Area | Level | Cases | Status |
 |---|---|---|---|
-| Happy paths per feature | command, validator, manual_check | 20 | exists |
-| Applicable edge-case categories | command, validator, manual_check | 55 | exists |
+| Happy paths per feature | command, validator, manual_check | 21 | exists |
+| Applicable edge-case categories | command, validator, manual_check | 58 | exists |
 | Permission boundaries | command, validator, manual_check | 0 | missing |
 | State machines including illegal transitions | command, validator, manual_check | 0 | missing |
 
@@ -94,3 +97,7 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | Module completeness is seeded by the command that creates a module, the exclusion message tells the two cases apart, and an undetectable gap is recorded rather than warned about badly | manual_check | pass | - | Current |
 | A low-severity note reports without failing the check, and high or medium still fail | manual_check | pass | - | Current |
 | The recorded surfaces match the interface that ships, and a release condition now says so | manual_check | pass | - | Current |
+| On a disposable project, filling step 1 moved it from Open to Specified and the readiness component moved from 0 of 20 to 1 of 19. | manual_check | pass | - | Current |
+| Marking Internationalization not applicable dropped the readiness total from 20 to 19 rather than counting the step against it. | manual_check | pass | - | Current |
+| Filling with no summary, marking not applicable with no reason, and filling with whitespace all refused with a sentence naming what was missing; a step number of 21 refused with the range. | manual_check | pass | - | Current |
+| All eleven modules settled against their own records: 113 steps specified, 64 marked not applicable with a reason, 43 left honestly open. Readiness moved from 0 of 220 to 113 of 156. | manual_check | pass | - | Current |
