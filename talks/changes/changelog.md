@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3626 hash=7b3a5f5628c1f9e3d32cc536929c2738fed0dd0ec0798e0193fcdcc5f2571b9e -->
+<!-- superdev:generated source=PRJ-0001 revision=3639 hash=5e9d620622a612ef27cd0e6e785ef3734407af40996b013b2e6c3b2054c979da -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,17 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3639 | 2026-07-29 | Change recorded: Security review is routed to the reviewer that exists, every provider is named by a skill, and a recorded goal hands the session to the harness | superdev |
+| 3638 | 2026-07-29 | Linked memory MEM-0114 to feature FEAT-0100 | superdev |
+| 3637 | 2026-07-29 | Linked memory MEM-0114 to task TASK-0046 | superdev |
+| 3636 | 2026-07-29 | Remembered outcome: TASK-0046 complete: Route to the security reviewer and the harness goal at the m | superdev |
+| 3635 | 2026-07-29 | TASK-0046 completed, assignment released. | superdev |
+| 3634 | 2026-07-29 | Task TASK-0046 moved to complete | superdev |
+| 3633 | 2026-07-29 | Passing evidence recorded for TASK-0046: Security review is routed to the installed reviewer, all eight providers are named by a skill, and recording a goal hands the session to the harness | superdev |
+| 3631 | 2026-07-29 | Task TASK-0046 moved to in progress | superdev |
+| 3630 | 2026-07-29 | TASK-0046 claimed. | superdev |
+| 3629 | 2026-07-29 | TASK-0046 now implements acceptance_criterion AC-0117. | superdev |
+| 3628 | 2026-07-29 | Created task TASK-0046 | superdev |
 | 3626 | 2026-07-29 | Linked memory MEM-0113 to feature FEAT-0100 | superdev |
 | 3625 | 2026-07-29 | Linked memory MEM-0113 to task TASK-0045 | superdev |
 | 3624 | 2026-07-29 | Remembered outcome: TASK-0045 complete: An assumption whose review trigger fired is not silent, and | superdev |
@@ -196,14 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3414 | 2026-07-28 | Primary flow recorded for FEAT-0097 | superdev |
 | 3413 | 2026-07-28 | Primary flow recorded for FEAT-0097 | superdev |
 | 3412 | 2026-07-28 | Primary flow recorded for FEAT-0097 | superdev |
-| 3411 | 2026-07-28 | Feature drafted in Task and Implementation Lifecycle: Supersede a piece of evidence that no longer applies | superdev |
-| 3408 | 2026-07-28 | Linked memory MEM-0101 to feature FEAT-0096 | superdev |
-| 3407 | 2026-07-28 | Linked memory MEM-0101 to task TASK-0033 | superdev |
-| 3406 | 2026-07-28 | Remembered outcome: TASK-0033 complete: Prove Merge a duplicate task into the one that keeps the wor | superdev |
-| 3405 | 2026-07-28 | Merge a duplicate task into the one that keeps the work is complete: its contract is satisfied | superdev |
-| 3404 | 2026-07-28 | TASK-0033 completed, assignment released. | superdev |
-| 3403 | 2026-07-28 | Task TASK-0033 moved to complete | superdev |
-| 3402 | 2026-07-28 | Acceptance criterion AC-0106 is met, evidenced by EV-0150. | superdev |
-| 3401 | 2026-07-28 | Passing evidence recorded for TASK-0033: Every merge that would lose something is refused by name | superdev |
-| 3400 | 2026-07-28 | Acceptance criterion AC-0105 is met, evidenced by EV-0149. | superdev |
-| 3399 | 2026-07-28 | Passing evidence recorded for TASK-0033: The duplicate is superseded, keeps its history, and names the task that replaced it | superdev |

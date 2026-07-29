@@ -38,7 +38,13 @@ every call.
 Review the diff plus enough surrounding code to judge it:
 
 - correctness defects, including the paths the change did not touch but affects;
-- security: trust boundaries, injection, authorization, secret handling;
+- security: route it. **Security Guidance** is the provider for this, installed as
+  `security-guidance@claude-plugins-official`, and it works through its own hooks
+  rather than a skill you call: a pattern warning on edits, a diff review when a
+  turn ends, and an agentic commit reviewer. Check it with `SD doctor` and read
+  what it reports. When it is not ready, say plainly that no security reviewer ran
+  and cover trust boundaries, injection, authorization and secret handling here as
+  Superdev's own reading, never as a security review;
 - error handling and data-loss paths;
 - product tests: missing, weakened, or asserting the implementation rather than
   the behavior;

@@ -39,7 +39,7 @@ export const FAILURE_CLASSES = [
 ];
 
 /**
- * The seven mandatory provider integrations. Each entry carries the complete
+ * The eight mandatory provider integrations. Each entry carries the complete
  * 15-element adapter contract. `identity` is the verified canonical identity.
  */
 export const PROVIDERS = [
@@ -183,6 +183,28 @@ export const PROVIDERS = [
     noSubstitution: "Superdev must not label its own session summary as Task Observer output or imitate its skill-extraction taxonomy.",
     privacy: { sends: "session outcome signals", never: ["secrets", "PII", "model-private reasoning"], screened: true },
     testsRef: "tests/integration/provider-contracts.test.mjs",
+  },
+  {
+    id: "security-guidance",
+    title: "Security Guidance",
+    // Delivered as a plugin but invoked through hooks, not a skill namespace. It
+    // registers a pattern warning on edits, a diff review on stop, and an agentic
+    // commit reviewer. There is no SKILL.md to call, which is why the invocation
+    // contract below is `hook` and not `skill`: routing to it means letting its
+    // hooks run and reading what they say, never calling something.
+    identity: { delivery: DELIVERY.CLAUDE_PLUGIN, plugin: "security-guidance", marketplace: "claude-plugins-official", ref: "security-guidance@claude-plugins-official" },
+    ownership: "Externally owned by the claude-plugins-official marketplace, authored at Anthropic. Superdev routes security review to it and records what it found; it never reproduces its vulnerability classes, its patterns, or its judgement.",
+    intents: ["security-review", "vulnerability-scan", "commit-review"],
+    detection: { kind: "claude-plugin-record", key: "security-guidance@claude-plugins-official" },
+    readiness: { kind: "plugin-hooks", expect: "hooks/hooks.json", note: "the plugin works through hooks rather than a skill, so readiness is the hook manifest being present" },
+    install: { marketplaceSource: { source: "github", repo: "anthropics/claude-plugins-official" }, command: "claude plugin install security-guidance@claude-plugins-official", verified: true },
+    consent: { required: true, class: "install-plugin", prompt: "Install the Security Guidance plugin from the claude-plugins-official marketplace?" },
+    invocation: { kind: "hook", pattern: "its own PostToolUse and Stop hooks", examples: ["a warning on an edit", "a diff review when a turn ends", "the commit reviewer"], superdevNeverInlines: true },
+    contextPacket: ["changedPaths", "riskTier", "relevantDecisionIds"],
+    output: { form: "findings against the diff", evidence: ["providerInvoked", "findingCount", "severities"], mustBeTraceable: true },
+    failures: ["not-installed", "disabled", "invocation-error", "timeout", "policy-blocked"],
+    unavailable: "Say plainly that no security reviewer ran, and run the review skill's own security dimension instead while naming it as Superdev's own reading rather than a security review.",
+    noSubstitution: "Superdev must never present its own security reading as this provider's output, and must never claim a change was security reviewed when only its own review dimension ran.",
   },
   {
     id: "envx",

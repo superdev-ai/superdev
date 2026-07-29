@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0100 revision=3626 hash=14a46f65fa98b9fc6dccced16c6c7cc0c7565d0bf173210669a71a5881c4d293 -->
+<!-- superdev:generated source=FEAT-0100 revision=3639 hash=56c3a11356de414d7b8391cf69e9cb0828b4936278ccfb5dcc34eff8d9435b6d -->
 # Feature: Author the rest of the product map
 
 - **Status:** Complete
@@ -52,6 +52,7 @@
 | A concept can be converted from the command line, and unconverted ones are reported | manual_check | pass | - |
 | Every write command is routed by a skill, and every trigger names the command that resolves it | manual_check | pass | - |
 | An assumption still holding is reported, and the decision remedy names decision commands again | manual_check | pass | - |
+| Security review is routed to the installed reviewer, all eight providers are named by a skill, and recording a goal hands the session to the harness | manual_check | pass | - |
 
 ## Delivery state
 

@@ -12,6 +12,17 @@ gets labeled as one.
 `SD` means the installed `superdev` command, with `--root <project>` on
 every call.
 
+## Recall from earlier sessions
+
+Superdev's own memory is the authority: `SD memory search "<what you are looking
+for>"` reads what earlier sessions recorded, with the provenance of each entry.
+
+**claude-mem** is a recall cache on top of that, not a second authority. When it is
+ready, use it to find prior work faster; when `SD doctor` says it is not, say that
+cross-session recall was unavailable and proceed from the project record and the
+session summaries alone. Never treat what it returns as the record: if the two
+disagree, the database is right.
+
 ## Steps
 
 1. **Load the handoff.** `SD resume --json`. It carries the current objective,

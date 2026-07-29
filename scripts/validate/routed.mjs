@@ -80,5 +80,23 @@ export async function run(root) {
       `nothing in skills/ tells a reader to run "${command}", so an agent following the instructions will never call it. Name it at the lifecycle moment it belongs to, or add it to UNROUTED_ON_PURPOSE with the reason it needs no route.`));
   }
 
+  // The same question for providers. Superdev's whole position on external
+  // capabilities is that it routes to them and never reimplements them, and a
+  // provider no skill names is one it will reimplement by default: the review
+  // skill covered security itself for months while a dedicated security reviewer
+  // sat installed and ready.
+  const registry = readText(join(root, "scripts/providers/registry.mjs"));
+  if (registry) {
+    const declared = [...registry.matchAll(/^\s{4}id: "([a-z-]+)",/gm)].map((m) => m[1]);
+    const titles = new Map([...registry.matchAll(/id: "([a-z-]+)",\s*\n\s*title: "([^"]+)"/g)].map((m) => [m[1], m[2]]));
+    for (const id of declared) {
+      const title = titles.get(id) ?? id;
+      // Named by identifier or by the title a skill would naturally write.
+      if (instructions.includes(id) || instructions.includes(title)) continue;
+      findings.push(finding("RT-002", ERROR, "skills/",
+        `nothing in skills/ names the ${title} provider, so no skill routes work to it and Superdev will do that work itself instead. Name it at the moment it applies, with what is lost when it is absent.`));
+    }
+  }
+
   return { name, findings };
 }

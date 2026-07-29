@@ -2719,11 +2719,24 @@ async function cmdGoalRecord(ctx) {
   if (!out.applied) {
     return planned(out, "record it", R.wrap(`Would record the goal "${out.name}".`));
   }
+  // The harness has its own way of holding a session to a goal, and recording one
+  // here does not engage it. In Claude Code that is `/goal`, which installs a stop
+  // condition so the session keeps working toward it instead of stopping at the
+  // first plausible pause. Superdev names it rather than trying to do it: the
+  // record is Superdev's, the session is the harness's, and a goal recorded in one
+  // that the other has never heard of is why a session drifts off it.
+  const { detectHarness } = await import("./runtime/identity.mjs");
+  const harness = detectHarness(process.env).harness;
+  const holdIt = harness === "claude-code"
+    ? `This records the goal. It does not hold this session to it: run /goal ${out.goal.name} so the harness keeps working toward it rather than stopping at the first plausible pause.`
+    : null;
+
   return {
     data: out,
     text: R.stitch([
       R.wrap(`${out.goal.id} recorded: ${out.goal.name}`),
       R.wrap(`It has no success criteria yet, so nothing can say whether it is met and progress counts it as unmeasurable. Add one with superdev goal criterion ${out.goal.id} --criterion "<what is true>" --measurement "<how it is checked>" --apply.`),
+      holdIt ? R.wrap(holdIt) : null,
     ]),
   };
 }

@@ -155,6 +155,21 @@ command:
   unconverted is a decision; `SD doctor` names them so it is a decision somebody
   made rather than one nobody noticed.
 
+## When a capability is missing
+
+`SD doctor` reports every provider's readiness truthfully. A provider that is not
+ready is named, with what is lost while it is absent, and Superdev never
+substitutes its own approximation of what that provider does.
+
+When the work needs a capability no installed provider covers, **find-skills** is
+how to look for one; it owns discovery and the package manager, and Superdev never
+reimplements either. If it is unavailable, say so and proceed with the capabilities
+that exist. Never describe a catalogue of skills you have not read.
+
+**task-observer** watches a working session for friction worth turning into a
+skill. It is ambient rather than something to call at a moment, and its findings
+belong in its own log, not in the project record.
+
 ## Correcting what is already recorded
 
 A one-shot parse of a brief gets things wrong, and so do people. Nothing here is

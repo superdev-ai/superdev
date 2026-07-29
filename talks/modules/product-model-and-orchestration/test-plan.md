@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3626 hash=7e077aded493834d47c7a701576d2a5309bf4f3650f2781c9f2f3fba52d44beb -->
+<!-- superdev:generated source=MOD-0002 revision=3639 hash=f65fbcf9214c9d4e8c66d0a4bcbf8cd98ffb15afac7ab952f4bcbb62d449bfc3 -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -90,3 +90,4 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | A concept can be converted from the command line, and unconverted ones are reported | manual_check | pass | - | Current |
 | Every write command is routed by a skill, and every trigger names the command that resolves it | manual_check | pass | - | Current |
 | An assumption still holding is reported, and the decision remedy names decision commands again | manual_check | pass | - | Current |
+| Security review is routed to the installed reviewer, all eight providers are named by a skill, and recording a goal hands the session to the harness | manual_check | pass | - | Current |

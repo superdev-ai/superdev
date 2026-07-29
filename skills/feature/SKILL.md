@@ -100,6 +100,12 @@ every call.
    | The product test plan | `SD test-plan record-new --name --strategy --how-to-run` |
    | What a word means here | `SD term record --term --meaning` |
 
+   A security or privacy requirement records the obligation. Finding the
+   vulnerabilities is a different job and belongs to **Security Guidance**, which
+   works through its own hooks; check it with `SD doctor` and record what it found
+   rather than reading the code yourself. `full` depth asks for the analysis, and
+   an analysis nobody ran is not one.
+
    Several of these refuse an incomplete record rather than storing a shell: a
    workflow needs its steps, an integration needs what happens when it is
    unavailable, a migration needs its rollback, an inbound webhook needs how the
