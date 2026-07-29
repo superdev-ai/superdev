@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3614 hash=6ebfd5133df0d7abdc089e58e8eb24728fb247bc182d2cf0da155d972a95f02e -->
+<!-- superdev:generated source=PRJ-0001 revision=3626 hash=7b3a5f5628c1f9e3d32cc536929c2738fed0dd0ec0798e0193fcdcc5f2571b9e -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,16 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3626 | 2026-07-29 | Linked memory MEM-0113 to feature FEAT-0100 | superdev |
+| 3625 | 2026-07-29 | Linked memory MEM-0113 to task TASK-0045 | superdev |
+| 3624 | 2026-07-29 | Remembered outcome: TASK-0045 complete: An assumption whose review trigger fired is not silent, and | superdev |
+| 3623 | 2026-07-29 | TASK-0045 completed, assignment released. | superdev |
+| 3622 | 2026-07-29 | Task TASK-0045 moved to complete | superdev |
+| 3621 | 2026-07-29 | Passing evidence recorded for TASK-0045: An assumption still holding is reported, and the decision remedy names decision commands again | superdev |
+| 3619 | 2026-07-29 | Task TASK-0045 moved to in progress | superdev |
+| 3618 | 2026-07-29 | TASK-0045 claimed. | superdev |
+| 3617 | 2026-07-29 | TASK-0045 now implements acceptance_criterion AC-0117. | superdev |
+| 3616 | 2026-07-29 | Created task TASK-0045 | superdev |
 | 3614 | 2026-07-29 | Change recorded: Every write command is routed by a skill, and every trigger names the command that resolves it | superdev |
 | 3613 | 2026-07-29 | Linked memory MEM-0112 to feature FEAT-0100 | superdev |
 | 3612 | 2026-07-29 | Linked memory MEM-0112 to task TASK-0044 | superdev |
@@ -197,13 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3401 | 2026-07-28 | Passing evidence recorded for TASK-0033: Every merge that would lose something is refused by name | superdev |
 | 3400 | 2026-07-28 | Acceptance criterion AC-0105 is met, evidenced by EV-0149. | superdev |
 | 3399 | 2026-07-28 | Passing evidence recorded for TASK-0033: The duplicate is superseded, keeps its history, and names the task that replaced it | superdev |
-| 3398 | 2026-07-28 | Acceptance criterion AC-0104 is met, evidenced by EV-0148. | superdev |
-| 3397 | 2026-07-28 | Passing evidence recorded for TASK-0033: A duplicate's evidence, contract links and child tasks end up on the task that is kept | superdev |
-| 3395 | 2026-07-28 | Task TASK-0033 moved to in progress | superdev |
-| 3394 | 2026-07-28 | TASK-0033 claimed. | superdev |
-| 3392 | 2026-07-28 | Derived tasks for FEAT-0096: 1 new, 0 updated, 0 superseded. | superdev |
-| 3391 | 2026-07-28 | Derived Prove Merge a duplicate task into the one that keeps the work meets its acceptance criteria | superdev |
-| 3390 | 2026-07-28 | FEAT-0096 now serves No unmapped or disconnected implementation work | superdev |
-| 3389 | 2026-07-28 | Accepted Merge a duplicate task into the one that keeps the work at microspec depth | superdev |
-| 3388 | 2026-07-28 | Edge case recorded for FEAT-0096: state_machine_violations | superdev |
-| 3387 | 2026-07-28 | Edge case recorded for FEAT-0096: duplication | superdev |

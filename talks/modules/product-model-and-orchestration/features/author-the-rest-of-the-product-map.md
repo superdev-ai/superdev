@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0100 revision=3614 hash=19a7696dbace9318036aeea4bc317b1ce57749a39b78d3a49d808838a7cf618f -->
+<!-- superdev:generated source=FEAT-0100 revision=3626 hash=14a46f65fa98b9fc6dccced16c6c7cc0c7565d0bf173210669a71a5881c4d293 -->
 # Feature: Author the rest of the product map
 
 - **Status:** Complete
@@ -51,6 +51,7 @@
 | All 21 alignment warnings name the command that clears them | manual_check | pass | - |
 | A concept can be converted from the command line, and unconverted ones are reported | manual_check | pass | - |
 | Every write command is routed by a skill, and every trigger names the command that resolves it | manual_check | pass | - |
+| An assumption still holding is reported, and the decision remedy names decision commands again | manual_check | pass | - |
 
 ## Delivery state
 

@@ -1361,8 +1361,43 @@ export async function alignmentWarnings(db, projectId) {
       warn("medium", "decision_needs_revisit", "decision", decision.id,
         `${decision.id} is flagged for revisit`,
         "A revisit trigger fired and the decision has not been looked at since.",
-        "Confirm it with superdev memory verify <id>, or replace it with superdev memory supersede <id>.");
+        // This named superdev memory verify for a while, because the remedy it
+        // replaced read "Confirm it still holds, or supersede it" and that wording
+        // fits a memory as well as a decision. It is a decision. A remedy naming
+        // the wrong record's command is the defect this whole pass is about, so it
+        // is worth saying that it was introduced during the pass itself.
+        `Re-accept it with superdev decision record naming what changed, or replace it with superdev decision supersede ${decision.id} --title "<the decision that replaces it>".`);
     }
+  }
+
+  // An assumption nobody has revisited.
+  //
+  // Decisions have carried a revisit warning all along and assumptions never did,
+  // which is the wrong way round: an assumption is recorded at the moment somebody
+  // said "I do not know", so it is the more forgettable of the two, and its whole
+  // purpose is to be reviewable when it turns out to be wrong. A recorded guess
+  // that nobody returns to is indistinguishable from a decision nobody made.
+  const holding = await db.all(
+    "SELECT * FROM assumptions WHERE project_id = ? AND status = 'holding'",
+    projectId,
+  );
+  for (const assumption of holding) {
+    // The command refuses an assumption with no trigger, so this guards a row that
+    // arrived another way: synchronization from a peer, or an older schema. Left in
+    // rather than dropped, because the schema permits null and a guard that never
+    // fires costs nothing next to one that was needed and absent.
+    if (!assumption.review_trigger) {
+      warn("medium", "assumption_without_review_trigger", "assumption", assumption.id,
+        `${assumption.id} has no review trigger`,
+        "Nothing says when this guess should be looked at again, so it will hold until somebody happens to notice it.",
+        `Give it one with superdev assumption record, or settle it with superdev assumption resolve ${assumption.id}.`);
+    }
+  }
+  if (holding.length) {
+    warn("low", "assumptions_still_holding", "project", projectId,
+      `${count(holding.length, "assumption")} ${agrees(holding.length, "is", "are")} still holding`,
+      "Each one is a recorded guess the product is being built on. That is legitimate; forgetting them is not.",
+      "Read them with superdev assumption list, and settle any whose review trigger has fired with superdev assumption resolve <ASM-id>.");
   }
 
   const documents = await db.all(
