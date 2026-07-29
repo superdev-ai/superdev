@@ -9,6 +9,13 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+# [0.10.0](https://github.com/superdev-ai/superdev/compare/v0.9.0...v0.10.0) (2026-07-29)
+
+
+### Features
+
+* route security review to the reviewer that exists, and name every provider ([e509f3a](https://github.com/superdev-ai/superdev/commit/e509f3a53aefd28831d2acffaf86912ba23b7f9d))
+
 # [0.9.0](https://github.com/superdev-ai/superdev/compare/v0.8.0...v0.9.0) (2026-07-29)
 
 
