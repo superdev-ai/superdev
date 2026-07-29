@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0001 revision=3298 hash=e47dd791170939f691b7b43167469d4d5113be4b32f57c74e45e3d4f498b71d4 -->
+<!-- superdev:generated source=MOD-0001 revision=3706 hash=5d8b06f9ae5ea7985140317c263e9dd46f9a42544d46a5d9ac336b543e5db83c -->
 # Module: Discovery and Onboarding
 
 - **Status:** Planned
@@ -10,7 +10,9 @@
 
 ## Surfaces
 
-No surfaces recorded.
+| Route | Surface | Purpose | Primary role | Doc |
+|---|---|---|---|---|
+| #/discovery | Discovery | Everything said, assumed, feared or ruled out before the product existed | - | Discovery |
 
 ## API surface
 
@@ -24,7 +26,10 @@ No entities recorded.
 
 ## Wiring (key actions end to end)
 
-No actions recorded, so no end-to-end path can be asserted.
+| Action | Path |
+|---|---|
+| Convert a concept into a record | Discovery -> no handler recorded -> no side effects recorded |
+| Move a node on the map | Discovery -> no handler recorded -> no side effects recorded |
 
 ## State machines
 

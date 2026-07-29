@@ -1,7 +1,7 @@
-<!-- superdev:generated source=SRF-0013 revision=681 hash=70f261706674d80e3e7abe978e6a11fd853e8c9306c4b8633bb926178eee5482 -->
+<!-- superdev:generated source=SRF-0013 revision=3706 hash=07b403e4206af551cf8ae237f0892a4054df47115dc92054d63bccf65d0c1639 -->
 # Surface: Integrations
 
-- **Status:** Specified
+- **Status:** Retired
 - **Module:** Local Control Center
 - **Feature:** none
 - **Last verified:** see the generation marker at the top of this file.

@@ -1,7 +1,7 @@
-<!-- superdev:generated source=SRF-0018 revision=681 hash=0fffd79c086282915882f8a3832d840f3686f403206cfb6fc0766f091d255a3a -->
+<!-- superdev:generated source=SRF-0018 revision=3706 hash=224cb0aca2c1844fcbb6a238b46aaed38f2d94d473eca769af8f90586b7d8ab1 -->
 # Surface: Activity
 
-- **Status:** Specified
+- **Status:** Retired
 - **Module:** Task and Implementation Lifecycle
 - **Feature:** none
 - **Last verified:** see the generation marker at the top of this file.

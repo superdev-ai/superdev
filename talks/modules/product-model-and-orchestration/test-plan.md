@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3676 hash=2db420ae6d9a7ae87dfe01085d88609b8a7b9654ca8ab968d1256853a62265ce -->
+<!-- superdev:generated source=MOD-0002 revision=3706 hash=6b022cb2f13098470d67d935806a8322227c85050ba010d2bfce1aa74a07d416 -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -93,3 +93,4 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | Security review is routed to the installed reviewer, all eight providers are named by a skill, and recording a goal hands the session to the harness | manual_check | pass | - | Current |
 | Module completeness is seeded by the command that creates a module, the exclusion message tells the two cases apart, and an undetectable gap is recorded rather than warned about badly | manual_check | pass | - | Current |
 | A low-severity note reports without failing the check, and high or medium still fail | manual_check | pass | - | Current |
+| The recorded surfaces match the interface that ships, and a release condition now says so | manual_check | pass | - | Current |

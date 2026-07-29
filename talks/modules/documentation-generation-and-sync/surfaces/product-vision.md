@@ -1,7 +1,7 @@
-<!-- superdev:generated source=SRF-0002 revision=681 hash=7b5fa199eabcbe052aa8beaa44093a715d4bd005cf31ab462e49435d69c012ea -->
+<!-- superdev:generated source=SRF-0002 revision=3706 hash=f280ca27cae466628e4c4a734cf48c02369481f705a0f2912f459d6df84619c7 -->
 # Surface: Product Vision
 
-- **Status:** Specified
+- **Status:** Retired
 - **Module:** Documentation Generation and Sync
 - **Feature:** none
 - **Last verified:** see the generation marker at the top of this file.

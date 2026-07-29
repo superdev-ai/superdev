@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0004 revision=3438 hash=5857155c5877360fd700702022741d58bc6365242c659955c90af5afeca40149 -->
+<!-- superdev:generated source=MOD-0004 revision=3706 hash=d3f8ef1813953754e077dc4695476ef83374c5db6c2cecfb4263fad714f50a0e -->
 # Module: Task and Implementation Lifecycle
 
 - **Status:** Planned
@@ -15,6 +15,7 @@
 | - | Activity | Required area of the control center showing activity. Serves as a drill-down destination from Tasks. | - | Activity |
 | - | Evidence | Required area of the control center showing evidence records. Serves as a drill-down destination from Tasks. | - | Evidence |
 | - | Tasks | Required area of the control center for managing tasks. | - | Tasks |
+| #/test-plans | Test Plans | How each feature and the product itself is verified, and whether it has run | - | Test Plans |
 
 ## API surface
 
@@ -69,6 +70,8 @@
 | Filtering by Feature, status, category, owner, branch, and milestone | Tasks -> no handler recorded -> no side effects recorded |
 | Reopening Tasks | Tasks -> no handler recorded -> no side effects recorded |
 | Starting Tasks | Tasks -> no handler recorded -> no side effects recorded |
+| Record a run carried out by hand | Test Plans -> no handler recorded -> no side effects recorded |
+| Run a plan | Test Plans -> no handler recorded -> no side effects recorded |
 
 ## State machines
 

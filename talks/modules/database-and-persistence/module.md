@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0006 revision=2942 hash=ac59ad9f7ff7c125aa6e9236c66dfa84b2f199ba2c891a4170622338023bbf27 -->
+<!-- superdev:generated source=MOD-0006 revision=3706 hash=02acdc626cfbd030bff5d6eb3d434d4897f2b9c6acf79ebc7695366258454622 -->
 # Module: Database and Persistence
 
 - **Status:** Planned
@@ -12,6 +12,7 @@
 
 | Route | Surface | Purpose | Primary role | Doc |
 |---|---|---|---|---|
+| #/data | Data | What the product stores, its fields and its migrations | - | Data |
 | - | Schema | Required area of the control center. Listed as a required area with no further content specified. Also appears as one of the entity types on the Blueprint canvas, there called Schemas. | - | Schema |
 
 ## API surface
@@ -34,7 +35,9 @@
 
 ## Wiring (key actions end to end)
 
-No actions recorded, so no end-to-end path can be asserted.
+| Action | Path |
+|---|---|
+| Open an entity | Data -> no handler recorded -> no side effects recorded |
 
 ## State machines
 

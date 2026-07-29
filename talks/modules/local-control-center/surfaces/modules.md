@@ -1,7 +1,7 @@
-<!-- superdev:generated source=SRF-0005 revision=681 hash=0b3c561059ba4ade897b78af4804c7e18869963e475853ea8a8b2c453a7fc2b9 -->
+<!-- superdev:generated source=SRF-0005 revision=3706 hash=67e1759e76e0c99c1701ef5771eb3a02284b336ef81415a605dd48804d4a0652 -->
 # Surface: Modules
 
-- **Status:** Specified
+- **Status:** Retired
 - **Module:** Local Control Center
 - **Feature:** none
 - **Last verified:** see the generation marker at the top of this file.

@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0009 revision=3298 hash=09d18f734c202605932477676128cd46f104dc0fae8dd532b6b3ad6e9b71a5c1 -->
+<!-- superdev:generated source=MOD-0009 revision=3706 hash=cc386d1d8f7a2b3ef50446b8088060d3716d11f97f793b06b0a97fbbbc3571e4 -->
 # Module: Local Control Center
 
 - **Status:** Planned
@@ -21,7 +21,9 @@
 | - | Milestones | Required area of the control center showing milestones. | - | Milestones |
 | - | Modules | Required area of the control center showing product modules. | - | Modules |
 | - | Overview | Explain what the product is, who it is for, and what outcome it is pursuing. Show the current delivery stage, overall project progress, and current milestone progress. Show what works today, what is being built now, what is blocked, what is pending, and what should happen next. Every progress value shown must state what it counts. | - | Overview |
+| #/readiness | Readiness | The production-readiness checklist, gap by gap | - | Readiness |
 | - | Settings | Required area of the control center. Listed as a required area with no further content specified. | - | Settings |
+| #/sync | Sync | What synchronization holds, and any conflict it could not resolve | - | Sync |
 | - | UI Surfaces | Required area of the control center. Listed as a required area with no further content specified. | - | UI Surfaces |
 | - | Workflows | Required area of the control center showing workflows. | - | Workflows |
 
@@ -47,7 +49,10 @@
 
 ## Wiring (key actions end to end)
 
-No actions recorded, so no end-to-end path can be asserted.
+| Action | Path |
+|---|---|
+| Open a capability area | Readiness -> no handler recorded -> no side effects recorded |
+| Read a conflict | Sync -> no handler recorded -> no side effects recorded |
 
 ## State machines
 

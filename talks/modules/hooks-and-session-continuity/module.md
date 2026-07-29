@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0008 revision=2942 hash=196ffb38d2d05841ac12fbc889b80e2b4ba11135e76a324e7b8ed9a0610b9167 -->
+<!-- superdev:generated source=MOD-0008 revision=3706 hash=5f84e03427ec0d5f1d1c9b0fecb63b51f359123eb019617afba37a7cde318f17 -->
 # Module: Hooks and Session Continuity
 
 - **Status:** Planned
@@ -10,7 +10,9 @@
 
 ## Surfaces
 
-No surfaces recorded.
+| Route | Surface | Purpose | Primary role | Doc |
+|---|---|---|---|---|
+| #/team | Team And Agents | Who and what has worked on this project, and what they hold | - | Team And Agents |
 
 ## API surface
 
@@ -26,7 +28,9 @@ No API operations recorded.
 
 ## Wiring (key actions end to end)
 
-No actions recorded, so no end-to-end path can be asserted.
+| Action | Path |
+|---|---|
+| Read a session | Team And Agents -> no handler recorded -> no side effects recorded |
 
 ## State machines
 

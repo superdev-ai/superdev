@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0100 revision=3676 hash=f9f2b3b5506a49a6c403fafc92d32fc8c445061216db6f2d85c141e99e2a72f7 -->
+<!-- superdev:generated source=FEAT-0100 revision=3706 hash=506f7c3149cb1084fc31c7fa65f29faeb94ca1f80e291d8c4075e2a3bac9bf52 -->
 # Feature: Author the rest of the product map
 
 - **Status:** Complete
@@ -55,6 +55,7 @@
 | Security review is routed to the installed reviewer, all eight providers are named by a skill, and recording a goal hands the session to the harness | manual_check | pass | - |
 | Module completeness is seeded by the command that creates a module, the exclusion message tells the two cases apart, and an undetectable gap is recorded rather than warned about badly | manual_check | pass | - |
 | A low-severity note reports without failing the check, and high or medium still fail | manual_check | pass | - |
+| The recorded surfaces match the interface that ships, and a release condition now says so | manual_check | pass | - |
 
 ## Delivery state
 

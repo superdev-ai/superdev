@@ -1,7 +1,7 @@
-<!-- superdev:generated source=SRF-0003 revision=681 hash=fd78371f89f9a235443267fb2fe83125f59256dcde9373c2f4e5d3f9cb95ea63 -->
+<!-- superdev:generated source=SRF-0003 revision=3706 hash=80478cdd250d986f0eb48843f3fc4296c23dbf2d6a35510b07fb1ad2710a34bb -->
 # Surface: Goals
 
-- **Status:** Specified
+- **Status:** Retired
 - **Module:** Local Control Center
 - **Feature:** none
 - **Last verified:** see the generation marker at the top of this file.

@@ -1,7 +1,7 @@
-<!-- superdev:generated source=SRF-0004 revision=681 hash=8a124bbd13e1475d97a34744d669cf3c6ceb64372e9c114c5bd2889da4eb98e4 -->
+<!-- superdev:generated source=SRF-0004 revision=3706 hash=eba0509aebc2e292d44ca000fbb0cf488492722c0e1110e840ac6e3559522222 -->
 # Surface: Milestones
 
-- **Status:** Specified
+- **Status:** Retired
 - **Module:** Local Control Center
 - **Feature:** none
 - **Last verified:** see the generation marker at the top of this file.

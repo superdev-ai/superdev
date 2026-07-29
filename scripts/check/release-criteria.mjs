@@ -62,6 +62,11 @@ function sourceUnder(relative) {
 }
 
 const facts = await query(ROOT, async (db) => {
+  // Recorded surfaces, so a criterion can compare them against the interface that
+  // actually ships. Nothing did, and six of the twenty named areas the control
+  // centre no longer has: Goals, Milestones, Modules, Schema, Integrations, Memory.
+  // A record that disagrees with the product is the one thing this product exists
+  // to prevent, and on its own project it went unnoticed for months.
   const n = async (sql, ...p) => Number(Object.values(await db.get(sql, ...p))[0]);
   const plans = await db.all(
     `SELECT p.id, p.name, p.status,
@@ -71,6 +76,7 @@ const facts = await query(ROOT, async (db) => {
        FROM test_plans p`);
   return {
     plans: Object.fromEntries(plans.map((p) => [p.id, { ...p, runs: Number(p.runs) }])),
+    surfaceNames: await db.all("SELECT id, name FROM surfaces WHERE status <> 'retired' ORDER BY id"),
     questions: await n("SELECT COUNT(*) FROM questions"),
     capabilityAreas: await n("SELECT COUNT(*) FROM capability_areas"),
     stackSlots: await n("SELECT COUNT(*) FROM capability_areas WHERE catalog = 'stack_slot'"),
@@ -555,6 +561,43 @@ const CRITERIA = [
         reading: unrun.length
           ? `${unrun.join(", ")} have no passing run, so the journey they describe has not been taken.`
           : "All five journeys have been taken and recorded: onboarding from a brief, the task lifecycle through its refusals, a fresh session resume, every area of the control centre, and a backup with its restore. This project is itself the sixth, having planned, built, verified and documented itself through its own commands.",
+      };
+    },
+  },
+  {
+    text: "This project's recorded surfaces match the interface it ships.",
+    check: () => {
+      const route = read("ui/src/lib/route.ts");
+      const start = route.indexOf("export const VIEWS = [");
+      if (start < 0) {
+        return { met: false, reading: "ui/src/lib/route.ts declares no VIEWS, so there is nothing to compare the record against." };
+      }
+      // Compared against the labels, not the slugs. A view's slug is "test-plans"
+      // and "surfaces"; the name a person records is "Test Plans" and "UI
+      // Surfaces". Comparing slugs reported UI Surfaces as both missing and stale,
+      // which would have driven the records towards machine names and away from the
+      // words the interface itself shows.
+      const labelBlock = route.slice(route.indexOf("VIEW_LABELS"), route.indexOf("};", route.indexOf("VIEW_LABELS")));
+      const views = [...labelBlock.matchAll(/:\s*"([^"]+)"/g)].map((m) => m[1]);
+      if (!views.length) {
+        return { met: false, reading: "ui/src/lib/route.ts declares no VIEW_LABELS, so there is nothing to compare the record against." };
+      }
+      const words = (value) => String(value).toLowerCase().replace(/[^a-z]+/g, " ").trim();
+      const recorded = facts.surfaceNames ?? [];
+      const same = (a, b) => words(a) === words(b);
+      const stale = recorded
+        .filter((surface) => !views.some((view) => same(surface.name, view)))
+        .map((surface) => `${surface.id} ${surface.name}`);
+      const unrecorded = views.filter((view) => !recorded.some((surface) => same(surface.name, view)));
+      return {
+        met: stale.length === 0 && unrecorded.length === 0,
+        reading: stale.length || unrecorded.length
+          ? [
+              stale.length ? `${stale.length} recorded surface(s) name an area the interface no longer has: ${stale.join(", ")}.` : "",
+              unrecorded.length ? `${unrecorded.length} view(s) the interface ships have no recorded surface: ${unrecorded.join(", ")}.` : "",
+              "Record them with superdev surface record and retire the ones that are gone. A record that disagrees with the product is the defect this product exists to prevent.",
+            ].filter(Boolean).join(" ")
+          : `All ${views.length} views the control centre ships have a recorded surface, and no recorded surface names an area that is gone.`,
       };
     },
   },

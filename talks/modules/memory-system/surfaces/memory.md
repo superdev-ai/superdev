@@ -1,7 +1,7 @@
-<!-- superdev:generated source=SRF-0017 revision=681 hash=d4ab9c6166d925ee6a65a30bbbb9a67337f8dbe58dcb3f556093de3963ff29b9 -->
+<!-- superdev:generated source=SRF-0017 revision=3706 hash=77e9c6a440bafcfbd19b5e6e23f1425d24e220218824b9527f66e5d1d5273f60 -->
 # Surface: Memory
 
-- **Status:** Specified
+- **Status:** Retired
 - **Module:** Memory System
 - **Feature:** none
 - **Last verified:** see the generation marker at the top of this file.

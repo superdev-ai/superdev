@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0007 revision=2942 hash=f8ece1feb5ba031594b60574ae2ea18461e7c87f4cd482376f22382d5cf4182c -->
+<!-- superdev:generated source=MOD-0007 revision=3706 hash=dfa3459df747d26a31d4ef9832da252b3760f8ba8754fd6bfed4391a2720c6b1 -->
 # Module: Memory System
 
 - **Status:** Planned
@@ -12,6 +12,7 @@
 
 | Route | Surface | Purpose | Primary role | Doc |
 |---|---|---|---|---|
+| #/activity | Activity And Memory | What happened, newest first, and what earlier sessions recorded | - | Activity And Memory |
 | - | Memory | Required area of the control center showing memory records. | - | Memory |
 
 ## API surface
@@ -38,7 +39,10 @@
 
 ## Wiring (key actions end to end)
 
-No actions recorded, so no end-to-end path can be asserted.
+| Action | Path |
+|---|---|
+| Open a memory | Activity And Memory -> no handler recorded -> no side effects recorded |
+| Search the timeline | Activity And Memory -> no handler recorded -> no side effects recorded |
 
 ## State machines
 

@@ -1,7 +1,7 @@
-<!-- superdev:generated source=SRF-0012 revision=681 hash=e3b04e8a46aee28b6ae0ca51a43624f955922d72f465d795434d915b97342038 -->
+<!-- superdev:generated source=SRF-0012 revision=3706 hash=78db0066ebdb5bc495cb0048560236d0ffcda8cb18e0b3fe2d5e09a8568cecea -->
 # Surface: Schema
 
-- **Status:** Specified
+- **Status:** Retired
 - **Module:** Database and Persistence
 - **Feature:** none
 - **Last verified:** see the generation marker at the top of this file.

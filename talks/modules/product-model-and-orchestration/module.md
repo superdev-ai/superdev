@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3537 hash=0a8f477d26b1296c25d6ce00be6139bd828f622017248e9b73b80c702f89d837 -->
+<!-- superdev:generated source=MOD-0002 revision=3706 hash=050c060f2e03b82009d8e06fd814ebed770e342f99be809d75712feb452ba432 -->
 # Module: Product Model and Orchestration
 
 - **Status:** Planned
@@ -10,7 +10,9 @@
 
 ## Surfaces
 
-No surfaces recorded.
+| Route | Surface | Purpose | Primary role | Doc |
+|---|---|---|---|---|
+| #/product | Product | Goals, milestones, modules and features with their counted progress | - | Product |
 
 ## API surface
 
@@ -63,7 +65,9 @@ No surfaces recorded.
 
 ## Wiring (key actions end to end)
 
-No actions recorded, so no end-to-end path can be asserted.
+| Action | Path |
+|---|---|
+| Open a record | Product -> no handler recorded -> no side effects recorded |
 
 ## State machines
 

@@ -406,12 +406,39 @@ export async function retire(root, recordId, { reason, actor = "superdev", apply
   if (!clean(reason)) {
     throw new AuthoringError(E.REQUIRED, "Say why it is being retired. Without a reason nobody can tell later whether it was decided or forgotten.");
   }
-  const kind = recordId?.startsWith("GOAL-") ? "goal" : recordId?.startsWith("MS-") ? "milestone" : null;
-  if (!kind) {
-    throw new AuthoringError(E.NOT_EDITABLE, `${recordId} is not a goal or a milestone. Retiring is for those.`);
+  // Retiring covers every record that describes a part of the product, not only
+  // the two it started with. A surface could be recorded and never corrected, so
+  // this project's own record still named a Goals area, a Milestones area, a
+  // Schema area and a Memory area, none of which the interface has had for months.
+  // A record that can be created and not withdrawn drifts by construction.
+  const KINDS = {
+    "GOAL-": ["goal", "goals"],
+    "MS-": ["milestone", "milestones"],
+    "SRF-": ["surface", "surfaces"],
+    "ENT-": ["data_entity", "data_entities"],
+    "OP-": ["api_operation", "api_operations"],
+    "WF-": ["workflow", "workflows"],
+    "INT-": ["integration", "integrations"],
+    "MOD-": ["module", "modules"],
+  };
+  const prefix = Object.keys(KINDS).find((p) => recordId?.startsWith(p));
+  if (!prefix) {
+    throw new AuthoringError(E.NOT_EDITABLE,
+      `${recordId} is not something that can be retired. Retiring is for a goal, a milestone, a module, a surface, a data entity, an operation, a workflow or an integration.`);
   }
-  const table = kind === "goal" ? "goals" : "milestones";
-  const row = await query(root, (db) => db.get(`SELECT id, project_id, name, status FROM ${table} WHERE id = ?`, recordId));
+  const [kind, table] = KINDS[prefix];
+  // Not every one of these tables carries project_id: a surface hangs off a module
+  // and a workflow off a feature, so the project is reached through the parent.
+  const row = await query(root, async (db) => {
+    const columns = new Set((await db.all("SELECT name FROM pragma_table_info(?)", table)).map((c) => c.name));
+    const found = await db.get(`SELECT * FROM ${table} WHERE id = ?`, recordId);
+    if (!found) return null;
+    if (columns.has("project_id")) return found;
+    const project = columns.has("module_id")
+      ? await db.get("SELECT project_id FROM modules WHERE id = ?", found.module_id)
+      : await db.get("SELECT project_id FROM features WHERE id = ?", found.feature_id);
+    return { ...found, project_id: project?.project_id ?? null };
+  });
   if (!row) throw new AuthoringError(E.NOT_FOUND, `There is no ${kind} ${recordId}.`);
   if (!apply) return { applied: false, recordId, kind, name: row.name, reason: clean(reason) };
 

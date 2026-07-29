@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3676 hash=b767ad46fd67c76397740967d40554d58d4c234120ae06756a7717f68c0ae286 -->
+<!-- superdev:generated source=PRJ-0001 revision=3706 hash=fd8f991c6456a21823f41ff0c4ddbaa1e99513ffc4f11eebc225a75c71f73cdd -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,33 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3706 | 2026-07-29 | Change recorded: The recorded surfaces match the shipped interface, retiring covers the product map, and a release condition holds it there | superdev |
+| 3705 | 2026-07-29 | Linked memory MEM-0117 to feature FEAT-0100 | superdev |
+| 3704 | 2026-07-29 | Linked memory MEM-0117 to task TASK-0049 | superdev |
+| 3703 | 2026-07-29 | Remembered outcome: TASK-0049 complete: This project's recorded surfaces must match the interface it | superdev |
+| 3702 | 2026-07-29 | TASK-0049 completed, assignment released. | superdev |
+| 3701 | 2026-07-29 | Task TASK-0049 moved to complete | superdev |
+| 3700 | 2026-07-29 | Passing evidence recorded for TASK-0049: The recorded surfaces match the interface that ships, and a release condition now says so | superdev |
+| 3698 | 2026-07-29 | Surface recorded: Readiness, 1 action | superdev |
+| 3697 | 2026-07-29 | Surface recorded: Activity And Memory, 2 actions | superdev |
+| 3696 | 2026-07-29 | Surface recorded: Sync, 1 action | superdev |
+| 3695 | 2026-07-29 | Surface recorded: Test Plans, 2 actions | superdev |
+| 3694 | 2026-07-29 | Surface recorded: Team And Agents, 1 action | superdev |
+| 3693 | 2026-07-29 | Surface recorded: Data, 1 action | superdev |
+| 3692 | 2026-07-29 | Surface recorded: Product, 1 action | superdev |
+| 3691 | 2026-07-29 | Surface recorded: Discovery, 2 actions | superdev |
+| 3690 | 2026-07-29 | Activity retired: Merged into Activity And Memory, which shows both in one timeline | superdev |
+| 3689 | 2026-07-29 | Memory retired: Merged into Activity And Memory, which shows both in one timeline | superdev |
+| 3688 | 2026-07-29 | Integrations retired: The interface no longer has an Integrations area; integrations are shown inside Architecture | superdev |
+| 3687 | 2026-07-29 | Schema retired: Renamed to Data when the area grew to cover entities, fields and migrations | superdev |
+| 3686 | 2026-07-29 | Modules retired: The interface no longer has a Modules area; modules are shown inside Product | superdev |
+| 3685 | 2026-07-29 | Milestones retired: The interface no longer has a Milestones area; milestones are shown inside Product | superdev |
+| 3684 | 2026-07-29 | Product Vision retired: Renamed to Product; the interface has one Product area rather than a separate Product Vision | superdev |
+| 3683 | 2026-07-29 | Goals retired: The interface no longer has a Goals area; goals are shown inside Product | superdev |
+| 3681 | 2026-07-29 | Task TASK-0049 moved to in progress | superdev |
+| 3680 | 2026-07-29 | TASK-0049 claimed. | superdev |
+| 3679 | 2026-07-29 | TASK-0049 now implements acceptance_criterion AC-0117. | superdev |
+| 3678 | 2026-07-29 | Created task TASK-0049 | superdev |
 | 3676 | 2026-07-29 | Linked memory MEM-0116 to feature FEAT-0100 | superdev |
 | 3675 | 2026-07-29 | Linked memory MEM-0116 to task TASK-0048 | superdev |
 | 3674 | 2026-07-29 | Remembered outcome: TASK-0048 complete: A note should not block a release | superdev |
@@ -180,30 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3479 | 2026-07-28 | Remembered outcome: TASK-0036 complete: Prove Prove a goal success criterion with evidence meets its | superdev |
 | 3478 | 2026-07-28 | Prove a goal success criterion with evidence is complete: its contract is satisfied | superdev |
 | 3477 | 2026-07-28 | TASK-0036 completed, assignment released. | superdev |
-| 3476 | 2026-07-28 | Task TASK-0036 moved to complete | superdev |
-| 3475 | 2026-07-28 | Acceptance criterion AC-0112 is met, evidenced by EV-0157. | superdev |
-| 3474 | 2026-07-28 | Passing evidence recorded for TASK-0036: An unstorable identifier is refused in the plan, and a driver failure is now a sentence | superdev |
-| 3473 | 2026-07-28 | Acceptance criterion AC-0111 is met, evidenced by EV-0156. | superdev |
-| 3472 | 2026-07-28 | Passing evidence recorded for TASK-0036: A milestone condition can be marked met with the reading that decided it | superdev |
-| 3471 | 2026-07-28 | Acceptance criterion AC-0110 is met, evidenced by EV-0155. | superdev |
-| 3470 | 2026-07-28 | Passing evidence recorded for TASK-0036: Evidence against a goal success criterion is stored and marks it met, and a failure takes it back | superdev |
-| 3468 | 2026-07-28 | Task TASK-0036 moved to in progress | superdev |
-| 3467 | 2026-07-28 | TASK-0036 claimed. | superdev |
-| 3466 | 2026-07-28 | Derived tasks for FEAT-0098: 1 new, 0 updated, 0 superseded. | superdev |
-| 3465 | 2026-07-28 | Derived Prove Prove a goal success criterion with evidence meets its acceptance criteria | superdev |
-| 3464 | 2026-07-28 | FEAT-0098 now serves Complete, structured product model | superdev |
-| 3463 | 2026-07-28 | Accepted Prove a goal success criterion with evidence at microspec depth | superdev |
-| 3462 | 2026-07-28 | Edge case recorded for FEAT-0098: state_machine_violations | superdev |
-| 3461 | 2026-07-28 | Edge case recorded for FEAT-0098: invalid_input | superdev |
-| 3460 | 2026-07-28 | Acceptance criterion recorded for FEAT-0098 | superdev |
-| 3459 | 2026-07-28 | Acceptance criterion recorded for FEAT-0098 | superdev |
-| 3458 | 2026-07-28 | Acceptance criterion recorded for FEAT-0098 | superdev |
-| 3457 | 2026-07-28 | Primary flow recorded for FEAT-0098 | superdev |
-| 3456 | 2026-07-28 | Primary flow recorded for FEAT-0098 | superdev |
-| 3455 | 2026-07-28 | Primary flow recorded for FEAT-0098 | superdev |
-| 3454 | 2026-07-28 | Feature drafted in Product Model and Orchestration: Prove a goal success criterion with evidence | superdev |
-| 3452 | 2026-07-28 | Change recorded: Superdev regenerating its own documents is not the product changing untracked | superdev |
-| 3451 | 2026-07-28 | Linked memory MEM-0103 to feature FEAT-0088 | superdev |
-| 3450 | 2026-07-28 | Linked memory MEM-0103 to task TASK-0035 | superdev |
-| 3449 | 2026-07-28 | Remembered outcome: TASK-0035 complete: Do not count Superdev's own generated documents as untracked | superdev |
-| 3448 | 2026-07-28 | TASK-0035 completed, assignment released. | superdev |
