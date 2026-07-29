@@ -27,70 +27,70 @@ export const E = {
 const CHECKS = {
   purpose: {
     says: "what this feature is for",
-    fix: "Set the feature's purpose.",
+    fix: "Set it with superdev feature specify <id> --purpose.",
     met: (s) => Boolean(s.feature.purpose?.trim()),
   },
   user_statement: {
     says: "who wants it and what they are trying to do",
-    fix: "Set the feature's user statement.",
+    fix: "Set it with superdev feature specify <id> --user.",
     met: (s) => Boolean(s.feature.user_statement?.trim()),
   },
   scope: {
     says: "what is in scope and what is deliberately out",
-    fix: "Record at least one in-scope and one out-of-scope item.",
+    fix: "Record them with superdev feature specify <id> --in and --not.",
     met: (s) => json(s.feature.scope_in_json, []).length > 0 && json(s.feature.scope_out_json, []).length > 0,
   },
   flow: {
     says: "the primary flow, step by step",
-    fix: "Record the numbered primary flow.",
+    fix: "Record it with superdev feature specify <id> --flow, repeated in order.",
     met: (s) => s.flows.length > 0,
   },
   acceptance_criteria: {
     says: "how anyone can tell it works",
-    fix: "Record at least one acceptance criterion with a verification method.",
+    fix: "Record one with superdev feature specify <id> --criterion, giving what must be true and how it is checked.",
     met: (s) => s.criteria.length > 0,
   },
   edge_cases: {
     says: "what happens when things go wrong",
-    fix: "Walk the edge-case categories, marking each one specified or not applicable with a reason.",
+    fix: "Record them with superdev feature specify <id> --edge category:behaviour, one per category that applies.",
     met: (s) => s.edgeCases.length > 0,
   },
   surfaces: {
     says: "the surfaces and actions a person touches",
-    fix: "Record the surfaces this feature owns, or record an edge case in the platform_variance category saying it has no interface.",
+    fix: "Record them with superdev surface record --feature <id> --action, or say it has no interface with superdev feature specify <id> --edge platform_variance:<why>.",
     met: (s) =>
       s.surfaces.length > 0 || s.edgeCases.some((e) => e.category === "platform_variance"),
   },
   api_or_data: {
     says: "the API operations or data entities behind it",
-    fix: "Record an API operation or a data entity.",
+    fix: "Record one with superdev operation record --feature <id>, or superdev entity record --feature <id>.",
     met: (s) => s.apis.length > 0 || s.entities.length > 0,
   },
   workflow: {
     says: "the workflow and its steps",
-    fix: "Record a workflow with its ordered steps.",
+    fix: "Record one with superdev workflow record --feature <id> --step, repeating a step for each thing that happens.",
     met: (s) => s.workflows.length > 0 && s.steps.length > 0,
   },
   observability: {
     says: "the signals that prove it works in the open",
-    fix: "Record an observability requirement, or set the workflow's observability.",
+    fix: "Record one with superdev requirement record --category observability --feature <id>, or set it on the workflow when you record it.",
     met: (s) =>
       s.nfrs.some((n) => /observab|monitor|telemetry|logging|alert/i.test(n.category ?? "")) ||
       s.workflows.some((w) => Boolean(w.observability?.trim())),
   },
   test_plan: {
     says: "how it will be tested",
-    fix: "Give each acceptance criterion a verification method, or record the module test plan.",
+    fix: "Give each criterion its verification with superdev feature specify <id> --criterion \"what || how\", or record a plan with superdev test-plan record-new.",
     met: (s) => s.criteria.length > 0 && s.criteria.every((c) => Boolean(c.verification_method?.trim())),
   },
   decision: {
     says: "the decision that governs the load-bearing choice",
-    fix: "Record a decision scoped to this feature.",
+    fix: "Record one with superdev decision record --governs feature:<id>.",
     met: (s) => s.decisions.length > 0,
   },
   migration_or_rollback: {
     says: "how the data moves and how the release is undone",
-    fix: "Give every schema migration a rollback plan, or record an edge case in the data_migration_states category saying why none applies.",
+    fix: "Record one with superdev migration record --rollback, or say none applies with superdev feature specify <id> --edge data_migration_states:<why>.",
     // Every migration needs its rollback, not just one of them, and a feature
     // that changes no schema says so deliberately rather than by silence.
     met: (s) =>
@@ -99,7 +99,7 @@ const CHECKS = {
   },
   security_privacy: {
     says: "the security and privacy analysis",
-    fix: "Record a security or privacy requirement for this feature.",
+    fix: "Record one with superdev requirement record --category security --feature <id>, or --category privacy.",
     met: (s) => s.nfrs.some((n) => /secur|privac|complian/i.test(n.category ?? "")),
   },
 };
@@ -181,9 +181,14 @@ export async function acceptFeature(root, featureId, { apply = false, actor = "s
   if (!report.acceptable) {
     throw new DbError(
       E.DEPTH_UNMET,
-      `${report.name} is declared ${report.depth} depth, and ${report.missing.length} of the ${report.required} things that depth promises are missing: ` +
-        report.missing.map((m) => m.says).join("; ") +
-        `. Record them, or lower the depth to match what this feature actually is.`,
+      // Each missing part is followed by the command that records it. This said
+      // "Record them, or lower the depth" and stopped there, which is the one
+      // message a blocked reader is guaranteed to read: they tried to accept a
+      // feature and were sent back. Naming what is missing without naming how to
+      // supply it is what made the depth ladder feel like it had one rung.
+      `${report.name} is declared ${report.depth} depth, and ${report.missing.length} of the ${report.required} things that depth promises are missing.\n\n` +
+        report.missing.map((m) => `  ${m.says}\n    ${m.fix}`).join("\n\n") +
+        `\n\nRecord them, or run superdev feature depth ${featureId} <depth> to lower the depth to match what this feature actually is.`,
       { featureId, depth: report.depth, missing: report.missing },
     );
   }
@@ -262,7 +267,7 @@ export async function completionReadiness(db, featureId) {
       : null,
     open.length
       ? { says: `${open.length} tasks still open: ${open.map((t) => `${t.id} (${t.status})`).join(", ")}`,
-          fix: "Complete or cancel them." }
+          fix: "Finish them with superdev task complete <id>, or stop them with superdev task cancel <id> --reason." }
       : null,
   ].filter(Boolean);
 

@@ -22,9 +22,28 @@ export const clip = (text, width) => {
   return value.length <= width ? value : `${value.slice(0, width - 3)}...`;
 };
 
-/** Greedy wrap. Long unbreakable tokens are left to overflow rather than cut. */
+/**
+ * Greedy wrap. Long unbreakable tokens are left to overflow rather than cut.
+ *
+ * Deliberate line breaks survive. Splitting on all whitespace collapsed a refusal
+ * that listed four missing things, each with the command that records it, into one
+ * run-on paragraph, which is the message a reader is most likely to be reading:
+ * they tried to accept a feature and were sent back. A blank line stays a blank
+ * line, and an indented line keeps its own indent.
+ */
 export function wrap(text, width = WIDTH, indent = "") {
-  const words = String(text ?? "").split(/\s+/).filter(Boolean);
+  const source = String(text ?? "");
+  if (/\n/.test(source)) {
+    return source
+      .split("\n")
+      .map((line) => {
+        if (!line.trim()) return "";
+        const own = /^(\s+)/.exec(line);
+        return wrap(line.trim(), width, indent + (own ? own[1] : ""));
+      })
+      .join("\n");
+  }
+  const words = source.split(/\s+/).filter(Boolean);
   if (!words.length) return "";
   const limit = Math.max(24, width - indent.length);
   const lines = [];

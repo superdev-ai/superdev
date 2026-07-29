@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0100 revision=3597 hash=bc79a7962a6fbce96cb5574e9274b75b96c97468cdf1f6db758a70e58e2b55e1 -->
+<!-- superdev:generated source=FEAT-0100 revision=3614 hash=19a7696dbace9318036aeea4bc317b1ce57749a39b78d3a49d808838a7cf618f -->
 # Feature: Author the rest of the product map
 
 - **Status:** Complete
@@ -50,6 +50,7 @@
 | The five empty states that told readers to wait now name the command | manual_check | pass | - |
 | All 21 alignment warnings name the command that clears them | manual_check | pass | - |
 | A concept can be converted from the command line, and unconverted ones are reported | manual_check | pass | - |
+| Every write command is routed by a skill, and every trigger names the command that resolves it | manual_check | pass | - |
 
 ## Delivery state
 

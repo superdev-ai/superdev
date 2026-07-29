@@ -891,7 +891,7 @@ export async function nextAction(db, projectId) {
       detail: task.block_reason
         ? `It is blocked because: ${task.block_reason}`
         : "It is blocked and no reason was recorded, so the reason has to be established first.",
-      remedy: "Resolve the blocker or record why the work should be cancelled instead.",
+      remedy: "Clear it with superdev task unblock <id> --apply once the blocker is gone, or stop the work with superdev task cancel <id> --reason.",
       others: blocked.slice(1),
     });
   }
@@ -910,7 +910,7 @@ export async function nextAction(db, projectId) {
       record: row,
       title: `Fix the failing check on ${row.feature_id ?? row.task_id ?? row.id}`,
       detail: `Verification recorded a failure: ${row.summary}`,
-      remedy: "Repair the behaviour, then record fresh evidence.",
+      remedy: "Repair it, then record what you saw with superdev task evidence <id> --criterion <AC-id> --result pass. If the check itself no longer applies, retire it with superdev evidence supersede <EV-id> --reason.",
       others: failing.slice(1),
     });
   }
@@ -927,7 +927,7 @@ export async function nextAction(db, projectId) {
       record: row,
       title: `Resolve the conflict on ${row.record_type} ${row.record_id}`,
       detail: "Two versions of this record disagree and nothing downstream can be trusted until it is settled.",
-      remedy: "Choose the local or remote value, or merge them, and record the resolution.",
+      remedy: "Synchronization records the conflict and does not guess. Nothing in this version resolves one for you, so decide which value is right and record it through the command that owns that record.",
       others: conflicts.slice(1),
     });
   }
@@ -998,7 +998,7 @@ export async function nextAction(db, projectId) {
       record: feature,
       title: `Specify ${feature.id}: ${feature.name}`,
       detail: "It has no acceptance criteria and no tasks, so its progress cannot be measured at all.",
-      remedy: "Write the acceptance criteria, then derive tasks from them.",
+      remedy: "Write them with superdev feature specify <id> --criterion, then run superdev derive <id> --apply.",
       others: unspecified.slice(1),
     });
   }
@@ -1063,7 +1063,7 @@ export async function nextAction(db, projectId) {
       record: row,
       title: `Re-verify ${row.feature_id ?? row.task_id ?? row.id}`,
       detail: `Its proof is older than ${EVIDENCE_STALE_DAYS} days, so it no longer counts: ${row.summary}`,
-      remedy: "Run the check again and record fresh evidence.",
+      remedy: "Run superdev verify, then record what it showed with superdev task evidence <id> --criterion <AC-id>.",
       others: stale.slice(1),
     });
   }
@@ -1077,7 +1077,7 @@ export async function nextAction(db, projectId) {
       record: task,
       title: `Complete the definition of ${task.id}: ${task.name}`,
       detail: "It is still a draft, so it cannot be claimed. A task leaves draft only with a contract link or a named feature it unblocks.",
-      remedy: "Link it to what it implements, then move it to ready.",
+      remedy: "Link it with superdev task update <id> --link acceptance_criterion:<AC-id>, then superdev task start <id> --apply.",
       others: drafts.slice(1),
     });
   }
@@ -1086,7 +1086,7 @@ export async function nextAction(db, projectId) {
     kind: "nothing_pending",
     title: "Nothing is pending",
     detail: "No blocked work, no work in progress, no ready work, no unspecified feature and no unproven criterion.",
-    remedy: "Accept more scope, or ship.",
+    remedy: "Accept more scope with superdev feature accept <id>, or ship: superdev readiness says what is still open.",
     recordType: null,
     recordId: null,
     record: null,

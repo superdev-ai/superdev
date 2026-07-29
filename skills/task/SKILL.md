@@ -124,6 +124,33 @@ check later and mark the evidence stale if it stops passing. Leave it off when
 nothing reproduces the check; a manual verification is honest, an invented
 command is not.
 
+Every task carries a category, seeded by init from a fixed list. When a project
+needs one the list does not have, `SD category add "<the kind of work>"
+--description "<what it covers here>"` adds it, `SD category rename <TC-id> "<new
+name>"` corrects one, and `SD category retire <TC-id>` takes it off the pickable list
+while keeping the history of tasks that used it. `SD category list` shows what
+exists and how many tasks use each.
+
+Two tasks for one piece of work split its evidence, so each looks half finished
+and the feature they serve can never close either. Fold the duplicate in with
+`SD task merge <duplicate-id> --into <TASK-id>`: what it owns moves across, its
+history stays where it happened, and it becomes superseded pointing at the
+survivor. There is no delete, because a task carries the reasons it existed.
+
+`--criterion` takes an acceptance criterion (`AC-nnnn`) or a goal success
+criterion (`GSC-nnnn`). A goal criterion is a measured outcome, read against the
+running product, and passing evidence marks it met. It is not derived from the
+features serving the goal, because a goal can be served by finished features and
+still not be reached.
+
+When a check moves or stops applying, retire the record rather than leaving it to
+fail forever: `SD evidence supersede <EV-id> --reason "<why it no longer
+applies>"`. The original and its reason stay in history, it leaves the
+verification tally, and any criterion resting on it falls back to whatever else
+is current, or to unmet. Recording a second piece of evidence for a criterion
+that already has some tells you so and names this command, because a correction
+and a second independent proof look identical from the outside.
+
 Completion is refused until every verification requirement the task states
 carries its own passing evidence, so `task evidence` runs once per requirement
 and `task complete` comes last. Section 9.3 also requires the accepted test

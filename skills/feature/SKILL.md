@@ -46,25 +46,80 @@ every call.
    readiness with `SD doctor`. If a provider is not ready, say so, run the
    interview here instead, and never present your own work as that provider's
    methodology.
-7. **Record the specification.** `SD plan` presents new and changed features for
-   acceptance and stores what is accepted (`SD plan --help` for scoping it to
-   one module or feature). Every feature belongs to exactly one module and
-   exactly one delivery milestone, and supports at least one goal. A capability
-   that genuinely spans two stages becomes two bounded features with a
+7. **Record the specification.** `SD plan` is read only: it shows the shape of
+   the work and stores nothing. Creating and placing a feature is its own
+   command:
+
+   ```
+   SD feature create --module <MOD-id> --name "<what somebody can do>"
+   SD feature goal <FEAT-id> --goal <GOAL-id>
+   SD feature move <FEAT-id> --module <MOD-id> --milestone <MS-id>
+   ```
+
+   Every feature belongs to exactly one module and exactly one delivery
+   milestone, and supports at least one goal; a feature serving no goal raises a
+   warning, because it is scope nobody can justify when scope is cut. A
+   capability that genuinely spans two stages becomes two bounded features with a
    dependency between them, never one feature with two milestones.
+
+   Where the module, milestone or goal does not exist yet: `SD module record`,
+   `SD milestone record`, `SD goal record`, and `SD scope record --not "<what
+   this deliberately will not do>"` for what is being ruled out at project level.
 8. **Fill the contracts the depth requires.** `SD feature specify <FEAT-id>`
-   writes the six microspec covers: `--purpose`, `--user`, `--in`, `--out`,
+   writes the six microspec covers: `--purpose`, `--user`, `--in`, `--not`,
    `--flow`, `--criterion "what || how it is verified"` and
    `--edge category:behavior`. `SD feature depth <FEAT-id>` says what is still
    missing, and `SD feature depth <FEAT-id> <depth>` changes how much is owed.
-   The deeper covers are their own records: workflows and steps, surfaces and
-   their states, UI actions, API operations, data entities and fields,
-   migrations, integrations, jobs and webhooks, roles and permissions, NFRs,
-   observability, and the product test plan. All of them become the contract
-   that tasks link to with `SD task update <TASK-id> --link type:id`.
-9. **Generate the documentation.** `SD docs generate`, then `SD docs diff` to
-   confirm nothing on disk is now an unreviewed proposal.
-10. **Derive the work.** `SD derive <FEAT-id>`, present the derived
+
+   `--not`, never `--out`. `--out` is the global flag for writing a command's
+   output to a file.
+
+   The deeper covers are their own records, and each has its own command. Run
+   `SD feature depth <FEAT-id>` after each one to watch what is still owed:
+
+   | What the depth asks for | Command |
+   |---|---|
+   | Surfaces and their actions | `SD surface record --feature <id> --name --type --route --action` |
+   | A surface's empty, loading, error states | `SD surface state <SRF-id> --state empty --copy` |
+   | Data entities | `SD entity record --feature <id> --name --store --sensitivity` |
+   | Fields of an entity | `SD field add <ENT-id> --name --type` |
+   | How two entities relate | `SD relationship add --from <ENT-id> --to <ENT-id> --name` |
+   | API operations | `SD operation record --feature <id> --name --style --path` |
+   | A service grouping operations | `SD service record --name` |
+   | A workflow and its ordered steps | `SD workflow record --feature <id> --name --step --step` |
+   | Who acts in a workflow | `SD workflow actor <WF-id> --who` |
+   | Where a workflow forks | `SD workflow branch <WF-id> --from-step --condition` |
+   | Observability, security, privacy, performance | `SD requirement record --category <kind> --requirement --feature <id>` |
+   | An outside service and its absence behaviour | `SD integration record --name --when-absent` |
+   | The states something moves through | `SD states record --entity --state --state` |
+   | A transition between two states | `SD transition add <SM-id> --from --to --event` |
+   | A migration and its rollback | `SD migration record --name --forward --rollback` |
+   | Background work | `SD job record --name --trigger` |
+   | An event sent or received | `SD webhook record --name --direction --verification` |
+   | A piece of the running system | `SD runtime record --name --runs-where` |
+   | The product test plan | `SD test-plan record-new --name --strategy --how-to-run` |
+   | What a word means here | `SD term record --term --meaning` |
+
+   Several of these refuse an incomplete record rather than storing a shell: a
+   workflow needs its steps, an integration needs what happens when it is
+   unavailable, a migration needs its rollback, an inbound webhook needs how the
+   sender is verified. Those refusals are the specification asking you a question.
+
+   A step can be added to a workflow afterwards with `SD workflow step <WF-id>
+   --action "<what happens>"`.
+
+   All of these become the contract that tasks link to with
+   `SD task update <TASK-id> --link type:id`.
+
+9. **Accept it.** `SD feature accept <FEAT-id>` is the gate. It refuses while
+   anything the declared depth promises is missing, and names each missing piece
+   with the command that records it. A refusal here is the specification asking a
+   question, not an obstacle: lower the depth with `SD feature depth <FEAT-id>
+   <depth>` if the feature genuinely is smaller than it claimed. Nothing else
+   accepts a feature.
+10. **Generate the documentation.** `SD docs generate`, then `SD docs diff` to
+    confirm nothing on disk is now an unreviewed proposal.
+11. **Derive the work.** `SD derive <FEAT-id>`, present the derived
     plan for acceptance, then hand to the `task` skill for the
     before-implementation sequence. Implementation starts there, never here.
 
@@ -80,6 +135,13 @@ product tests.
 "Not yet considered" is not an answer. Either it is specified, or it is marked
 not applicable with a reason, or it is an open question with an owner.
 
+The readiness checklist holds the same idea for the project as a whole.
+`SD capability list --open` shows what is unsettled, `SD capability specify
+<CAP-id> --choice` records what was chosen, and `SD capability not-applicable
+<CAP-id> --reason` records that it does not apply. The reason is required,
+because an area dismissed without one cannot be told apart from one nobody
+looked at.
+
 ## UI-bearing features
 
 A surface is not specified until every interactive element on it has: label,
@@ -88,6 +150,11 @@ performs, input and validation, the API or local effect, and its loading,
 disabled, empty, success, error and offline states, plus keyboard behavior,
 accessible name, focus behavior, responsive behavior, and confirmation for
 anything destructive. Telemetry only when explicitly approved.
+
+Record the surface with `SD surface record --feature <id> --action "<each
+control>"`, then describe each of its states with `SD surface state <SRF-id>
+--state empty|loading|error|partial|offline|unauthorized --behaviour --copy`. A
+surface whose states are unrecorded is the one that ships blank.
 
 Route direction and implementation to **Frontend Design**, and critique,
 accessibility, interaction quality and polish to **Impeccable**. Check both with

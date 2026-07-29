@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3597 hash=2e2252fc7cf99551afad6f479a879c14fb8e249066abc35b349c874bab011180 -->
+<!-- superdev:generated source=PRJ-0001 revision=3614 hash=6ebfd5133df0d7abdc089e58e8eb24728fb247bc182d2cf0da155d972a95f02e -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,17 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3614 | 2026-07-29 | Change recorded: Every write command is routed by a skill, and every trigger names the command that resolves it | superdev |
+| 3613 | 2026-07-29 | Linked memory MEM-0112 to feature FEAT-0100 | superdev |
+| 3612 | 2026-07-29 | Linked memory MEM-0112 to task TASK-0044 | superdev |
+| 3611 | 2026-07-29 | Remembered outcome: TASK-0044 complete: Audit whether the lifecycle is triggered, not only writable | superdev |
+| 3610 | 2026-07-29 | TASK-0044 completed, assignment released. | superdev |
+| 3609 | 2026-07-29 | Task TASK-0044 moved to complete | superdev |
+| 3608 | 2026-07-29 | Passing evidence recorded for TASK-0044: Every write command is routed by a skill, and every trigger names the command that resolves it | superdev |
+| 3604 | 2026-07-29 | Task TASK-0044 moved to in progress | superdev |
+| 3603 | 2026-07-29 | TASK-0044 claimed. | superdev |
+| 3602 | 2026-07-29 | TASK-0044 now implements acceptance_criterion AC-0117. | superdev |
+| 3601 | 2026-07-29 | Created task TASK-0044 | superdev |
 | 3597 | 2026-07-28 | Linked memory MEM-0111 to feature FEAT-0100 | superdev |
 | 3596 | 2026-07-28 | Linked memory MEM-0111 to task TASK-0043 | superdev |
 | 3595 | 2026-07-28 | Remembered outcome: TASK-0043 complete: Convert a concept from the command line, and report the ones | superdev |
@@ -196,14 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3389 | 2026-07-28 | Accepted Merge a duplicate task into the one that keeps the work at microspec depth | superdev |
 | 3388 | 2026-07-28 | Edge case recorded for FEAT-0096: state_machine_violations | superdev |
 | 3387 | 2026-07-28 | Edge case recorded for FEAT-0096: duplication | superdev |
-| 3386 | 2026-07-28 | Acceptance criterion recorded for FEAT-0096 | superdev |
-| 3385 | 2026-07-28 | Acceptance criterion recorded for FEAT-0096 | superdev |
-| 3384 | 2026-07-28 | Acceptance criterion recorded for FEAT-0096 | superdev |
-| 3383 | 2026-07-28 | Primary flow recorded for FEAT-0096 | superdev |
-| 3382 | 2026-07-28 | Primary flow recorded for FEAT-0096 | superdev |
-| 3381 | 2026-07-28 | Primary flow recorded for FEAT-0096 | superdev |
-| 3380 | 2026-07-28 | Primary flow recorded for FEAT-0096 | superdev |
-| 3379 | 2026-07-28 | Feature drafted in Task and Implementation Lifecycle: Merge a duplicate task into the one that keeps the work | superdev |
-| 3378 | 2026-07-28 | Linked memory MEM-0100 to feature FEAT-0088 | superdev |
-| 3377 | 2026-07-28 | Linked memory MEM-0100 to task TASK-0032 | superdev |
-| 3376 | 2026-07-28 | Remembered outcome: TASK-0032 complete: Stop events about files and sessions from marking generated | superdev |

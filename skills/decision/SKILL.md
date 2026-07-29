@@ -63,6 +63,11 @@ center's decision view when a person is deciding interactively. Then
 
 ## Superseding
 
+```
+SD decision record --title "<what was decided>" --governs feature:<FEAT-id>
+SD decision supersede <DEC-id> --title "<the decision that replaces it>"
+```
+
 - The new record names what it supersedes and why.
 - The old record gains a superseded-by pointer and stays readable, unedited.
 - **Partial supersession** names the exact scope that fell and the exact scope

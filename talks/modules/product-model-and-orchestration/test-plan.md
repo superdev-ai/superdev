@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3597 hash=2b68a86a7293f36b6160903e0069b2d95ef22c9047fdab777c481c37615dd191 -->
+<!-- superdev:generated source=MOD-0002 revision=3614 hash=0bb25dc2e316a271b74689ae8500b81e50372760a6b1dbabd447365dafa1afb0 -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -88,3 +88,4 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | The five empty states that told readers to wait now name the command | manual_check | pass | - | Current |
 | All 21 alignment warnings name the command that clears them | manual_check | pass | - | Current |
 | A concept can be converted from the command line, and unconverted ones are reported | manual_check | pass | - | Current |
+| Every write command is routed by a skill, and every trigger names the command that resolves it | manual_check | pass | - | Current |

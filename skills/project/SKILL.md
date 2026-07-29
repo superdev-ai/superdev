@@ -137,6 +137,46 @@ Parent progress is derived, never asserted. No command marks a feature,
 milestone or goal complete. If a parent will not close, the open child work
 named in `SD status` is the answer.
 
+What is measured, though, is recorded rather than derived, and each has a
+command:
+
+- A goal is measured by its success criteria. `SD goal criterion <GOAL-id>
+  --criterion "<what must be true>" --measurement "<how it is read>"` adds one,
+  and `SD task evidence <TASK-id> --criterion <GSC-id> --result pass` marks it
+  met once somebody has read it against the running product. A goal with no
+  criteria counts as unmeasurable, not as met.
+- A milestone is reached when its exit conditions are met. `SD milestone
+  condition <MS-id> --condition "<what must hold>"` adds one, and `SD milestone
+  met <MS-id> --condition "<its text>" --reading "<what was observed>"` marks it.
+  The reading is required: met on its own is an assertion.
+- A concept from the brief that nobody turned into a record stays a concept.
+  `SD discovery convert <DIS-id> --to goal|module|feature` turns one into a
+  record, and the concept stays on the map beside what it became. Leaving one
+  unconverted is a decision; `SD doctor` names them so it is a decision somebody
+  made rather than one nobody noticed.
+
+## Correcting what is already recorded
+
+A one-shot parse of a brief gets things wrong, and so do people. Nothing here is
+frozen, and nothing is deleted:
+
+```
+SD module rename <MOD-id> --name "<better name>"
+SD milestone update <MS-id> --name --outcome --target
+SD feature move <FEAT-id> --module <MOD-id>
+SD scope remove <SCOPE-id>
+SD memory supersede <MEM-id> --by <MEM-id>
+SD evidence supersede <EV-id> --reason "<why it no longer applies>"
+SD decision supersede <DEC-id> --title "<the decision that replaces it>"
+SD task merge <duplicate> --into <TASK-id>
+SD retire <GOAL-id|MS-id> --reason "<why>"
+```
+
+A module's name becomes its documentation directory, so renaming one changes
+committed paths and `SD docs generate` moves them. Everything else keeps its
+history: superseding leaves the original and its reason readable, which is the
+difference between a correction and a rewrite of the past.
+
 ## Task derivation
 
 Tasks come from accepted specifications: acceptance criteria, workflow steps,
