@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3639 hash=5e9d620622a612ef27cd0e6e785ef3734407af40996b013b2e6c3b2054c979da -->
+<!-- superdev:generated source=PRJ-0001 revision=3663 hash=4ba9087713e0db30fa53f5c9714baa7cc296fb95be48f6e9c12f69b69f70e67e -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,28 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3663 | 2026-07-29 | Linked memory MEM-0115 to feature FEAT-0100 | superdev |
+| 3662 | 2026-07-29 | Linked memory MEM-0115 to task TASK-0047 | superdev |
+| 3661 | 2026-07-29 | Remembered outcome: TASK-0047 complete: Close the last three lifecycle gaps: change triggers, module | superdev |
+| 3660 | 2026-07-29 | TASK-0047 completed, assignment released. | superdev |
+| 3659 | 2026-07-29 | Task TASK-0047 moved to complete | superdev |
+| 3658 | 2026-07-29 | Passing evidence recorded for TASK-0047: Module completeness is seeded by the command that creates a module, the exclusion message tells the two cases apart, and an undetectable gap is recorded rather than warned about badly | superdev |
+| 3657 | 2026-07-29 | Assumption recorded: A change to accepted scope is recorded because whoever moved it chose to, not because anything detects the omission | superdev |
+| 3656 | 2026-07-29 | Module Packaging and Distribution updated | superdev |
+| 3655 | 2026-07-29 | Module Provider Orchestration updated | superdev |
+| 3654 | 2026-07-29 | Module Local Control Center updated | superdev |
+| 3653 | 2026-07-29 | Module Hooks and Session Continuity updated | superdev |
+| 3652 | 2026-07-29 | Module Memory System updated | superdev |
+| 3651 | 2026-07-29 | Module Database and Persistence updated | superdev |
+| 3650 | 2026-07-29 | Module Decisions, Changes, and Questions updated | superdev |
+| 3649 | 2026-07-29 | Module Task and Implementation Lifecycle updated | superdev |
+| 3648 | 2026-07-29 | Module Documentation Generation and Sync updated | superdev |
+| 3647 | 2026-07-29 | Module Product Model and Orchestration updated | superdev |
+| 3646 | 2026-07-29 | Module Discovery and Onboarding updated | superdev |
+| 3644 | 2026-07-29 | Task TASK-0047 moved to in progress | superdev |
+| 3643 | 2026-07-29 | TASK-0047 claimed. | superdev |
+| 3642 | 2026-07-29 | TASK-0047 now implements acceptance_criterion AC-0117. | superdev |
+| 3641 | 2026-07-29 | Created task TASK-0047 | superdev |
 | 3639 | 2026-07-29 | Change recorded: Security review is routed to the reviewer that exists, every provider is named by a skill, and a recorded goal hands the session to the harness | superdev |
 | 3638 | 2026-07-29 | Linked memory MEM-0114 to feature FEAT-0100 | superdev |
 | 3637 | 2026-07-29 | Linked memory MEM-0114 to task TASK-0046 | superdev |
@@ -185,25 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3437 | 2026-07-28 | Linked memory MEM-0102 to task TASK-0034 | superdev |
 | 3436 | 2026-07-28 | Remembered outcome: TASK-0034 complete: Prove Supersede a piece of evidence that no longer applies m | superdev |
 | 3435 | 2026-07-28 | Supersede a piece of evidence that no longer applies is complete: its contract is satisfied | superdev |
-| 3434 | 2026-07-28 | TASK-0034 completed, assignment released. | superdev |
-| 3433 | 2026-07-28 | Task TASK-0034 moved to complete | superdev |
-| 3432 | 2026-07-28 | Acceptance criterion AC-0109 is met, evidenced by EV-0153. | superdev |
-| 3431 | 2026-07-28 | Passing evidence recorded for TASK-0034: Recording evidence for a criterion that already has some says so and names the command | superdev |
-| 3430 | 2026-07-28 | Acceptance criterion AC-0108 is met, evidenced by EV-0152. | superdev |
-| 3429 | 2026-07-28 | Passing evidence recorded for TASK-0034: A criterion falls back to other current proof, or to unmet | superdev |
-| 3428 | 2026-07-28 | Acceptance criterion AC-0107 is met, evidenced by EV-0151. | superdev |
-| 3427 | 2026-07-28 | Passing evidence recorded for TASK-0034: A superseded record leaves the verification tally and keeps its command and reason | superdev |
-| 3425 | 2026-07-28 | Task TASK-0034 moved to in progress | superdev |
-| 3424 | 2026-07-28 | TASK-0034 claimed. | superdev |
-| 3423 | 2026-07-28 | Derived tasks for FEAT-0097: 1 new, 0 updated, 0 superseded. | superdev |
-| 3422 | 2026-07-28 | Derived Prove Supersede a piece of evidence that no longer applies meets its acceptance criteria | superdev |
-| 3421 | 2026-07-28 | FEAT-0097 now serves No unmapped or disconnected implementation work | superdev |
-| 3420 | 2026-07-28 | Accepted Supersede a piece of evidence that no longer applies at microspec depth | superdev |
-| 3419 | 2026-07-28 | Edge case recorded for FEAT-0097: invalid_input | superdev |
-| 3418 | 2026-07-28 | Edge case recorded for FEAT-0097: duplication | superdev |
-| 3417 | 2026-07-28 | Acceptance criterion recorded for FEAT-0097 | superdev |
-| 3416 | 2026-07-28 | Acceptance criterion recorded for FEAT-0097 | superdev |
-| 3415 | 2026-07-28 | Acceptance criterion recorded for FEAT-0097 | superdev |
-| 3414 | 2026-07-28 | Primary flow recorded for FEAT-0097 | superdev |
-| 3413 | 2026-07-28 | Primary flow recorded for FEAT-0097 | superdev |
-| 3412 | 2026-07-28 | Primary flow recorded for FEAT-0097 | superdev |

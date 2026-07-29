@@ -275,7 +275,19 @@ export async function recordModule(root, { name, purpose = null, actor = "superd
       projectId: project.id, actor, activityType: "scope_changed",
       activitySummary: clean(`Module recorded: ${plan.name}`, 200),
     });
-    return { applied: true, module: row };
+
+    // The completeness checklist comes with the module.
+    //
+    // init seeds one per module and this command did not, so every module created
+    // after initialization had none. Readiness counts completeness steps as one of
+    // its components, and a component with nothing in it is excluded, so those
+    // modules were not merely unchecked: they were invisible to the check. The
+    // checklist is what turns "not yet considered" from an answer into a gap, which
+    // is the whole reason it exists.
+    const { seedModuleCompleteness } = await import("../init/questions.mjs");
+    const steps = await seedModuleCompleteness(db, row.id, { at: nowIso() });
+
+    return { applied: true, module: row, steps: Array.isArray(steps) ? steps.length : 0 };
   });
 }
 
@@ -495,7 +507,27 @@ export async function renameModule(root, moduleId, { name = null, purpose = null
         ? `Module ${module.name} renamed to ${changes.name}`
         : `Module ${module.name} updated`, 200),
     });
-    return { applied: true, moduleId, was: module.name, changes };
+
+    // A module that predates checklist seeding gets one here.
+    //
+    // init has always seeded a completeness checklist per module and `module record`
+    // did not until now, so modules created in between have none, and readiness
+    // excludes a component with nothing in it rather than reporting the gap. This is
+    // the only command that edits a module, so it is the only place a repair can
+    // live without inventing a command whose whole purpose is to undo an omission.
+    const has = await db.get(
+      "SELECT COUNT(*) AS n FROM module_completeness WHERE module_id = ?", moduleId);
+    let seeded = 0;
+    if (Number(has?.n ?? 0) === 0) {
+      const { seedModuleCompleteness } = await import("../init/questions.mjs");
+      // It answers { created, alreadyPresent }, not an array. Reading it as one
+      // reported zero while twenty rows had just been written, so the caller said
+      // nothing about a repair it had performed.
+      const result = await seedModuleCompleteness(db, moduleId, { at: nowIso() });
+      seeded = result?.created?.length ?? 0;
+    }
+
+    return { applied: true, moduleId, was: module.name, changes, seeded };
   });
 }
 

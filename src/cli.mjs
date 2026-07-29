@@ -3390,9 +3390,14 @@ async function cmdModuleRename(ctx) {
   if (!out.applied) return planned(out, "change it", R.wrap(`Would set ${id} ${said}.`));
   return {
     data: out,
-    text: R.wrap(out.changes.name
-      ? `${id} is now ${out.changes.name}. Its documentation directory is named from the module, so run superdev docs generate to move it.`
-      : `${id} updated: ${said}.`),
+    text: R.stitch([
+      R.wrap(out.changes.name
+        ? `${id} is now ${out.changes.name}. Its documentation directory is named from the module, so run superdev docs generate to move it.`
+        : `${id} updated: ${said}.`),
+      out.seeded
+        ? R.wrap(`It had no completeness checklist, so it now carries ${countWord(out.seeded, "step")} to specify or mark not applicable. Readiness can score it from here.`)
+        : null,
+    ]),
   };
 }
 

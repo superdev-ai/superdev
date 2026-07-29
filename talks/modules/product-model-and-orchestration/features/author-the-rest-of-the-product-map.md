@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0100 revision=3639 hash=56c3a11356de414d7b8391cf69e9cb0828b4936278ccfb5dcc34eff8d9435b6d -->
+<!-- superdev:generated source=FEAT-0100 revision=3663 hash=baec01562fe7040eb4e14483a8eefb787034f4dd606d7129e8a95d7c54c1391f -->
 # Feature: Author the rest of the product map
 
 - **Status:** Complete
@@ -53,6 +53,7 @@
 | Every write command is routed by a skill, and every trigger names the command that resolves it | manual_check | pass | - |
 | An assumption still holding is reported, and the decision remedy names decision commands again | manual_check | pass | - |
 | Security review is routed to the installed reviewer, all eight providers are named by a skill, and recording a goal hands the session to the harness | manual_check | pass | - |
+| Module completeness is seeded by the command that creates a module, the exclusion message tells the two cases apart, and an undetectable gap is recorded rather than warned about badly | manual_check | pass | - |
 
 ## Delivery state
 

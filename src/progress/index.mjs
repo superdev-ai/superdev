@@ -117,8 +117,18 @@ function summarize({
 
   const whatCounts = applicable.map((c) => `${c.name}: ${c.done} of ${c.total}`);
   whatCounts.push(...whatCountsExtra);
-  const skipped = components.filter((c) => !c.applies).map((c) => c.name);
-  if (skipped.length) whatCounts.push(`Does not apply here: ${skipped.join(", ")}.`);
+  // A component with nothing to count is not the same as one that does not apply,
+  // and saying "does not apply here" for both hid a real gap: this project's eleven
+  // modules had no completeness checklist at all, and readiness reported the
+  // component as inapplicable rather than as empty. One of those is a decision and
+  // the other is an omission.
+  const skipped = components.filter((c) => !c.applies);
+  const inapplicable = skipped.filter((c) => c.reason).map((c) => `${c.name} (${c.reason})`);
+  const empty = skipped.filter((c) => !c.reason).map((c) => c.name);
+  if (inapplicable.length) whatCounts.push(`Does not apply here: ${inapplicable.join(", ")}.`);
+  if (empty.length) {
+    whatCounts.push(`Nothing recorded to count yet, so excluded rather than scored: ${empty.join(", ")}.`);
+  }
 
   const whatRemains = applicable
     .filter((c) => c.done < c.total)
@@ -1368,6 +1378,25 @@ export async function alignmentWarnings(db, projectId) {
         // is worth saying that it was introduced during the pass itself.
         `Re-accept it with superdev decision record naming what changed, or replace it with superdev decision supersede ${decision.id} --title "<the decision that replaces it>".`);
     }
+  }
+
+  // A module with no completeness checklist.
+  //
+  // init seeds one per module and `module record` did not, so a module created after
+  // initialization had none, and readiness excludes a component with nothing in it.
+  // Those modules were not unchecked, they were unseen. The checklist is what turns
+  // "not yet considered" from an answer into a gap.
+  const unchecked = await db.all(
+    `SELECT m.id, m.name FROM modules m
+      WHERE m.project_id = ? AND m.status NOT IN ('deprecated')
+        AND NOT EXISTS (SELECT 1 FROM module_completeness c WHERE c.module_id = m.id)`,
+    projectId,
+  );
+  if (unchecked.length) {
+    warn("medium", "module_without_completeness", "project", projectId,
+      `${count(unchecked.length, "module")} ${agrees(unchecked.length, "has", "have")} no completeness checklist`,
+      `${unchecked.slice(0, 3).map((m) => m.id).join(", ")}${unchecked.length > 3 ? " and others" : ""} cannot be scored on pages, actions, data, states, telemetry, accessibility or the other steps, so readiness leaves the whole component out rather than reporting a gap.`,
+      "A module created by superdev module record now gets one. For a module that predates that, superdev module rename <MOD-id> --purpose \"<what it owns>\" --apply seeds the missing checklist as it edits it.");
   }
 
   // An assumption nobody has revisited.
