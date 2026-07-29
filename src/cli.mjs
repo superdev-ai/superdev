@@ -646,13 +646,25 @@ async function cmdDoctor(ctx) {
     freshness: await freshness(db, project.id),
   }));
 
+  // Low-severity findings are reported without failing the check.
+  //
+  // Any warning at all used to fail it, which made recording an assumption block
+  // every release: "an assumption is still holding" is a note that somebody did the
+  // right thing, and the product asks them to do it. A gate that fires on correct
+  // behaviour teaches people to avoid the behaviour, which is how a checklist stops
+  // being read. High and medium say the record is wrong and still fail; low says
+  // there is something to know, and it is printed either way.
   const high = view.warnings.filter((w) => w.severity === "high").length;
+  const failing = view.warnings.filter((w) => w.severity !== "low").length;
+  const low = view.warnings.length - failing;
   checks.push({
     name: "Alignment",
-    ok: view.warnings.length === 0,
-    detail: view.warnings.length
-      ? `${countWord(view.warnings.length, "warning")}, ${high} of them high`
-      : "Every record maps to something that declares it",
+    ok: failing === 0,
+    detail: failing
+      ? `${countWord(failing, "warning")}, ${high} of them high${low ? `, and ${low} worth knowing` : ""}`
+      : low
+        ? `Every record maps to something that declares it. ${countWord(low, "note")} below worth reading.`
+        : "Every record maps to something that declares it",
   });
   checks.push({
     name: "Freshness",

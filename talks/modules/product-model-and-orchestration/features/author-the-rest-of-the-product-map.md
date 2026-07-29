@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0100 revision=3663 hash=baec01562fe7040eb4e14483a8eefb787034f4dd606d7129e8a95d7c54c1391f -->
+<!-- superdev:generated source=FEAT-0100 revision=3676 hash=f9f2b3b5506a49a6c403fafc92d32fc8c445061216db6f2d85c141e99e2a72f7 -->
 # Feature: Author the rest of the product map
 
 - **Status:** Complete
@@ -54,6 +54,7 @@
 | An assumption still holding is reported, and the decision remedy names decision commands again | manual_check | pass | - |
 | Security review is routed to the installed reviewer, all eight providers are named by a skill, and recording a goal hands the session to the harness | manual_check | pass | - |
 | Module completeness is seeded by the command that creates a module, the exclusion message tells the two cases apart, and an undetectable gap is recorded rather than warned about badly | manual_check | pass | - |
+| A low-severity note reports without failing the check, and high or medium still fail | manual_check | pass | - |
 
 ## Delivery state
 

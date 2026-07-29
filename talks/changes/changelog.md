@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3663 hash=4ba9087713e0db30fa53f5c9714baa7cc296fb95be48f6e9c12f69b69f70e67e -->
+<!-- superdev:generated source=PRJ-0001 revision=3676 hash=b767ad46fd67c76397740967d40554d58d4c234120ae06756a7717f68c0ae286 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,16 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 3676 | 2026-07-29 | Linked memory MEM-0116 to feature FEAT-0100 | superdev |
+| 3675 | 2026-07-29 | Linked memory MEM-0116 to task TASK-0048 | superdev |
+| 3674 | 2026-07-29 | Remembered outcome: TASK-0048 complete: A note should not block a release | superdev |
+| 3673 | 2026-07-29 | TASK-0048 completed, assignment released. | superdev |
+| 3672 | 2026-07-29 | Task TASK-0048 moved to complete | superdev |
+| 3671 | 2026-07-29 | Passing evidence recorded for TASK-0048: A low-severity note reports without failing the check, and high or medium still fail | superdev |
+| 3670 | 2026-07-29 | Task TASK-0048 moved to in progress | superdev |
+| 3669 | 2026-07-29 | TASK-0048 claimed. | superdev |
+| 3668 | 2026-07-29 | TASK-0048 now implements acceptance_criterion AC-0117. | superdev |
+| 3667 | 2026-07-29 | Created task TASK-0048 | superdev |
 | 3663 | 2026-07-29 | Linked memory MEM-0115 to feature FEAT-0100 | superdev |
 | 3662 | 2026-07-29 | Linked memory MEM-0115 to task TASK-0047 | superdev |
 | 3661 | 2026-07-29 | Remembered outcome: TASK-0047 complete: Close the last three lifecycle gaps: change triggers, module | superdev |
@@ -197,13 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3450 | 2026-07-28 | Linked memory MEM-0103 to task TASK-0035 | superdev |
 | 3449 | 2026-07-28 | Remembered outcome: TASK-0035 complete: Do not count Superdev's own generated documents as untracked | superdev |
 | 3448 | 2026-07-28 | TASK-0035 completed, assignment released. | superdev |
-| 3447 | 2026-07-28 | Task TASK-0035 moved to complete | superdev |
-| 3446 | 2026-07-28 | Passing evidence recorded for TASK-0035: Regenerating documents no longer counts as the product changing without a task | superdev |
-| 3444 | 2026-07-28 | Task TASK-0035 moved to in progress | superdev |
-| 3443 | 2026-07-28 | TASK-0035 claimed. | superdev |
-| 3442 | 2026-07-28 | TASK-0035 now implements acceptance_criterion AC-0088. | superdev |
-| 3441 | 2026-07-28 | Created task TASK-0035 | superdev |
-| 3438 | 2026-07-28 | Linked memory MEM-0102 to feature FEAT-0097 | superdev |
-| 3437 | 2026-07-28 | Linked memory MEM-0102 to task TASK-0034 | superdev |
-| 3436 | 2026-07-28 | Remembered outcome: TASK-0034 complete: Prove Supersede a piece of evidence that no longer applies m | superdev |
-| 3435 | 2026-07-28 | Supersede a piece of evidence that no longer applies is complete: its contract is satisfied | superdev |
