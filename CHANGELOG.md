@@ -9,6 +9,13 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+# [0.8.0](https://github.com/superdev-ai/superdev/compare/v0.7.0...v0.8.0) (2026-07-29)
+
+
+### Features
+
+* route every write command, and make every trigger name its command ([49a18c3](https://github.com/superdev-ai/superdev/commit/49a18c370b346b4d042e45595881fdd7ace9463d))
+
 # [0.7.0](https://github.com/superdev-ai/superdev/compare/v0.6.1...v0.7.0) (2026-07-28)
 
 
