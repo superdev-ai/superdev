@@ -45,6 +45,7 @@ import {
   Stale,
 } from "@/components/shell/states";
 import { Status } from "@/components/shell/status";
+import { Distribution, FigureRow, Meter } from "@/components/shell/figures";
 import { Button } from "@/components/ui/button";
 import { ApiError, getDiscovery, postMutation } from "@/lib/api";
 import {
@@ -55,7 +56,7 @@ import {
   truncate,
 } from "@/lib/format";
 import { hrefFor, type View } from "@/lib/route";
-import type { DiscoveryItem, DiscoveryPayload, SourceMaterial } from "@/types";
+import type { DiscoveryItem, DiscoveryPayload, Question, SourceMaterial } from "@/types";
 
 /** What each kind of concept is, in words a person who is not on the team can read. */
 const KIND_STYLES: Record<string, TypeStyle> = {
@@ -360,6 +361,20 @@ export function DiscoveryView() {
           />
         ) : null}
 
+        {/*
+          What discovery found, before the map of it.
+
+          The canvas was the first thing on the page and it answers "how do these
+          connect", which is a second question. The first is "what did discovery
+          find, and what is still unanswered", and nothing answered it: on a project
+          with eight open questions and no concepts the page opened on an empty
+          canvas. This band answers it in three readings and leaves the map to do
+          what a map is for.
+        */}
+        <div className="overflow-hidden rounded-sd-lg border border-rule bg-panel p-4">
+          <FoundSection items={items} questions={questions} sources={sources} />
+        </div>
+
         <GraphCanvas
           label="Discovery mind map"
           instructions="Click a concept to light up what it connects to, double click to open it, drag it anywhere you like, and drag empty space to pan."
@@ -526,6 +541,76 @@ function collectItems(data: DiscoveryPayload | null): DiscoveryItem[] {
     byId.set(item.id, item);
   }
   return [...byId.values()];
+}
+
+/**
+ * What discovery found, what is still open, and what it was read from.
+ *
+ * Composition by kind is the reading that matters: a project with thirty
+ * capabilities and no problems was specified backwards, and no total says so. The
+ * kinds keep the plain-language labels the map already uses, so the same concept is
+ * not called two things on one screen.
+ */
+function FoundSection({
+  items,
+  questions,
+  sources,
+}: {
+  items: DiscoveryItem[];
+  questions: Question[];
+  sources: SourceMaterial[];
+}) {
+  const byKind = new Map<string, number>();
+  for (const item of items) byKind.set(item.kind, (byKind.get(item.kind) ?? 0) + 1);
+  const slices = [...byKind.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([kind, count]) => ({
+      label: KIND_STYLES[kind]?.label ?? titleCase(kind),
+      count,
+      // Kind is not a health state, so these are read as idle rather than tinted to
+      // imply one. Section 2: the signal never carries state and state is never
+      // decoration.
+      state: "idle" as const,
+    }));
+
+  const answered = questions.filter((q) => q.status === "answered").length;
+  const converted = items.filter((i) => i.status === "converted").length;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <FigureRow>
+        <Meter
+          label="Questions answered"
+          done={answered}
+          total={questions.length}
+          unit="question"
+          state="complete"
+        />
+        <Meter
+          label="Concepts turned into records"
+          done={converted}
+          total={items.length}
+          unit="concept"
+          state="complete"
+        />
+        <Meter
+          label="Source material screened"
+          done={sources.filter((s) => s.screening_status === "clean" || s.screening_status === "redacted").length}
+          total={sources.length}
+          unit="file"
+          state="complete"
+        />
+      </FigureRow>
+
+      <div className="flex flex-col gap-1.5">
+        <h4 className="font-chassis text-label text-ink-3 uppercase">What discovery found</h4>
+        <Distribution
+          slices={slices}
+          caption="Nothing has been captured yet. Concepts arrive when source material is supplied and read, and each one keeps where it came from."
+        />
+      </div>
+    </div>
+  );
 }
 
 function ListPanel({

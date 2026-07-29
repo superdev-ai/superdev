@@ -80,6 +80,16 @@ const ACTIVITY_INTERVAL_MS = 5 * 60 * 1000;
 /** Paths kept in the touch marker. Enough to describe the work, not a log. */
 const MAX_TOUCHED = 40;
 
+/**
+ * How long a path stays accounted for, and how many may be at once.
+ *
+ * Separate from MAX_TOUCHED, which bounds what one activity event describes. This
+ * bounds what the hook remembers having already seen, and it has to outlive an
+ * edit reaching a commit rather than fit in a summary line.
+ */
+const ATTRIBUTION_TTL_MS = 24 * 60 * 60 * 1000;
+const ATTRIBUTION_MAX = 2000;
+
 /** A provider readiness report older than this is stale and worth mentioning. */
 const PROVIDER_STALE_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -639,8 +649,21 @@ function attribute(root, moved) {
   const state = readTouched(root);
   const next = { ...state.attributed };
   for (const [path, stamp] of moved) next[path] = stamp;
-  // Bounded, oldest first, so a long-lived project does not grow this forever.
-  const entries = Object.entries(next).sort((a, b) => b[1] - a[1]).slice(0, MAX_TOUCHED);
+  // Bounded by age, not by count.
+  //
+  // This kept the newest MAX_TOUCHED entries, which is 40, and a single working
+  // session here touched 28 files in one command. So attribution for a file edited
+  // earlier in the same session was evicted by later ones, the file looked newly
+  // changed again, and the untracked-work marker fired on work that had been
+  // tracked. The cap meant to stop unbounded growth defeated the thing it was
+  // capping. A day is long enough for any change to reach a commit, which is all
+  // this has to outlive, and ATTRIBUTION_MAX is high enough that a large session
+  // never evicts its own start.
+  const cutoff = Date.now() - ATTRIBUTION_TTL_MS;
+  const entries = Object.entries(next)
+    .filter(([, stamp]) => Number(stamp) >= cutoff)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, ATTRIBUTION_MAX);
   writeTouched(root, { ...state, attributed: Object.fromEntries(entries) });
 }
 

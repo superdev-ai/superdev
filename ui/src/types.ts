@@ -81,6 +81,13 @@ export type ScopeType =
  * A measured quantity that always states what it counts.
  * `total` of 0 means there is no completion contract: render "Not measurable".
  */
+export interface ProgressComponent {
+  name: string;
+  done: number;
+  total: number;
+  applies: boolean;
+}
+
 export interface Progress {
   completed: number;
   total: number;
@@ -88,6 +95,16 @@ export interface Progress {
   counts: string;
   /** Per component breakdown, one line each. Rendered as a list, never inlined into a headline. */
   countsBreakdown?: string[];
+  /**
+   * The same breakdown as numbers rather than sentences.
+   *
+   * The payload has carried this since progress had components and the type never
+   * declared it, so anything wanting to draw the breakdown had to read the prose
+   * lines and parse them back into figures. A component that does not apply is
+   * present with `applies: false` rather than absent, so a reader can tell an
+   * excluded component from one that was never there.
+   */
+  components?: ProgressComponent[];
   /** What is still outstanding, one line each. */
   remainsBreakdown?: string[];
   /** Plain language for what is still outstanding. */
@@ -193,7 +210,25 @@ export interface OverviewPayload {
   activeWork: ActiveWorkItem[];
   nextAction: NextAction | null;
   progress: Progress;
+  /** One entry per day for the last fortnight, quiet days included. */
+  activity: ActivityPoint[];
+  /** How open and finished work divides, for the distribution bar. */
+  taskShape: TaskSlice[];
   freshness: Freshness;
+}
+
+export interface ActivityPoint {
+  /** ISO date, no time: the series is one entry per day. */
+  day: string;
+  count: number;
+}
+
+export interface TaskSlice {
+  /** The raw status, mapped to one of the six state tokens for display. */
+  state: string;
+  /** Title Case, because a person reads this and never the raw status. */
+  label: string;
+  count: number;
 }
 
 /* ---------------------------------------------------------------------------

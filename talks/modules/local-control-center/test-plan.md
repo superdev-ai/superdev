@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0009 revision=3326 hash=b3e5b6b2568765299e0792868f81a4a2ac30f038bffffbaa7d4266f4c7ab7012 -->
+<!-- superdev:generated source=MOD-0009 revision=3752 hash=b2399ba322ab3b0fe943274459bfe40ce657a0753aef4039724e75f14a47be88 -->
 # Local Control Center - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -23,13 +23,16 @@
 | Answer a question by choosing from its options or typing your own | A question offers its options with the recommended one tagged and explained | Open the discovery area of the control centre against a project with open questions | Met |
 | Answer a question by choosing from its options or typing your own | A question that takes one answer refuses several, and one that takes several accepts them | Post question.answer with two selections against each kind and read the refusal and the record | Met |
 | Answer a question by choosing from its options or typing your own | A typed answer is accepted when no option fits | Answer a question with free text and read it back on the question | Met |
+| See the shape of the project at a glance | Every chart prints the fraction it represents, so the shape is never the only reading | Read each chart on a real project and confirm the numbers are beside it | Met |
+| See the shape of the project at a glance | State is carried by glyph and label as well as colour, and the signal colour never carries state | Check each segment has a label and that no state uses the ember token | Met |
+| See the shape of the project at a glance | The interface still ships as one self-contained file with no new dependency | Build it and check the bundle and the dependency list | Met |
 
 ## Coverage map
 
 | Area | Level | Cases | Status |
 |---|---|---|---|
-| Happy paths per feature | command, manual_check | 13 | exists |
-| Applicable edge-case categories | command, manual_check | 48 | exists |
+| Happy paths per feature | command, manual_check | 14 | exists |
+| Applicable edge-case categories | command, manual_check | 50 | exists |
 | Permission boundaries | command, manual_check | 0 | missing |
 | State machines including illegal transitions | command, manual_check | 0 | missing |
 
@@ -58,3 +61,6 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | A typed answer is accepted alone or alongside an option, and the right half of it reaches the project field | manual_check | pass | - | Current |
 | A held port now names its holder, start takes a port, and the two messages that were wrong are right | manual_check | pass | - | Current |
 | The port flag exists on both start and ui, and refuses what is not a port | manual_check | pass | - | Current |
+| Every figure prints the fraction beside the shape, and says so when there is nothing to measure | manual_check | pass | - | Current |
+| Every segment carries its label as text, and no state is tinted with the signal | manual_check | pass | - | Current |
+| One self-contained file, no new dependency, seven kilobytes larger | manual_check | pass | - | Current |

@@ -61,6 +61,6 @@
     "version:sync": "node scripts/package/sync-version.mjs --apply",
     "check": "npm test && node scripts/validate/validate-all.mjs && node src/cli.mjs doctor && node scripts/check/release-criteria.mjs",
     "release:tooling": "npm install --no-save --silent release-it@19 @release-it/conventional-changelog@10",
-    "test": "node --test \"src/**/*.test.mjs\""
+    "test": "node --test \"src/**/*.test.mjs\" \"ui/src/**/*.test.mjs\""
   }
 }

@@ -52,7 +52,16 @@ const OTHER_TEST_FILE = /\.(?:test|spec)\.(?:cjs|js|ts|tsx|jsx)$|\.spec\.mjs$/;
 const TEST_RUNNER = /\b(?:jest|vitest|mocha|ava|tap|jasmine|karma|cypress|playwright test)\b/;
 
 /** Where a colocated test may live: beside source, not anywhere in the tree. */
-const TESTABLE_ROOTS = ["src/", "scripts/"];
+// ui/src/ was added deliberately, extending ADR-0021 rather than loosening it.
+//
+// That decision permitted assertions on pure functions and named the defects that
+// justified it, every one of which was a pure function returning a wrong answer. The
+// interface has one of those: the mapping from a record's status to the state token a
+// chart segment is filled with. It is the only part of a chart that can be wrong
+// invisibly, because a finished thing tinted as blocked looks exactly as convincing
+// as a correct one, so it is the case the ADR was written for. The refusals below are
+// unchanged: no test tree, no framework, no test naming a source that does not exist.
+const TESTABLE_ROOTS = ["src/", "scripts/", "ui/src/"];
 
 export async function run(root) {
   const findings = [];

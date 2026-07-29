@@ -27,7 +27,7 @@ import {
   honestPercent,
   SESSION_STALE_MS,
 } from "../progress/index.mjs";
-import { MODULE_STEPS, agrees, count, titleCase } from "../model/vocabulary.mjs";
+import { MODULE_STEPS, agrees, count, titleCase, AMBIENT_EVENTS } from "../model/vocabulary.mjs";
 
 const marks = (n) => Array.from({ length: n }, () => "?").join(",");
 const nowIso = () => new Date().toISOString();
@@ -216,6 +216,26 @@ export function overview(root) {
       },
       warnings,
       progress: toProgress(progress),
+      // Two series the overview draws, computed here because the interface must not
+      // do arithmetic on records it cannot see all of.
+      //
+      // Movement over time answers a question no count answers: whether the project
+      // is going anywhere. A project can read 40 percent for a month and the figure
+      // alone never says so. Ambient events are excluded for the same reason they do
+      // not move the content revision: a note that files changed is not the project
+      // moving.
+      activity: await dailyActivity(db, project.id),
+      // The distribution of open work, so a wall of "3 blocked" reads as a shape.
+      // Terminal states are separate from open ones because mixing them makes a
+      // finished project look busy.
+      taskShape: [
+        { state: "in_progress", label: "In Progress", count: inFlight.length },
+        { state: "blocked", label: "Blocked", count: blockedTasks.length },
+        { state: "ready", label: "Ready", count: openTasks.filter((t) => t.status === "ready").length },
+        { state: "draft", label: "Draft", count: openTasks.filter((t) => t.status === "draft").length },
+        { state: "paused", label: "Paused", count: openTasks.filter((t) => t.status === "paused").length },
+        { state: "complete", label: "Complete", count: tasks.filter((t) => t.status === "complete").length },
+      ].filter((slice) => slice.count > 0),
       freshness: {
         ...fresh,
         databaseRevision: fresh.revision,
@@ -226,6 +246,38 @@ export function overview(root) {
       },
     };
   });
+}
+
+/**
+ * How many things happened on each of the last fourteen days.
+ *
+ * Fourteen because a fortnight covers a working rhythm without turning the shape
+ * into noise, and because a day with nothing in it is itself a reading: a flat run
+ * says the project has stopped, which no total can tell you.
+ *
+ * Every day in the window is present even when nothing happened, so the gaps are
+ * visible rather than compressed away. Counting only days that have rows would draw
+ * a busy line over a quiet fortnight.
+ */
+async function dailyActivity(db, projectId, days = 14) {
+  const rows = await db.all(
+    `SELECT substr(created_at, 1, 10) AS day, COUNT(*) AS n
+       FROM activity_events
+      WHERE project_id = ?
+        AND event_type NOT LIKE 'documentation_%'
+        AND event_type NOT IN (${AMBIENT_EVENTS.map(() => "?").join(", ")})
+      GROUP BY day ORDER BY day DESC LIMIT ?`,
+    projectId, ...AMBIENT_EVENTS, days,
+  );
+  const byDay = new Map(rows.map((r) => [r.day, Number(r.n)]));
+  const series = [];
+  const cursor = new Date();
+  for (let back = days - 1; back >= 0; back -= 1) {
+    const at = new Date(cursor.getTime() - back * 24 * 60 * 60 * 1000);
+    const day = at.toISOString().slice(0, 10);
+    series.push({ day, count: byDay.get(day) ?? 0 });
+  }
+  return series;
 }
 
 function hrefFor(recordType, recordId) {

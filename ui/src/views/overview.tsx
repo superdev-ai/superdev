@@ -28,6 +28,7 @@ import {
   Stale,
 } from "@/components/shell/states";
 import { Status } from "@/components/shell/status";
+import { Distribution, FigureRow, Meter, Trend, stateOf } from "@/components/shell/figures";
 import { Markdown } from "@/components/ui/markdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -168,6 +169,26 @@ export function OverviewView() {
             density="inline"
           />
         ) : null}
+
+        {/*
+          The shape, before the prose.
+
+          Everything below this was here already and none of it changed: the seven
+          questions still get their sections, in order, in the same words. What was
+          missing was an answer to "how is this going" that does not require reading
+          all seven top to bottom. This band is that answer, and it is deliberately
+          three readings rather than a wall of tiles: what is finished, how the open
+          work divides, and whether anything is moving. A fourth would compete with
+          the three.
+        */}
+        <div className="overflow-hidden rounded-sd-lg border border-rule bg-panel">
+          <Section
+            heading="Where this stands"
+            note="Each reading names what it counts, so the bar is a summary of the number beside it rather than a replacement for it."
+          >
+            <ShapeSection overview={overview} />
+          </Section>
+        </div>
 
         <div className="overflow-hidden rounded-sd-lg border border-rule bg-panel">
           <Section
@@ -392,6 +413,73 @@ function MissingNote({ children }: { children: React.ReactNode }) {
 /* ---------------------------------------------------------------------------
    What we are building
    --------------------------------------------------------------------------- */
+
+/**
+ * Three readings: what is finished, how open work divides, whether it is moving.
+ *
+ * The progress components come from the same payload the prose below reads, so the
+ * two can never disagree. Each meter links to the area that holds the detail,
+ * because a figure somebody cannot follow is a figure they have to trust.
+ */
+function ShapeSection({ overview }: { overview: OverviewPayload }) {
+  const components = (overview.progress?.components ?? []).filter((c) => c.applies);
+  const shape = (overview.taskShape ?? []).map((slice) => ({
+    label: slice.label,
+    count: slice.count,
+    state: stateOf(slice.state),
+    href: "#/tasks",
+  }));
+
+  return (
+    <div className="flex flex-col gap-4">
+      {components.length ? (
+        <FigureRow>
+          {components.map((component) => (
+            <Meter
+              key={component.name}
+              label={component.name}
+              done={component.done}
+              total={component.total}
+              unit={overview.progress?.counts ?? "item"}
+              href={hrefForComponent(component.name)}
+            />
+          ))}
+        </FigureRow>
+      ) : (
+        <p className="font-prose text-small text-ink-3 prose-measure">
+          Nothing has been accepted yet, so there is no completion contract to
+          measure against. Accept a feature and this fills in.
+        </p>
+      )}
+
+      <div className="grid gap-x-6 gap-y-4 lg:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <h4 className="font-chassis text-label text-ink-3 uppercase">How the work divides</h4>
+          <Distribution
+            slices={shape}
+            caption="No task has been created yet, so there is no work to divide up. Derive tasks from an accepted feature and this fills in."
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <h4 className="font-chassis text-label text-ink-3 uppercase">Whether it is moving</h4>
+          <Trend points={overview.activity ?? []} unit="recorded change" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Which area holds the detail behind a progress component. */
+function hrefForComponent(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes("feature")) return "#/features";
+  if (n.includes("milestone") || n.includes("goal")) return "#/product";
+  if (n.includes("task")) return "#/tasks";
+  if (n.includes("document")) return "#/changes";
+  if (n.includes("capability") || n.includes("module completeness")) return "#/readiness";
+  if (n.includes("surface")) return "#/surfaces";
+  return "#/readiness";
+}
 
 function BuildingSection({ overview }: { overview: OverviewPayload }) {
   const project = overview.project;

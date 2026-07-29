@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0088 revision=3452 hash=aa95421a2390cd567bba1b6b2bd30a044e2c76a917635bfd6a7d53387ccf8c68 -->
+<!-- superdev:generated source=FEAT-0088 revision=3720 hash=3fa896edd7035ae156b1c55228a2b5b2d968f2d1cb780e19704fd887984678b3 -->
 # Feature: Detect work that maps to no task
 
 - **Status:** Complete
@@ -50,6 +50,7 @@
 | verify now accepts a script anywhere inside the project, and refuses everything that leaves it | manual_check | pass | - |
 | A note that files moved no longer marks every generated document stale | manual_check | pass | - |
 | Regenerating documents no longer counts as the product changing without a task | manual_check | pass | - |
+| Attribution is bounded by age, not by a count a single session exceeds | manual_check | pass | - |
 
 ## Delivery state
 

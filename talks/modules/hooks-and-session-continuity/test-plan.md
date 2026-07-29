@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0008 revision=3452 hash=28a2a8e636f08f19450ce365bdea17cc734f80c70183ca7c03430f33dbf306c6 -->
+<!-- superdev:generated source=MOD-0008 revision=3720 hash=3215d85b29bbf8fc19d12cef48402757da974972d9ea32b004a7c01de36729bc -->
 # Hooks and Session Continuity - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -45,3 +45,4 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | verify now accepts a script anywhere inside the project, and refuses everything that leaves it | manual_check | pass | - | Current |
 | A note that files moved no longer marks every generated document stale | manual_check | pass | - | Current |
 | Regenerating documents no longer counts as the product changing without a task | manual_check | pass | - | Current |
+| Attribution is bounded by age, not by a count a single session exceeds | manual_check | pass | - | Current |
