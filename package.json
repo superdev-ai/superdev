@@ -1,6 +1,6 @@
 {
   "name": "superdev-cli",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "type": "module",
   "description": "Local-first product-building control system for humans and coding agents.",
   "author": "Rahul Retnan",

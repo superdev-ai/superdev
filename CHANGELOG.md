@@ -9,6 +9,18 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+# [0.11.0](https://github.com/superdev-ai/superdev/compare/v0.10.1...v0.11.0) (2026-07-29)
+
+
+### Bug Fixes
+
+* the recorded surfaces match the interface that ships ([4515a1d](https://github.com/superdev-ai/superdev/commit/4515a1d80d9aebfeb6e88882ee5cc730f365bdd3))
+
+
+### Features
+
+* the overview and discovery areas lead with the shape, not the prose ([7e65f2b](https://github.com/superdev-ai/superdev/commit/7e65f2bdfd52383e45224f7b1aef5f8e97e5b3c5))
+
 ## [0.10.1](https://github.com/superdev-ai/superdev/compare/v0.10.0...v0.10.1) (2026-07-29)
 
 
