@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0011 revision=3537 hash=5b0079427b7aaca6085858700e2138a7513d4c6938e4db2873ed6e2b6ae4c1ac -->
+<!-- superdev:generated source=MOD-0011 revision=4091 hash=cd87c7288033224cdc541d36b369c86ba98906e36917f9db2bef15f7d560f2f8 -->
 # Packaging and Distribution - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -15,13 +15,15 @@
 | Resolve sync conflicts | superdev sync --resolve applies conflict resolution and leaves local and remote consistent | Run superdev sync --resolve and record what was observed. | Met |
 | Refuse a record type the interface shows and nothing can write | A record type the depth gate requires with no writer fails the build | Run the validator against the current tree and read what it names | Met |
 | Refuse a record type the interface shows and nothing can write | Adding a writer clears that finding without editing the validator | Add a write path and re-run it | Met |
+| Refuse a state column nothing can move off its opening value | A state column with no writer and no recorded reason fails the build:Remove an entry from IMMOVABLE and confirm the run reports an error | Checked by hand against the running product. | Unmet |
+| Refuse a state column nothing can move off its opening value | A column the creator computes is not reported:Confirm source material screening and non-functional requirement status are absent from the findings | Checked by hand against the running product. | Unmet |
 
 ## Coverage map
 
 | Area | Level | Cases | Status |
 |---|---|---|---|
-| Happy paths per feature | command, manual_check | 6 | exists |
-| Applicable edge-case categories | command, manual_check | 14 | exists |
+| Happy paths per feature | command, manual_check | 7 | exists |
+| Applicable edge-case categories | command, manual_check | 17 | exists |
 | Permission boundaries | command, manual_check | 0 | missing |
 | State machines including illegal transitions | command, manual_check | 0 | missing |
 

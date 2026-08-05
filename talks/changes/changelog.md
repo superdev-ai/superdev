@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=4066 hash=7000ce8d9a1fd823746b85ec50caae227a786e3d672549f476ebe9c38d4e81c1 -->
+<!-- superdev:generated source=PRJ-0001 revision=4091 hash=828578f497dd273c6cbc100eac02f35de54af50722fc399d7f0ffd7faed195d6 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,28 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 4091 | 2026-08-05 | Task TASK-0058 moved to in progress | superdev |
+| 4090 | 2026-08-05 | TASK-0058 claimed. | superdev |
+| 4089 | 2026-08-05 | TASK-0058 now implements acceptance_criterion AC-0124. | superdev |
+| 4088 | 2026-08-05 | Created task TASK-0058 | superdev |
+| 4087 | 2026-08-05 | TASK-0057 cancelled, assignment released. | superdev |
+| 4086 | 2026-08-05 | Task TASK-0057 moved to cancelled | superdev |
+| 4085 | 2026-08-05 | FEAT-0103 now serves Always-answerable project state | superdev |
+| 4084 | 2026-08-05 | Accepted Refuse a state column nothing can move off its opening value at microspec depth | superdev |
+| 4083 | 2026-08-05 | Edge case recorded for FEAT-0103: data_migration_states | superdev |
+| 4082 | 2026-08-05 | Edge case recorded for FEAT-0103: empty_states | superdev |
+| 4081 | 2026-08-05 | Edge case recorded for FEAT-0103: state_machine_violations | superdev |
+| 4080 | 2026-08-05 | Acceptance criterion recorded for FEAT-0103 | superdev |
+| 4079 | 2026-08-05 | Acceptance criterion recorded for FEAT-0103 | superdev |
+| 4078 | 2026-08-05 | Primary flow recorded for FEAT-0103 | superdev |
+| 4077 | 2026-08-05 | Primary flow recorded for FEAT-0103 | superdev |
+| 4076 | 2026-08-05 | Primary flow recorded for FEAT-0103 | superdev |
+| 4075 | 2026-08-05 | Primary flow recorded for FEAT-0103 | superdev |
+| 4074 | 2026-08-05 | Feature drafted in Packaging and Distribution: Refuse a state column nothing can move off its opening value | superdev |
+| 4073 | 2026-08-05 | Task TASK-0057 moved to in progress | superdev |
+| 4072 | 2026-08-05 | TASK-0057 claimed. | superdev |
+| 4071 | 2026-08-05 | TASK-0057 now implements acceptance_criterion AC-0113. | superdev |
+| 4070 | 2026-08-05 | Created task TASK-0057 | superdev |
 | 4066 | 2026-08-05 | Linked memory MEM-0148 to feature FEAT-0102 | superdev |
 | 4065 | 2026-08-05 | Linked memory MEM-0148 to task TASK-0056 | superdev |
 | 4064 | 2026-08-05 | Remembered outcome: TASK-0056 complete: Settle the forty-three open module completeness steps | superdev |
@@ -185,25 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3878 | 2026-07-29 | Database and Persistence: Edge cases specified | superdev |
 | 3877 | 2026-07-29 | Database and Persistence: Events specified | superdev |
 | 3876 | 2026-07-29 | Database and Persistence: End-to-end wiring specified | superdev |
-| 3875 | 2026-07-29 | Database and Persistence: Data specified | superdev |
-| 3874 | 2026-07-29 | Database and Persistence: API surface specified | superdev |
-| 3873 | 2026-07-29 | Database and Persistence: Actions specified | superdev |
-| 3872 | 2026-07-29 | Database and Persistence: Pages and surfaces specified | superdev |
-| 3871 | 2026-07-29 | Decisions, Changes, and Questions: Discoverability and SEO recorded as not applicable | superdev |
-| 3870 | 2026-07-29 | Decisions, Changes, and Questions: Feature flags recorded as not applicable | superdev |
-| 3869 | 2026-07-29 | Decisions, Changes, and Questions: Internationalization recorded as not applicable | superdev |
-| 3868 | 2026-07-29 | Decisions, Changes, and Questions: Telemetry recorded as not applicable | superdev |
-| 3867 | 2026-07-29 | Decisions, Changes, and Questions: Compliance and product tests specified | superdev |
-| 3866 | 2026-07-29 | Decisions, Changes, and Questions: Performance specified | superdev |
-| 3865 | 2026-07-29 | Decisions, Changes, and Questions: User-facing copy specified | superdev |
-| 3864 | 2026-07-29 | Decisions, Changes, and Questions: Accessibility specified | superdev |
-| 3863 | 2026-07-29 | Decisions, Changes, and Questions: Edge cases specified | superdev |
-| 3862 | 2026-07-29 | Decisions, Changes, and Questions: Events specified | superdev |
-| 3861 | 2026-07-29 | Decisions, Changes, and Questions: End-to-end wiring specified | superdev |
-| 3860 | 2026-07-29 | Decisions, Changes, and Questions: Data specified | superdev |
-| 3859 | 2026-07-29 | Decisions, Changes, and Questions: API surface specified | superdev |
-| 3858 | 2026-07-29 | Decisions, Changes, and Questions: Actions specified | superdev |
-| 3857 | 2026-07-29 | Decisions, Changes, and Questions: Pages and surfaces specified | superdev |
-| 3855 | 2026-07-29 | Documentation Generation and Sync: Performance specified | superdev |
-| 3854 | 2026-07-29 | Product Model and Orchestration: Performance specified | superdev |
-| 3853 | 2026-07-29 | Product Model and Orchestration: Accessibility specified | superdev |
