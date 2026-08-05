@@ -20,6 +20,7 @@ import {
   CAPABILITY_AREAS,
   EDGE_CASE_CATEGORIES,
   SPEC_DEPTHS,
+  DEPTH_REQUIREMENTS,
   agrees,
   count,
   titleCase,
@@ -81,6 +82,32 @@ describe("the fixed vocabularies", () => {
     // The depth gate reads this list, and the schema constrains the column to
     // it. A fourth depth added here without a migration fails at the database.
     assert.deepEqual(SPEC_DEPTHS, ["microspec", "standard", "full"]);
+  });
+
+  it("asks a surface, a contract and a workflow of every depth above microspec", () => {
+    // Readiness counts these three against the features whose depth requires
+    // them, reading this table to decide which features those are. It used to ask
+    // all three of every accepted feature, so a project of honestly-scoped
+    // microspecs reported nought of a hundred and two three times over and held
+    // readiness thirty points below the truth.
+    //
+    // Moving any of the three into microspec silently puts every microspec
+    // feature back in that denominator, so the split is asserted rather than
+    // assumed.
+    for (const requirement of ["surfaces", "api_or_data", "workflow"]) {
+      assert.ok(!DEPTH_REQUIREMENTS.microspec.includes(requirement),
+        `microspec must not owe ${requirement}`);
+      assert.ok(DEPTH_REQUIREMENTS.standard.includes(requirement),
+        `standard must owe ${requirement}`);
+      assert.ok(DEPTH_REQUIREMENTS.full.includes(requirement),
+        `full must owe ${requirement}`);
+    }
+  });
+
+  it("defines requirements for exactly the depths that exist", () => {
+    // The gate looks a depth up in this table and a miss reads as "owes
+    // nothing", which would accept anything at that depth without a word.
+    assert.deepEqual(Object.keys(DEPTH_REQUIREMENTS).sort(), [...SPEC_DEPTHS].sort());
   });
 
   it("keeps every edge-case category unique and lowercase", () => {

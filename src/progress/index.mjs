@@ -15,7 +15,7 @@
 // project root, so a caller composes several of these inside one read.
 
 import { json, DbError } from "../db/store.mjs";
-import { agrees, count, AMBIENT_EVENTS } from "../model/vocabulary.mjs";
+import { agrees, count, AMBIENT_EVENTS, DEPTH_REQUIREMENTS } from "../model/vocabulary.mjs";
 
 const DAY_MS = 86_400_000;
 
@@ -90,6 +90,10 @@ const comp = (name, counts) => ({
   done: counts.done,
   total: counts.total,
   applies: counts.total > 0,
+  // Why a component has nothing to count, when the answer is a decision rather
+  // than an omission. summarize already tells those two apart and says so; it
+  // just never had a reason to read, because nothing passed one.
+  reason: counts.reason ?? null,
 });
 
 /**
@@ -590,17 +594,53 @@ export async function readiness(db, projectId) {
     "SELECT id, name, spec_depth FROM features WHERE project_id = ? AND status NOT IN ('draft','retired','superseded')",
     projectId,
   );
-  const described = { surfaces: 0, dataOrApi: 0, workflow: 0 };
+  // Counted against the depth each feature was accepted at, not against all of
+  // them.
+  //
+  // Depth is a promise about how much contract is written down before anyone
+  // builds, and DEPTH_REQUIREMENTS is where that promise lives: a microspec owes
+  // a purpose, a flow, criteria and edge cases, and is explicitly not asked for a
+  // surface, a contract or a workflow. Readiness asked all three of every accepted
+  // feature anyway, so a project of honestly-scoped microspecs reported nought of
+  // a hundred and two, three times over, and no amount of work could move it. A
+  // component that cannot rise is not measuring anything; it is just weight.
+  //
+  // So a feature joins the denominator only where its own depth put it there. When
+  // no feature owes a thing, the component carries a reason and leaves the total,
+  // the way a not-applicable capability area does, rather than reading as a gap.
+  const described = {
+    surfaces: { done: 0, total: 0 },
+    dataOrApi: { done: 0, total: 0 },
+    workflow: { done: 0, total: 0 },
+  };
   for (const feature of acceptedFeatures) {
+    const owed = DEPTH_REQUIREMENTS[String(feature.spec_depth ?? "standard")] ?? [];
     const has = async (table) => Number(
       (await db.get(`SELECT COUNT(*) AS n FROM ${table} WHERE feature_id = ?`, feature.id))?.n ?? 0) > 0;
-    if (await has("surfaces")) described.surfaces += 1;
+    if (owed.includes("surfaces")) {
+      described.surfaces.total += 1;
+      // A recorded surface, or a platform_variance edge case saying it has no
+      // interface. That second half is the depth gate's own escape hatch, and
+      // readiness disagreeing with the gate about the same feature is how a
+      // project passes acceptance and fails its own readiness report.
+      const noInterface = Number((await db.get(
+        "SELECT COUNT(*) AS n FROM feature_edge_cases WHERE feature_id = ? AND category = 'platform_variance'",
+        feature.id))?.n ?? 0) > 0;
+      if (await has("surfaces") || noInterface) described.surfaces.done += 1;
+    }
     // Either satisfies it, the same way the depth gate treats them: a feature can
     // be backed by stored data or by an operation, and demanding both would fail a
     // feature that legitimately has one.
-    if (await has("data_entities") || await has("api_operations")) described.dataOrApi += 1;
-    if (await has("workflows")) described.workflow += 1;
+    if (owed.includes("api_or_data")) {
+      described.dataOrApi.total += 1;
+      if (await has("data_entities") || await has("api_operations")) described.dataOrApi.done += 1;
+    }
+    if (owed.includes("workflow")) {
+      described.workflow.total += 1;
+      if (await has("workflows")) described.workflow.done += 1;
+    }
   }
+  const atDepth = "no accepted feature is at a depth that requires one";
 
   const areaCounts = { specified: 0, awaiting_decision: 0, deferred: 0, not_applicable: 0 };
   for (const area of areas) areaCounts[area.state] = (areaCounts[area.state] ?? 0) + 1;
@@ -635,9 +675,9 @@ export async function readiness(db, projectId) {
     // Absent when nothing is accepted yet, since there is nothing to describe.
     ...(acceptedFeatures.length
       ? [
-          comp("Accepted features with a surface", { done: described.surfaces, total: acceptedFeatures.length }),
-          comp("Accepted features with data or an API", { done: described.dataOrApi, total: acceptedFeatures.length }),
-          comp("Accepted features with a workflow", { done: described.workflow, total: acceptedFeatures.length }),
+          comp("Accepted features with a surface", { ...described.surfaces, reason: atDepth }),
+          comp("Accepted features with data or an API", { ...described.dataOrApi, reason: atDepth }),
+          comp("Accepted features with a workflow", { ...described.workflow, reason: atDepth }),
         ]
       : []),
   ];
