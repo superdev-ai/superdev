@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0003 revision=3969 hash=b81c963cce61c7654e9803ec1565dc6688b2cb53de1ba6d0e3af8b3b9e6946c5 -->
+<!-- superdev:generated source=MOD-0003 revision=4066 hash=f1a5c0ee0f95f433062fb961b021f18cc37a617fb55f772cf2b69e0c3d253697 -->
 # Module: Documentation Generation and Sync
 
 - **Status:** Planned
@@ -67,7 +67,7 @@ No events recorded.
 | 4 | API surface | Filled | Five operations: doctor, docs generate, docs diff, docs accept and docs reject. |
 | 5 | Data | Filled | One entity, documents, which carries each generated file path, revision and sync status. |
 | 6 | End-to-end wiring | Filled | Proven by journey: generate writes the files, diff detects a hand edit as a proposal, and accepting folds it back into the record. |
-| 7 | State machines | Open | Not recorded |
+| 7 | State machines | Filled | One. A document's sync_status opens at generated and moves to manual_edit_pending when somebody edits the file by hand, then to accepted or rejected when that edit is resolved, to missing when the file is gone, and to retired when the record it described no longer exists. Retired documents leave the readiness total rather than counting against it, because nothing generates them any more and counting them asks for work nobody can do. |
 | 8 | Events | Filled | Generation and every accept or reject append an activity event, so a document history is readable. |
 | 9 | Edge cases | Filled | Twenty-one across the six features, including a hand-edited document, a document whose record was retired, and a generation that would overwrite unaccepted edits. |
 | 10 | UI states | Not Applicable | N/A - The module writes Markdown files read in an editor or on GitHub and renders no interface of its own. |

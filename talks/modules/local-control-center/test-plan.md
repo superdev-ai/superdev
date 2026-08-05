@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0009 revision=3752 hash=b2399ba322ab3b0fe943274459bfe40ce657a0753aef4039724e75f14a47be88 -->
+<!-- superdev:generated source=MOD-0009 revision=4066 hash=a832b2aeea201e185465fe94c2dffea34320cc55657ee4ee4fe32b97e382f3f0 -->
 # Local Control Center - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -64,3 +64,4 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | Every figure prints the fraction beside the shape, and says so when there is nothing to measure | manual_check | pass | - | Current |
 | Every segment carries its label as text, and no state is tinted with the signal | manual_check | pass | - | Current |
 | One self-contained file, no new dependency, seven kilobytes larger | manual_check | pass | - | Current |
+| Readiness moved from 58 percent (470 of 812) to 91 percent (462 of 506), and the three architecture components now read as not applicable with the reason, because all 102 accepted features are microspec depth. 126 of 126 tests pass. | manual_check | pass | - | Current |

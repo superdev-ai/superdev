@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0005 revision=3969 hash=fdb89af2633ec08c98b93b3d8b84cca482b585e96cd7eed96f36ef9c1e23e84e -->
+<!-- superdev:generated source=MOD-0005 revision=4066 hash=1e324e48027b6544e507b25ded8198c178fbec950ada96d88a532a51059f82a0 -->
 # Module: Decisions, Changes, and Questions
 
 - **Status:** Planned
@@ -81,22 +81,22 @@ No events recorded.
 | # | Step | State | Outcome |
 |---|---|---|---|
 | 1 | Pages and surfaces | Filled | Two live surfaces: Decisions, and the Blueprint canvas where the architecture is laid out. |
-| 2 | UI composition | Open | Not recorded |
+| 2 | UI composition | Filled | Three areas: ui/src/views/decisions.tsx, blueprint.tsx and changes.tsx, on the shared app-shell, built from the ui primitives with components/product/panel.tsx for a record and its links. A decision shows what it governs through its decision_links, and the blueprint renders the accepted decisions as the shape they add up to rather than as a list. |
 | 3 | Actions | Filled | Thirteen recorded actions on Blueprint covering laying out and opening records; Decisions is a read surface where every write is a command. |
 | 4 | API surface | Filled | Six operations: listing and answering questions, recording, superseding and listing decisions, and the sync dry run. |
 | 5 | Data | Filled | Four entities: questions, assumptions, decisions and applied migrations. |
 | 6 | End-to-end wiring | Filled | Proven by journey: a decision recorded by command appears on the Blueprint and in the decisions in force that every session is handed. |
-| 7 | State machines | Open | Not recorded |
+| 7 | State machines | Filled | Three. A decision runs proposed to accepted, rejected, deprecated or superseded, moved by setStatus, which also writes the decision transition. An assumption runs holding to confirmed, overturned or expired, and its revisit trigger is what says when to look. A change runs proposed, recorded or reverted. AU-002 warns that nothing in src moves a change off recorded, so a recorded change cannot currently be reverted or withdrawn. |
 | 8 | Events | Filled | Decisions leave a transition row as well as an activity event, so superseding preserves the original and its reason rather than rewriting it. |
 | 9 | Edge cases | Filled | Nineteen across the six features, including a decision superseded by one that contradicts it and an assumption that outlived what it assumed. |
-| 10 | UI states | Open | Not recorded |
+| 10 | UI states | Filled | The five shared states in ui/src/components/shell/states.tsx: Loading, Empty, Error, Stale and Offline. Principle I of DESIGN_DIRECTION.md requires each to carry a title, an explanation of what happened and an action, so a bare spinner, a blank region or the word None is a defect. Views import these rather than writing their own. A project with no decisions shows Empty naming superdev decision record, because a blank Decisions area otherwise reads as a product built on nothing. |
 | 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
 | 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
 | 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
 | 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
-| 15 | Responsive behavior | Open | Not recorded |
+| 15 | Responsive behavior | Filled | Tailwind breakpoints, no separate mobile build. Summary tiles run one column, then sm:grid-cols-2, then lg:grid-cols-3. The shell navigation collapses behind md:hidden below md and opens as a sheet. Wide tables and diagrams scroll inside their own container so the page body never scrolls sideways. |
 | 16 | User-facing copy | Filled | A superseded decision reads with its replacement named, which is what makes a correction different from a rewrite of the past. |
-| 17 | URL state and deep links | Open | Not recorded |
+| 17 | URL state and deep links | Filled | Hash routing from ui/src/lib/route.ts, with no router library. The hash is #/view or #/view/record, so the view and the open record are both in the address bar and can be copied to somebody else. An unknown view falls back to overview. Filters and the selected tab are component state and deliberately not in the URL, because a stale filter in a shared link reads as missing data. A decision is deep-linked as #/decisions/DEC-0001, which is what a review comment points at. |
 | 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
 | 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
 | 20 | Compliance and product tests | Filled | FEAT-0079 guards against silent decision overrides, and the decisions in force are re-read at the start of every session. |

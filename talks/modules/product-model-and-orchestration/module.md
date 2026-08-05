@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3969 hash=fe64b2f4ddac1ad8d5617c2283b7e07e8db4d71f97126ffdb530d6904d663f14 -->
+<!-- superdev:generated source=MOD-0002 revision=4066 hash=09a1f5ad603519047633e9c4826bbca500cb7cd2d0e759a4090a783214308710 -->
 # Module: Product Model and Orchestration
 
 - **Status:** Planned
@@ -98,20 +98,20 @@ No events recorded.
 | # | Step | State | Outcome |
 |---|---|---|---|
 | 1 | Pages and surfaces | Filled | SRF-0022 Product at #/product, the map of the whole record, plus twenty commands from plan and status through the list and show pairs. |
-| 2 | UI composition | Open | Not recorded |
+| 2 | UI composition | Filled | Three areas share this module's model: ui/src/views/product.tsx, features.tsx and workflows.tsx, on the shared app-shell. They are built from components/product (panel, feature-detail, depth, resource) and the ui primitives, with diagrams/workflow-swimlane for a workflow and diagrams/graph-canvas for the product map. Feature depth renders through components/product/depth.tsx, which is the one place a reader sees what a declared depth promised. |
 | 3 | Actions | Filled | One action on the Product surface: open a record. The map is otherwise a read surface, and every write is a command. |
 | 4 | API surface | Filled | Twenty recorded operations covering plan, status, and the list and show pairs for modules, goals, milestones, features, workflows, architecture and integrations. |
 | 5 | Data | Filled | Nineteen entities: the canonical product model, from projects, goals and milestones through features, workflows, roles, permissions and changes. |
 | 6 | End-to-end wiring | Filled | Proven by journey: a feature specified by command appears on the product map and in the generated document without a reload. |
-| 7 | State machines | Open | Not recorded |
+| 7 | State machines | Filled | Five. A feature's status opens at draft and is moved only by setStatus, through accepted, complete, retired or superseded. A module's status runs planned to in_progress, implemented or deprecated. A module completeness step runs open to filled or not_applicable, and not_applicable requires a reason enforced by a CHECK. A feature acceptance criterion runs unmet to met or waived. A goal success criterion runs unmet to met, unmeasured or not_applicable. AU-002 currently warns that nothing in src moves a module off planned, which is why every module reads Planned however much of it ships. |
 | 8 | Events | Filled | Every write appends an activity event, and the derived-completion rules read those events rather than any asserted status. |
 | 9 | Edge cases | Filled | Sixty-three across the twenty-one features, including the depth gate refusing acceptance and an append-only history refusing an edit. |
-| 10 | UI states | Open | Not recorded |
+| 10 | UI states | Filled | The five shared states in ui/src/components/shell/states.tsx: Loading, Empty, Error, Stale and Offline. Principle I of DESIGN_DIRECTION.md requires each to carry a title, an explanation of what happened and an action, so a bare spinner, a blank region or the word None is a defect. Views import these rather than writing their own. A feature with no recorded contract shows what its declared depth still owes rather than an empty panel. |
 | 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
 | 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
 | 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
 | 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
-| 15 | Responsive behavior | Open | Not recorded |
+| 15 | Responsive behavior | Filled | Tailwind breakpoints, no separate mobile build. Summary tiles run one column, then sm:grid-cols-2, then lg:grid-cols-3. The shell navigation collapses behind md:hidden below md and opens as a sheet. Wide tables and diagrams scroll inside their own container so the page body never scrolls sideways. The product map and the workflow swimlane scroll and zoom rather than reflowing, because a rearranged graph is a different diagram. |
 | 16 | User-facing copy | Filled | Every refusal names the missing part and the command that supplies it; the acceptance refusal lists each one on its own line. |
 | 17 | URL state and deep links | Filled | The Product view is a hash route and every record has a linkable identifier. |
 | 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |

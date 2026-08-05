@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0008 revision=3969 hash=a39c5fe4dcda5b503d499818a35eff4cffa6e6fc01a64c28dc14044b806ce3d1 -->
+<!-- superdev:generated source=MOD-0008 revision=4066 hash=80fafcf246fcd35787a2d4c8a81b7d66fc558b28fd96bd195aa479779853ba5a -->
 # Module: Hooks and Session Continuity
 
 - **Status:** Planned
@@ -66,22 +66,22 @@ No events recorded.
 | # | Step | State | Outcome |
 |---|---|---|---|
 | 1 | Pages and surfaces | Filled | One live surface, Team and Agents at #/team. The module is otherwise invoked by the harness rather than opened. |
-| 2 | UI composition | Open | Not recorded |
+| 2 | UI composition | Filled | One area: ui/src/views/team.tsx, labelled Team And Agents, on the shared app-shell, built from the ui table, badge and tooltip primitives with components/shell/status.tsx for the live session indicator. It shows developers, agents, branches and work sessions together, because the question it answers is who and what is touching this project right now. |
 | 3 | Actions | Filled | One recorded action on Team and Agents; every other trigger is a harness lifecycle event. |
 | 4 | API surface | Filled | The contract is the harness hook set: session start, prompt submit, post tool use, pre compact and session end, with a command-based fallback for harnesses that support no hooks at all. |
 | 5 | Data | Filled | Three entities: work sessions, decision transitions and activity events. |
 | 6 | End-to-end wiring | Filled | Proven by journey: a session start restores the active task, decisions in force and blockers, and a session end records the outcome. |
-| 7 | State machines | Open | Not recorded |
+| 7 | State machines | Filled | Four. A work session runs active to compacted, handed_off or ended. A branch runs active to merged or abandoned. A developer and an agent each run active to inactive. AU-002 warns that nothing in src moves a branch, so a branch stays active after it is merged and the active-branch count never falls, which is what the Team area counts. |
 | 8 | Events | Filled | This module is where events are produced: every tool run records what it touched, attributed to the session that ran it and bounded by age rather than by count. |
 | 9 | Edge cases | Filled | Twenty-seven across the seven features, including a harness with no hooks, work that maps to no task, and context lost before a handoff was written. |
-| 10 | UI states | Open | Not recorded |
+| 10 | UI states | Filled | The five shared states in ui/src/components/shell/states.tsx: Loading, Empty, Error, Stale and Offline. Principle I of DESIGN_DIRECTION.md requires each to carry a title, an explanation of what happened and an action, so a bare spinner, a blank region or the word None is a defect. Views import these rather than writing their own. A session that has gone quiet is shown through the Stale state with when it was last seen, rather than being silently dropped from the list. |
 | 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
 | 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
 | 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
 | 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
-| 15 | Responsive behavior | Open | Not recorded |
+| 15 | Responsive behavior | Filled | Tailwind breakpoints, no separate mobile build. Summary tiles run one column, then sm:grid-cols-2, then lg:grid-cols-3. The shell navigation collapses behind md:hidden below md and opens as a sheet. Wide tables and diagrams scroll inside their own container so the page body never scrolls sideways. The session table drops its branch and revision columns below md and keeps who, what and when. |
 | 16 | User-facing copy | Filled | The session start block names the active task, the decisions in force and the next action, and says plainly when no task is claimed. |
-| 17 | URL state and deep links | Open | Not recorded |
+| 17 | URL state and deep links | Filled | Hash routing from ui/src/lib/route.ts, with no router library. The hash is #/view or #/view/record, so the view and the open record are both in the address bar and can be copied to somebody else. An unknown view falls back to overview. Filters and the selected tab are component state and deliberately not in the URL, because a stale filter in a shared link reads as missing data. A session is deep-linked as #/team/SES-0001. |
 | 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
 | 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
 | 20 | Compliance and product tests | Filled | src/runtime/hooks.test.mjs asserts the attribution rules, and the no-hooks fallback is exercised before every release. |

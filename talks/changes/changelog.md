@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=3983 hash=cdc308e7c2fee8a0cebfb267e115e53c94bfe13124d1dc1825c04d7a7cba6a35 -->
+<!-- superdev:generated source=PRJ-0001 revision=4066 hash=7000ce8d9a1fd823746b85ec50caae227a786e3d672549f476ebe9c38d4e81c1 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,79 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 4066 | 2026-08-05 | Linked memory MEM-0148 to feature FEAT-0102 | superdev |
+| 4065 | 2026-08-05 | Linked memory MEM-0148 to task TASK-0056 | superdev |
+| 4064 | 2026-08-05 | Remembered outcome: TASK-0056 complete: Settle the forty-three open module completeness steps | superdev |
+| 4063 | 2026-08-05 | TASK-0056 completed, assignment released. | superdev |
+| 4062 | 2026-08-05 | Task TASK-0056 moved to complete | superdev |
+| 4061 | 2026-08-05 | Passing evidence recorded for TASK-0056: All 43 open steps filled from the shipped interface and schema rather than invented: module completeness moved 113 of 156 to 156 of 156, and readiness from 91 to 99 percent. The only item left is the deferred cloud synchronization capability area. | superdev |
+| 4060 | 2026-08-05 | Packaging and Distribution: Performance specified | superdev |
+| 4059 | 2026-08-05 | Packaging and Distribution: Edge cases specified | superdev |
+| 4058 | 2026-08-05 | Provider Orchestration: Events specified | superdev |
+| 4057 | 2026-08-05 | Local Control Center: Responsive behavior specified | superdev |
+| 4056 | 2026-08-05 | Local Control Center: UI states specified | superdev |
+| 4055 | 2026-08-05 | Local Control Center: State machines specified | superdev |
+| 4054 | 2026-08-05 | Local Control Center: Actions specified | superdev |
+| 4053 | 2026-08-05 | Local Control Center: UI composition specified | superdev |
+| 4052 | 2026-08-05 | Hooks and Session Continuity: URL state and deep links specified | superdev |
+| 4051 | 2026-08-05 | Hooks and Session Continuity: Responsive behavior specified | superdev |
+| 4050 | 2026-08-05 | Hooks and Session Continuity: UI states specified | superdev |
+| 4049 | 2026-08-05 | Hooks and Session Continuity: State machines specified | superdev |
+| 4048 | 2026-08-05 | Hooks and Session Continuity: UI composition specified | superdev |
+| 4047 | 2026-08-05 | Memory System: URL state and deep links specified | superdev |
+| 4046 | 2026-08-05 | Memory System: Responsive behavior specified | superdev |
+| 4045 | 2026-08-05 | Memory System: UI states specified | superdev |
+| 4044 | 2026-08-05 | Memory System: State machines specified | superdev |
+| 4043 | 2026-08-05 | Memory System: UI composition specified | superdev |
+| 4042 | 2026-08-05 | Database and Persistence: URL state and deep links specified | superdev |
+| 4041 | 2026-08-05 | Database and Persistence: Responsive behavior specified | superdev |
+| 4040 | 2026-08-05 | Database and Persistence: UI states specified | superdev |
+| 4039 | 2026-08-05 | Database and Persistence: State machines specified | superdev |
+| 4038 | 2026-08-05 | Database and Persistence: UI composition specified | superdev |
+| 4037 | 2026-08-05 | Decisions, Changes, and Questions: URL state and deep links specified | superdev |
+| 4036 | 2026-08-05 | Decisions, Changes, and Questions: Responsive behavior specified | superdev |
+| 4035 | 2026-08-05 | Decisions, Changes, and Questions: UI states specified | superdev |
+| 4034 | 2026-08-05 | Decisions, Changes, and Questions: State machines specified | superdev |
+| 4033 | 2026-08-05 | Decisions, Changes, and Questions: UI composition specified | superdev |
+| 4032 | 2026-08-05 | Task and Implementation Lifecycle: URL state and deep links specified | superdev |
+| 4031 | 2026-08-05 | Task and Implementation Lifecycle: Responsive behavior specified | superdev |
+| 4030 | 2026-08-05 | Task and Implementation Lifecycle: UI states specified | superdev |
+| 4029 | 2026-08-05 | Task and Implementation Lifecycle: State machines specified | superdev |
+| 4028 | 2026-08-05 | Task and Implementation Lifecycle: UI composition specified | superdev |
+| 4027 | 2026-08-05 | Documentation Generation and Sync: State machines specified | superdev |
+| 4026 | 2026-08-05 | Product Model and Orchestration: Responsive behavior specified | superdev |
+| 4025 | 2026-08-05 | Product Model and Orchestration: UI states specified | superdev |
+| 4024 | 2026-08-05 | Product Model and Orchestration: State machines specified | superdev |
+| 4023 | 2026-08-05 | Product Model and Orchestration: UI composition specified | superdev |
+| 4022 | 2026-08-05 | Discovery and Onboarding: Responsive behavior specified | superdev |
+| 4021 | 2026-08-05 | Discovery and Onboarding: UI states specified | superdev |
+| 4020 | 2026-08-05 | Discovery and Onboarding: State machines specified | superdev |
+| 4019 | 2026-08-05 | Discovery and Onboarding: Data specified | superdev |
+| 4018 | 2026-08-05 | Discovery and Onboarding: UI composition specified | superdev |
+| 4017 | 2026-08-05 | Task TASK-0056 moved to in progress | superdev |
+| 4016 | 2026-08-05 | TASK-0056 claimed. | superdev |
+| 4015 | 2026-08-05 | TASK-0056 now implements acceptance_criterion AC-0121. | superdev |
+| 4014 | 2026-08-05 | Created task TASK-0056 | superdev |
+| 4012 | 2026-08-05 | Linked memory MEM-0147 to feature FEAT-0102 | superdev |
+| 4011 | 2026-08-05 | Linked memory MEM-0147 to task TASK-0053 | superdev |
+| 4010 | 2026-08-05 | Remembered outcome: TASK-0053 complete: Refuse a state column nothing can move off its opening value | superdev |
+| 4009 | 2026-08-05 | Settle a module completeness step is complete: its contract is satisfied | superdev |
+| 4008 | 2026-08-05 | TASK-0053 completed, assignment released. | superdev |
+| 4007 | 2026-08-05 | Task TASK-0053 moved to complete | superdev |
+| 4006 | 2026-08-05 | Passing evidence recorded for TASK-0053: AU-002 and AU-003 added to the authorable validator, derived from migration SQL. It reads 28 enumerated state columns and finds 8 that nothing in src can move: modules, schema_migrations, integrations twice, branches, memory_embeddings, changes and test_plans. Removing an entry from IMMOVABLE escalates it to an error, which was checked by hand. 126 of 126 tests pass and the gate reports no errors. | superdev |
+| 4005 | 2026-08-05 | Task TASK-0053 moved to in progress | superdev |
+| 4004 | 2026-08-05 | TASK-0053 claimed. | superdev |
+| 4003 | 2026-08-05 | TASK-0053 now implements acceptance_criterion AC-0121. | superdev |
+| 4000 | 2026-08-05 | Linked memory MEM-0146 to feature FEAT-0014 | superdev |
+| 3999 | 2026-08-05 | Linked memory MEM-0146 to task TASK-0055 | superdev |
+| 3998 | 2026-08-05 | Remembered outcome: TASK-0055 complete: Count a feature toward readiness only at a depth that requir | superdev |
+| 3997 | 2026-08-05 | TASK-0055 completed, assignment released. | superdev |
+| 3996 | 2026-08-05 | Task TASK-0055 moved to complete | superdev |
+| 3995 | 2026-08-05 | Passing evidence recorded for TASK-0055: Readiness moved from 58 percent (470 of 812) to 91 percent (462 of 506), and the three architecture components now read as not applicable with the reason, because all 102 accepted features are microspec depth. 126 of 126 tests pass. | superdev |
+| 3992 | 2026-08-05 | Task TASK-0055 moved to in progress | superdev |
+| 3991 | 2026-08-05 | TASK-0055 claimed. | superdev |
+| 3990 | 2026-08-05 | TASK-0055 now implements acceptance_criterion AC-0014. | superdev |
+| 3989 | 2026-08-05 | Created task TASK-0055 | superdev |
 | 3983 | 2026-07-29 | FEAT-0102 now serves Always-answerable project state | superdev |
 | 3981 | 2026-07-29 | Linked memory MEM-0129 to feature FEAT-0102 | superdev |
 | 3980 | 2026-07-29 | Linked memory MEM-0129 to task TASK-0054 | superdev |
@@ -134,76 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3855 | 2026-07-29 | Documentation Generation and Sync: Performance specified | superdev |
 | 3854 | 2026-07-29 | Product Model and Orchestration: Performance specified | superdev |
 | 3853 | 2026-07-29 | Product Model and Orchestration: Accessibility specified | superdev |
-| 3852 | 2026-07-29 | Discovery and Onboarding: Performance specified | superdev |
-| 3851 | 2026-07-29 | Discovery and Onboarding: Accessibility specified | superdev |
-| 3850 | 2026-07-29 | Task and Implementation Lifecycle: Discoverability and SEO recorded as not applicable | superdev |
-| 3849 | 2026-07-29 | Task and Implementation Lifecycle: Feature flags recorded as not applicable | superdev |
-| 3848 | 2026-07-29 | Task and Implementation Lifecycle: Internationalization recorded as not applicable | superdev |
-| 3847 | 2026-07-29 | Task and Implementation Lifecycle: Telemetry recorded as not applicable | superdev |
-| 3846 | 2026-07-29 | Task and Implementation Lifecycle: Compliance and product tests specified | superdev |
-| 3845 | 2026-07-29 | Task and Implementation Lifecycle: Performance specified | superdev |
-| 3844 | 2026-07-29 | Task and Implementation Lifecycle: User-facing copy specified | superdev |
-| 3843 | 2026-07-29 | Task and Implementation Lifecycle: Accessibility specified | superdev |
-| 3842 | 2026-07-29 | Task and Implementation Lifecycle: Edge cases specified | superdev |
-| 3841 | 2026-07-29 | Task and Implementation Lifecycle: Events specified | superdev |
-| 3840 | 2026-07-29 | Task and Implementation Lifecycle: End-to-end wiring specified | superdev |
-| 3839 | 2026-07-29 | Task and Implementation Lifecycle: Data specified | superdev |
-| 3838 | 2026-07-29 | Task and Implementation Lifecycle: API surface specified | superdev |
-| 3837 | 2026-07-29 | Task and Implementation Lifecycle: Actions specified | superdev |
-| 3836 | 2026-07-29 | Task and Implementation Lifecycle: Pages and surfaces specified | superdev |
-| 3835 | 2026-07-29 | Documentation Generation and Sync: Discoverability and SEO recorded as not applicable | superdev |
-| 3834 | 2026-07-29 | Documentation Generation and Sync: Feature flags recorded as not applicable | superdev |
-| 3833 | 2026-07-29 | Documentation Generation and Sync: Internationalization recorded as not applicable | superdev |
-| 3832 | 2026-07-29 | Documentation Generation and Sync: Telemetry recorded as not applicable | superdev |
-| 3831 | 2026-07-29 | Documentation Generation and Sync: URL state and deep links recorded as not applicable | superdev |
-| 3830 | 2026-07-29 | Documentation Generation and Sync: Responsive behavior recorded as not applicable | superdev |
-| 3829 | 2026-07-29 | Documentation Generation and Sync: Accessibility recorded as not applicable | superdev |
-| 3828 | 2026-07-29 | Documentation Generation and Sync: UI states recorded as not applicable | superdev |
-| 3827 | 2026-07-29 | Documentation Generation and Sync: UI composition recorded as not applicable | superdev |
-| 3826 | 2026-07-29 | Documentation Generation and Sync: Compliance and product tests specified | superdev |
-| 3825 | 2026-07-29 | Documentation Generation and Sync: User-facing copy specified | superdev |
-| 3824 | 2026-07-29 | Documentation Generation and Sync: Edge cases specified | superdev |
-| 3823 | 2026-07-29 | Documentation Generation and Sync: Events specified | superdev |
-| 3822 | 2026-07-29 | Documentation Generation and Sync: End-to-end wiring specified | superdev |
-| 3821 | 2026-07-29 | Documentation Generation and Sync: Data specified | superdev |
-| 3820 | 2026-07-29 | Documentation Generation and Sync: API surface specified | superdev |
-| 3819 | 2026-07-29 | Documentation Generation and Sync: Actions specified | superdev |
-| 3818 | 2026-07-29 | Documentation Generation and Sync: Pages and surfaces specified | superdev |
-| 3817 | 2026-07-29 | Product Model and Orchestration: Discoverability and SEO recorded as not applicable | superdev |
-| 3816 | 2026-07-29 | Product Model and Orchestration: Feature flags recorded as not applicable | superdev |
-| 3815 | 2026-07-29 | Product Model and Orchestration: Internationalization recorded as not applicable | superdev |
-| 3814 | 2026-07-29 | Product Model and Orchestration: Telemetry recorded as not applicable | superdev |
-| 3813 | 2026-07-29 | Product Model and Orchestration: Compliance and product tests specified | superdev |
-| 3812 | 2026-07-29 | Product Model and Orchestration: URL state and deep links specified | superdev |
-| 3811 | 2026-07-29 | Product Model and Orchestration: User-facing copy specified | superdev |
-| 3810 | 2026-07-29 | Product Model and Orchestration: Edge cases specified | superdev |
-| 3809 | 2026-07-29 | Product Model and Orchestration: Events specified | superdev |
-| 3808 | 2026-07-29 | Product Model and Orchestration: End-to-end wiring specified | superdev |
-| 3807 | 2026-07-29 | Product Model and Orchestration: Data specified | superdev |
-| 3806 | 2026-07-29 | Product Model and Orchestration: API surface specified | superdev |
-| 3805 | 2026-07-29 | Product Model and Orchestration: Actions specified | superdev |
-| 3804 | 2026-07-29 | Product Model and Orchestration: Pages and surfaces specified | superdev |
-| 3803 | 2026-07-29 | Discovery and Onboarding: Discoverability and SEO recorded as not applicable | superdev |
-| 3802 | 2026-07-29 | Discovery and Onboarding: Feature flags recorded as not applicable | superdev |
-| 3801 | 2026-07-29 | Discovery and Onboarding: Internationalization recorded as not applicable | superdev |
-| 3800 | 2026-07-29 | Discovery and Onboarding: Telemetry recorded as not applicable | superdev |
-| 3799 | 2026-07-29 | Discovery and Onboarding: Compliance and product tests specified | superdev |
-| 3798 | 2026-07-29 | Discovery and Onboarding: URL state and deep links specified | superdev |
-| 3797 | 2026-07-29 | Discovery and Onboarding: User-facing copy specified | superdev |
-| 3796 | 2026-07-29 | Discovery and Onboarding: Edge cases specified | superdev |
-| 3795 | 2026-07-29 | Discovery and Onboarding: Events specified | superdev |
-| 3794 | 2026-07-29 | Discovery and Onboarding: End-to-end wiring specified | superdev |
-| 3793 | 2026-07-29 | Discovery and Onboarding: API surface specified | superdev |
-| 3792 | 2026-07-29 | Discovery and Onboarding: Actions specified | superdev |
-| 3791 | 2026-07-29 | Discovery and Onboarding: Pages and surfaces specified | superdev |
-| 3789 | 2026-07-29 | Linked memory MEM-0128 to feature FEAT-0102 | superdev |
-| 3788 | 2026-07-29 | Linked memory MEM-0128 to task TASK-0052 | superdev |
-| 3787 | 2026-07-29 | Remembered outcome: TASK-0052 complete: Build the writer for a module completeness step | superdev |
-| 3786 | 2026-07-29 | TASK-0052 completed, assignment released. | superdev |
-| 3785 | 2026-07-29 | Task TASK-0052 moved to complete | superdev |
-| 3784 | 2026-07-29 | Acceptance criterion AC-0123 is met, evidenced by EV-0180. | superdev |
-| 3783 | 2026-07-29 | Passing evidence recorded for TASK-0052: Filling with no summary, marking not applicable with no reason, and filling with whitespace all refused with a sentence naming what was missing; a step number of 21 refused with the range. | superdev |
-| 3782 | 2026-07-29 | Acceptance criterion AC-0122 is met, evidenced by EV-0179. | superdev |
-| 3781 | 2026-07-29 | Passing evidence recorded for TASK-0052: Marking Internationalization not applicable dropped the readiness total from 20 to 19 rather than counting the step against it. | superdev |
-| 3780 | 2026-07-29 | Acceptance criterion AC-0121 is met, evidenced by EV-0178. | superdev |
-| 3779 | 2026-07-29 | Passing evidence recorded for TASK-0052: On a disposable project, filling step 1 moved it from Open to Specified and the readiness component moved from 0 of 20 to 1 of 19. | superdev |

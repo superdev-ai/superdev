@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0007 revision=3969 hash=e71056db6a1219ac195dd5d80903c95e65404768329a1f7450be48a64f8f5f4d -->
+<!-- superdev:generated source=MOD-0007 revision=4066 hash=e88e71b8359d7380cd2320055106ecdb2c4f20c235d151624f71b9266e7281a8 -->
 # Module: Memory System
 
 - **Status:** Planned
@@ -75,22 +75,22 @@ No events recorded.
 | # | Step | State | Outcome |
 |---|---|---|---|
 | 1 | Pages and surfaces | Filled | One live surface, Activity and Memory at #/activity. The standalone Memory surface is retired. |
-| 2 | UI composition | Open | Not recorded |
+| 2 | UI composition | Filled | One area: ui/src/views/activity.tsx, labelled Activity And Memory, on the shared app-shell. It is built from the ui primitives with the shell figures for the counts, and shows the activity log and the memory entries against one timeline, because a memory without the work it came from is unreadable. |
 | 3 | Actions | Filled | Two recorded actions on Activity and Memory; searching, verifying, consolidating and superseding are commands. |
 | 4 | API surface | Filled | Eight operations: resume and resume --end, memory search, show, verify, consolidate, supersede and status. |
 | 5 | Data | Filled | Four entities: memory entries, the links between them, their search terms and their optional embeddings. |
 | 6 | End-to-end wiring | Filled | Proven by journey: a memory written in one session is retrieved by search in the next, and a handoff survives context compaction. |
-| 7 | State machines | Open | Not recorded |
+| 7 | State machines | Filled | Two. A memory entry's epistemic status is one of confirmed, inferred, assumed, unknown, contradicted or declined, opening at inferred, and consolidation is what moves it. An embedding runs pending to ready, stale or failed. AU-002 warns that nothing in src moves an embedding, because no embedding worker ships yet, so a queued embedding stays pending and the column is the contract that one will fill. |
 | 8 | Events | Filled | Consolidation and verification append activity events, and superseding leaves the original readable with its replacement named. |
 | 9 | Edge cases | Filled | Twenty-eight across the seven features, including unverified agent output offered as fact, a memory that contradicts an accepted decision, and embeddings being unavailable. |
-| 10 | UI states | Open | Not recorded |
+| 10 | UI states | Filled | The five shared states in ui/src/components/shell/states.tsx: Loading, Empty, Error, Stale and Offline. Principle I of DESIGN_DIRECTION.md requires each to carry a title, an explanation of what happened and an action, so a bare spinner, a blank region or the word None is a defect. Views import these rather than writing their own. A project whose memory has not been consolidated yet shows Empty naming what consolidates it, not a spinner. |
 | 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
 | 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
 | 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
 | 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
-| 15 | Responsive behavior | Open | Not recorded |
+| 15 | Responsive behavior | Filled | Tailwind breakpoints, no separate mobile build. Summary tiles run one column, then sm:grid-cols-2, then lg:grid-cols-3. The shell navigation collapses behind md:hidden below md and opens as a sheet. Wide tables and diagrams scroll inside their own container so the page body never scrolls sideways. The timeline goes from two columns to one below md, keeping the time gutter inline rather than dropping it. |
 | 16 | User-facing copy | Filled | A memory reads with how it was verified, so an unverified claim is never presented as a settled one. |
-| 17 | URL state and deep links | Open | Not recorded |
+| 17 | URL state and deep links | Filled | Hash routing from ui/src/lib/route.ts, with no router library. The hash is #/view or #/view/record, so the view and the open record are both in the address bar and can be copied to somebody else. An unknown view falls back to overview. Filters and the selected tab are component state and deliberately not in the URL, because a stale filter in a shared link reads as missing data. A memory entry is deep-linked as #/activity/MEM-0001. |
 | 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
 | 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
 | 20 | Compliance and product tests | Filled | Retrieval is targeted rather than whole-database, which NFR-0003 requires, and the handoff path is exercised before every release. |

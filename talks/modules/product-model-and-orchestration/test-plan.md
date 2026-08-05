@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0002 revision=3981 hash=cfd2c285b8d5f815f95cb4dea3a09e4d3d62895fbc403d5433093076d32ad500 -->
+<!-- superdev:generated source=MOD-0002 revision=4066 hash=de5789b7a075e0b3265f9727a7ad435603326993a159c311b7b6c37fae704881 -->
 # Product Model and Orchestration - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -101,3 +101,5 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | Marking Internationalization not applicable dropped the readiness total from 20 to 19 rather than counting the step against it. | manual_check | pass | - | Current |
 | Filling with no summary, marking not applicable with no reason, and filling with whitespace all refused with a sentence naming what was missing; a step number of 21 refused with the range. | manual_check | pass | - | Current |
 | All eleven modules settled against their own records: 113 steps specified, 64 marked not applicable with a reason, 43 left honestly open. Readiness moved from 0 of 220 to 113 of 156. | manual_check | pass | - | Current |
+| AU-002 and AU-003 added to the authorable validator, derived from migration SQL. It reads 28 enumerated state columns and finds 8 that nothing in src can move: modules, schema_migrations, integrations twice, branches, memory_embeddings, changes and test_plans. Removing an entry from IMMOVABLE escalates it to an error, which was checked by hand. 126 of 126 tests pass and the gate reports no errors. | manual_check | pass | - | Current |
+| All 43 open steps filled from the shipped interface and schema rather than invented: module completeness moved 113 of 156 to 156 of 156, and readiness from 91 to 99 percent. The only item left is the deferred cloud synchronization capability area. | manual_check | pass | - | Current |

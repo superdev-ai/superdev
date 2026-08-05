@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0009 revision=3969 hash=c4f2f8cfb2205c75bfd1c7d395156bc0161c896f3af72af75fdbbc631d81c5df -->
+<!-- superdev:generated source=MOD-0009 revision=4066 hash=9b6dd9d451703b063ec64730170e2b1e8984c5931e3b5f5a3fd7008f65dbfa4e -->
 # Module: Local Control Center
 
 - **Status:** Planned
@@ -88,20 +88,20 @@ No events recorded.
 | # | Step | State | Outcome |
 |---|---|---|---|
 | 1 | Pages and surfaces | Filled | Ten live surfaces from Overview through Settings, Sync and Readiness; four are retired. Release condition 26 refuses a recorded surface that does not match the shipped route table. |
-| 2 | UI composition | Open | Not recorded |
-| 3 | Actions | Open | Not recorded |
+| 2 | UI composition | Filled | The shell itself: ui/src/App.tsx with components/shell/app-shell.tsx, which carries the navigation over all twenty views in VIEWS, the project name, the service-reachable indicator from shell/status.tsx and the shared figures. Every area is a component in ui/src/views mounted through VIEW_COMPONENTS against the current hash route, so a new area is one view file and one entry in VIEWS rather than a change to the shell. |
+| 3 | Actions | Filled | The shell offers navigation across the twenty views, a command palette over components/ui/command.tsx for jumping to an area or a record by name, the settings sheet, and a refresh that re-reads the local service. Everything that changes a record is done through the CLI rather than here: the control centre is a reading surface, and the actions it does offer either move the reader or re-read the service. |
 | 4 | API surface | Filled | Eight operations, plus the read model behind the control centre: one GET per view, one POST to /api/mutations with allowlisted actions, and a server-sent event stream at /api/events. |
 | 5 | Data | Filled | Two entities, surfaces and their actions, which is the record of the interface itself. |
 | 6 | End-to-end wiring | Filled | Proven by journey: a task created in the interface is written through /api/mutations and appears in every other open view over the event stream without a reload. |
-| 7 | State machines | Open | Not recorded |
+| 7 | State machines | Filled | Two, both belonging to synchronization, which this area reports on: a sync peer runs disconnected to connected or error, and a sync conflict runs open to resolved. The shell itself holds no record state machine. Its own states are the route in the hash and whether the local service answered, and both are derived on every render rather than stored. |
 | 8 | Events | Filled | Every mutation appends an activity event and is pushed to open clients over server-sent events, which is what keeps two views of the same record from disagreeing. |
 | 9 | Edge cases | Filled | Fifty-one across the fourteen features, including a port already in use, a database that moved underneath an open client, and a mutation the allowlist refuses. |
-| 10 | UI states | Open | Not recorded |
+| 10 | UI states | Filled | The five shared states in ui/src/components/shell/states.tsx: Loading, Empty, Error, Stale and Offline. Principle I of DESIGN_DIRECTION.md requires each to carry a title, an explanation of what happened and an action, so a bare spinner, a blank region or the word None is a defect. Views import these rather than writing their own. Offline is the shell's own state: when the local service does not answer, the shell says so once at the top rather than letting twenty areas each render their own error. |
 | 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
 | 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
 | 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
 | 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
-| 15 | Responsive behavior | Open | Not recorded |
+| 15 | Responsive behavior | Filled | Tailwind breakpoints, no separate mobile build. Summary tiles run one column, then sm:grid-cols-2, then lg:grid-cols-3. The shell navigation collapses behind md:hidden below md and opens as a sheet. Wide tables and diagrams scroll inside their own container so the page body never scrolls sideways. The shell navigation is a persistent sidebar from md up and a sheet below it, and the command palette is full-width on a narrow screen. |
 | 16 | User-facing copy | Filled | Governed by the design direction: every number declares what it counts, with no naked figure and no naked percentage, and status is carried by glyph and label before colour. |
 | 17 | URL state and deep links | Filled | Every view is a hash route, so each is deep linkable and survives a reload, and release condition 26 holds the recorded surfaces to the shipped route table. |
 | 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |

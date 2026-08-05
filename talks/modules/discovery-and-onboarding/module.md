@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0001 revision=3969 hash=5ac1dcfaee742ec1ce61d31dfc2492518f4303226afc2697fe506049b5a57923 -->
+<!-- superdev:generated source=MOD-0001 revision=4066 hash=0d95b53377196666415c9dd1dba94fd036f9dce06bb7961980d515b7a6c5035f -->
 # Module: Discovery and Onboarding
 
 - **Status:** Planned
@@ -56,20 +56,20 @@ No events recorded.
 | # | Step | State | Outcome |
 |---|---|---|---|
 | 1 | Pages and surfaces | Filled | One surface, SRF-0021 Discovery at #/discovery. The rest of the module is reached as commands: superdev init and superdev adopt. |
-| 2 | UI composition | Open | Not recorded |
+| 2 | UI composition | Filled | The Discovery area is ui/src/views/discovery.tsx, on the shared app-shell, built from the ui primitives (card, table, badge, tabs, dialog) and components/discovery/answer-question.tsx, which answers an open question in place. Concept relationships render through components/canvas: graph-canvas, record-node, layout and freshness. It reads discovery items, source material, questions and capability areas from the local read model and holds no state of its own beyond the record named in the hash. |
 | 3 | Actions | Filled | Two actions on the Discovery surface: convert a concept into a record, and move a node on the map. |
 | 4 | API surface | Filled | superdev adopt (API-0002) and superdev init (API-0001), plus the control centre discovery read and the convert action on /api/mutations. |
-| 5 | Data | Open | Not recorded |
+| 5 | Data | Filled | Discovery owns four collections. discovery_items carries a kind, an epistemic status and a status, and links to whatever it became through discovery_links. source_material records what was read, where it came from and its screening status. questions carries the question, its status and the answer. capability_areas carries the area, its state, the choice, the reason, the owner and the revisit trigger, unique per project, catalog, scope type, scope id and area, with a CHECK that any state other than specified has a reason. Init writes all four from the brief and from inspecting the repository. |
 | 6 | End-to-end wiring | Filled | Proven by journey: init writes the record from a brief, the Discovery view reads it, and converting a concept writes back and appears without a reload. |
-| 7 | State machines | Open | Not recorded |
+| 7 | State machines | Filled | Four, all enumerated in the schema. A discovery item's status runs proposed to accepted, rejected, converted or superseded, and its epistemic status is one of confirmed, inferred, assumed, unknown, contradicted or declined, opening at inferred. A question runs open to answered, deferred or withdrawn. Source material screening runs pending, clean, redacted or rejected and is decided when the source is read rather than moved afterwards. A capability area runs awaiting_decision to specified, deferred or not_applicable. AU-002 in the authorable validator holds each of these to something in src that can actually move it. |
 | 8 | Events | Filled | Every write appends an activity event through recordActivity; init writes are attributed to the session that ran it. |
 | 9 | Edge cases | Filled | Sixteen recorded across the five features, covering an unreadable brief, a directory already initialised, an absent git identity and a rejected product map. |
-| 10 | UI states | Open | Not recorded |
+| 10 | UI states | Filled | The five shared states in ui/src/components/shell/states.tsx: Loading, Empty, Error, Stale and Offline. Principle I of DESIGN_DIRECTION.md requires each to carry a title, an explanation of what happened and an action, so a bare spinner, a blank region or the word None is a defect. Views import these rather than writing their own. Empty on a repository with no discovery yet names superdev init as the action rather than asking the reader to wait. |
 | 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
 | 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
 | 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
 | 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
-| 15 | Responsive behavior | Open | Not recorded |
+| 15 | Responsive behavior | Filled | Tailwind breakpoints, no separate mobile build. Summary tiles run one column, then sm:grid-cols-2, then lg:grid-cols-3. The shell navigation collapses behind md:hidden below md and opens as a sheet. Wide tables and diagrams scroll inside their own container so the page body never scrolls sideways. The concept canvas keeps its own pan and zoom at every width instead of reflowing. |
 | 16 | User-facing copy | Filled | The command output is the product here: every refusal names what was missing and the command that supplies it. |
 | 17 | URL state and deep links | Filled | The Discovery view is a hash route, so it is deep linkable and survives a reload. |
 | 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |

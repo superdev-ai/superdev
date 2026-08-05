@@ -1,7 +1,7 @@
-<!-- superdev:generated source=FEAT-0102 revision=3983 hash=327cf77daf61876fa6dda316580500cefa80716bade4b08faed518c7d13be350 -->
+<!-- superdev:generated source=FEAT-0102 revision=4066 hash=a418bb9592234e2c2e22692492ed41ee9c944412d5104f2483f4a3b511ddb9b4 -->
 # Feature: Settle a module completeness step
 
-- **Status:** Accepted
+- **Status:** Complete
 - **Depth:** Microspec
 - **Module:** Product Model and Orchestration
 - **Risk level:** R1
@@ -48,6 +48,8 @@
 | Marking Internationalization not applicable dropped the readiness total from 20 to 19 rather than counting the step against it. | manual_check | pass | - |
 | Filling with no summary, marking not applicable with no reason, and filling with whitespace all refused with a sentence naming what was missing; a step number of 21 refused with the range. | manual_check | pass | - |
 | All eleven modules settled against their own records: 113 steps specified, 64 marked not applicable with a reason, 43 left honestly open. Readiness moved from 0 of 220 to 113 of 156. | manual_check | pass | - |
+| AU-002 and AU-003 added to the authorable validator, derived from migration SQL. It reads 28 enumerated state columns and finds 8 that nothing in src can move: modules, schema_migrations, integrations twice, branches, memory_embeddings, changes and test_plans. Removing an entry from IMMOVABLE escalates it to an error, which was checked by hand. 126 of 126 tests pass and the gate reports no errors. | manual_check | pass | - |
+| All 43 open steps filled from the shipped interface and schema rather than invented: module completeness moved 113 of 156 to 156 of 156, and readiness from 91 to 99 percent. The only item left is the deferred cloud synchronization capability area. | manual_check | pass | - |
 
 ## Delivery state
 

@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0004 revision=3969 hash=60a21c3388c30a1eb60776ac042abf6920be903ee3569242092bcb8611be5ce4 -->
+<!-- superdev:generated source=MOD-0004 revision=4066 hash=6fcb135c7670dfa882f452ee2d9a221058887255ad56b42a56fb622e0298db80 -->
 # Module: Task and Implementation Lifecycle
 
 - **Status:** Planned
@@ -108,22 +108,22 @@ No events recorded.
 | # | Step | State | Outcome |
 |---|---|---|---|
 | 1 | Pages and surfaces | Filled | Three live surfaces: Tasks, Evidence and Test Plans. The Activity surface is retired. |
-| 2 | UI composition | Open | Not recorded |
+| 2 | UI composition | Filled | Four areas: ui/src/views/tasks.tsx, evidence.tsx, activity.tsx and test-plans.tsx, on the shared app-shell. Tasks is built from components/tasks: model.tsx holds the shape a row and a detail share, layouts.tsx the board and list arrangements, filters.tsx the status and owner filters, detail.tsx the open task, and actions.tsx the claim, start, block and complete controls. Evidence and test plans reuse the ui table and badge primitives. |
 | 3 | Actions | Filled | Seventeen recorded actions, fifteen on Tasks covering claim, start, block, unblock, release, evidence, complete, cancel, reopen and merge, and two on Test Plans. |
 | 4 | API surface | Filled | Fifteen operations covering the whole task lifecycle, plus derive and verify. |
 | 5 | Data | Filled | Nine entities: tasks, their dependencies, contract links and assignments, plus developers, agents, branches, integrations and verification evidence. |
 | 6 | End-to-end wiring | Filled | Proven by journey: a task derived from an accepted feature is claimed, started, evidenced and completed, and each move appears in the control centre without a reload. |
-| 7 | State machines | Open | Not recorded |
+| 7 | State machines | Filled | Three. A task's status runs across the ten values in TASK_STATUSES, from draft through ready, in_progress, in_review, verifying, blocked and paused to the terminal complete, cancelled or superseded, and only setStatus moves it, which is also what stamps started_at and completed_at and appends the status history. Verification evidence runs current to stale or superseded as the thing it verified changes. A test plan runs draft to accepted or superseded, and AU-002 warns that nothing in src can currently move one out of draft. |
 | 8 | Events | Filled | Every lifecycle move appends an activity event and a status history row, which is why a status can only move through its own command. |
 | 9 | Edge cases | Filled | Seventy-eight across the twenty-two features, including a task that implements nothing, a blocked dependency, a superseded piece of evidence and a duplicate merged into another. |
-| 10 | UI states | Open | Not recorded |
+| 10 | UI states | Filled | The five shared states in ui/src/components/shell/states.tsx: Loading, Empty, Error, Stale and Offline. Principle I of DESIGN_DIRECTION.md requires each to carry a title, an explanation of what happened and an action, so a bare spinner, a blank region or the word None is a defect. Views import these rather than writing their own. A task list filtered down to nothing shows Empty with Clear the filters as the action, which is what separates no matching tasks from no tasks. |
 | 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
 | 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
 | 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
 | 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
-| 15 | Responsive behavior | Open | Not recorded |
+| 15 | Responsive behavior | Filled | Tailwind breakpoints, no separate mobile build. Summary tiles run one column, then sm:grid-cols-2, then lg:grid-cols-3. The shell navigation collapses behind md:hidden below md and opens as a sheet. Wide tables and diagrams scroll inside their own container so the page body never scrolls sideways. The task board collapses from columns to a single stacked list below md, because a board narrower than three columns is a list that hides work. |
 | 16 | User-facing copy | Filled | Every refusal names the missing part and the command that supplies it, including the refusal to start a task that implements nothing. |
-| 17 | URL state and deep links | Open | Not recorded |
+| 17 | URL state and deep links | Filled | Hash routing from ui/src/lib/route.ts, with no router library. The hash is #/view or #/view/record, so the view and the open record are both in the address bar and can be copied to somebody else. An unknown view falls back to overview. Filters and the selected tab are component state and deliberately not in the URL, because a stale filter in a shared link reads as missing data. A task is deep-linked as #/tasks/TASK-0001, which is the link pasted into a handoff. |
 | 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
 | 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
 | 20 | Compliance and product tests | Filled | Eight recorded test plans, plus the assertion suite and the release conditions re-run before every release. |

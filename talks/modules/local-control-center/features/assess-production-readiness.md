@@ -1,4 +1,4 @@
-<!-- superdev:generated source=FEAT-0014 revision=2943 hash=eba997e9e91a830b98540eaebccf0aa1d3c2c22e9363d4ea846a0d686ae47774 -->
+<!-- superdev:generated source=FEAT-0014 revision=4066 hash=81ce55f39de82e0e619d5e6d9b06c9b9b66db3b1dddb5cc7119de85c33a74116 -->
 # Feature: Assess production readiness
 
 - **Status:** Complete
@@ -44,6 +44,7 @@
 | Evidence | Type | Result | Reference |
 |---|---|---|---|
 | Ran node src/cli.mjs readiness; printed overall readiness percent, capability area buckets (Specified/Awaiting Decision/Deferred/Not Applicable, all 0 here since none exist yet), module completeness, and a list of 8 open questions with why each matters, plus a documents-awaiting-decision section, matching the feature's claim of reporting specified/awaiting decision/not applicable/deferred areas. | command | pass | superdev readiness (COMMANDS.readiness -> cmdReadiness in src/cli.mjs:422) |
+| Readiness moved from 58 percent (470 of 812) to 91 percent (462 of 506), and the three architecture components now read as not applicable with the reason, because all 102 accepted features are microspec depth. 126 of 126 tests pass. | manual_check | pass | - |
 
 ## Delivery state
 

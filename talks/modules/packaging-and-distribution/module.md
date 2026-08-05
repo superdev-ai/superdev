@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0011 revision=3969 hash=cfb9fa8b25b2bbd7a1acead1bdb37c513c4106ef26425e46cdeca6bed6c6a960 -->
+<!-- superdev:generated source=MOD-0011 revision=4066 hash=672fdeb41e024a9792399b63f5bb2f5783e229c99845edea6583ff8740dd2dbe -->
 # Module: Packaging and Distribution
 
 - **Status:** Planned
@@ -59,7 +59,7 @@ No events recorded.
 | 6 | End-to-end wiring | Filled | Proven by journey: published to npm from the release workflow, installed from the registry, and the plugin loaded from the git marketplace. |
 | 7 | State machines | Not Applicable | N/A - A version is published or it is not; there is no state in between to model. |
 | 8 | Events | Filled | Each release writes a conventional changelog entry, and publishing happens in the release workflow on release creation rather than by hand. |
-| 9 | Edge cases | Open | Not recorded |
+| 9 | Edge cases | Filled | Three harnesses ship the same product and each can be absent or half-present. Detection is tiered in scripts/providers/detect.mjs: a live session (CLAUDECODE, CODEX_SESSION_ID), a loaded plugin (CLAUDE_PLUGIN_ROOT, CLAUDE_PROJECT_DIR, CODEX_PLUGIN_ROOT, AGENT_SKILLS_ROOT), and configuration only (CLAUDE_CONFIG_DIR, CODEX_HOME, SKILLS_HOME), because a user may export a configuration variable anywhere and it does not prove a harness is running. The edge cases are a harness that is configured but not running, two harnesses present at once, a plugin root that does not exist on disk, and a standalone bundle with no harness at all, which must still work as a plain CLI. |
 | 10 | UI states | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
 | 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
 | 12 | Accessibility | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
@@ -68,6 +68,6 @@ No events recorded.
 | 15 | Responsive behavior | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
 | 16 | User-facing copy | Filled | The README and the package description are the copy somebody reads before installing anything. |
 | 17 | URL state and deep links | Not Applicable | N/A - Packaging ships files. It renders no interface and stores no project data. |
-| 18 | Performance | Open | Not recorded |
+| 18 | Performance | Filled | Packaging is build-time, so its cost is paid once per release rather than per command. build-ui.mjs builds the control centre into dist and has a check mode the release gate runs; build-standalone.mjs assembles the skills.sh bundle; sync-version.mjs keeps the manifests on one version. What matters at runtime is startup: the CLI must not load the control centre bundle, and the skills are read from disk per invocation rather than held, so an install that ships all three harnesses costs the same to start as one. |
 | 19 | Discoverability and SEO | Filled | The npm package page is the discovery surface: its name, description and keywords are how somebody finds this, which is why it is the one place discoverability applies. |
 | 20 | Compliance and product tests | Filled | The packaging validator compares every shipped import against the files list in the manifest, and prepublishOnly runs the whole gate before anything leaves the machine. |

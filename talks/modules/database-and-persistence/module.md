@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0006 revision=3969 hash=84d29d225403bdbce5f0abd6d561d38d40206bfcbe4df52a3208d537d193cfdf -->
+<!-- superdev:generated source=MOD-0006 revision=4066 hash=f3bb84318a6a638d18ca19865ecd8fd37146b529c30c494d35f1fbff0415b4d1 -->
 # Module: Database and Persistence
 
 - **Status:** Planned
@@ -70,22 +70,22 @@ No events recorded.
 | # | Step | State | Outcome |
 |---|---|---|---|
 | 1 | Pages and surfaces | Filled | One live surface, Data at #/data. The Schema surface is retired. |
-| 2 | UI composition | Open | Not recorded |
+| 2 | UI composition | Filled | Two areas: ui/src/views/data.tsx and architecture.tsx, on the shared app-shell. Entities and their relationships render through components/diagrams/entity-diagram.tsx, and the runtime pieces through architecture-graph.tsx, both on the shared diagrams/graph-canvas with view-kit.tsx for the zoom, fit and legend controls. Sensitivity and retention read as badges on the entity rather than as a separate table, so nobody has to join them by eye. |
 | 3 | Actions | Filled | One recorded action on the Data surface; every write to the store is a command. |
 | 4 | API surface | Filled | Seven operations: db status, db migrate, db backup, db restore, export, import and schema show. |
 | 5 | Data | Filled | The module owns the store itself, and its recorded entity is the catalogue of what is stored. |
 | 6 | End-to-end wiring | Filled | Proven by journey: a migration applies forward-only against a checksum, db status reports fifteen of fifteen, and the Data view reads the resulting schema. |
-| 7 | State machines | Open | Not recorded |
+| 7 | State machines | Filled | One. A schema migration runs planned to applied, rolled_back or superseded. AU-002 warns that nothing in src moves it, so a recorded migration is never marked applied and the plan and the database never agree about what has run. The database's own migration runner is separate and writes applied_migrations, which is the record of Superdev's schema rather than of the product being built. |
 | 8 | Events | Filled | Each applied migration is recorded with its checksum, and every write appends an activity event. |
 | 9 | Edge cases | Filled | Twenty-six across the seven features, including a checksum that no longer matches, a restore from a backup of an older schema, and an append-only history refusing an edit. |
-| 10 | UI states | Open | Not recorded |
+| 10 | UI states | Filled | The five shared states in ui/src/components/shell/states.tsx: Loading, Empty, Error, Stale and Offline. Principle I of DESIGN_DIRECTION.md requires each to carry a title, an explanation of what happened and an action, so a bare spinner, a blank region or the word None is a defect. Views import these rather than writing their own. Offline matters most here: the schema is read from the local service, and a stopped service must say so rather than render an empty diagram that reads as a product with no data model. |
 | 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
 | 12 | Accessibility | Filled | Covered by NFR-0006, which requires the control centre to meet accepted requirements for navigation, focus, contrast, labels and reduced motion. |
 | 13 | Internationalization | Not Applicable | N/A - English only, with no locale switching anywhere; dates and numbers use the reader's own locale through Intl. |
 | 14 | Feature flags | Not Applicable | N/A - There is no flag machinery in the product; behaviour changes ship as a version. |
-| 15 | Responsive behavior | Open | Not recorded |
+| 15 | Responsive behavior | Filled | Tailwind breakpoints, no separate mobile build. Summary tiles run one column, then sm:grid-cols-2, then lg:grid-cols-3. The shell navigation collapses behind md:hidden below md and opens as a sheet. Wide tables and diagrams scroll inside their own container so the page body never scrolls sideways. The entity diagram and the architecture graph pan and zoom at every width rather than reflowing, and their legend moves below the canvas under md. |
 | 16 | User-facing copy | Filled | The store translates a constraint failure into a sentence: a foreign key, check or not-null violation is reported as what was wrong with the value, not as the constraint that caught it. |
-| 17 | URL state and deep links | Open | Not recorded |
+| 17 | URL state and deep links | Filled | Hash routing from ui/src/lib/route.ts, with no router library. The hash is #/view or #/view/record, so the view and the open record are both in the address bar and can be copied to somebody else. An unknown view falls back to overview. Filters and the selected tab are component state and deliberately not in the URL, because a stale filter in a shared link reads as missing data. An entity is deep-linked as #/data/ENT-0001, which opens the diagram with that node selected. |
 | 18 | Performance | Filled | Covered by NFR-0002, which requires common status, task, feature and workflow reads to feel immediate on a normal development machine. |
 | 19 | Discoverability and SEO | Not Applicable | N/A - The interface is served on localhost and is never indexed. |
 | 20 | Compliance and product tests | Filled | Migrations are forward-only and checksummed, and the schema validator plus db status are re-run before every release. |

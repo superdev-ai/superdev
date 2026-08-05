@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0010 revision=3969 hash=307f189a417fb2402a73994a302eb2f64bacc79a0294dff3afa0262a109e46e8 -->
+<!-- superdev:generated source=MOD-0010 revision=4066 hash=622891f081998ec0fd8cc2b53b3faeb9aab3bb3a32e12e4a288975419dac3901 -->
 # Module: Provider Orchestration
 
 - **Status:** Planned
@@ -52,7 +52,7 @@ No events recorded.
 | 5 | Data | Filled | Providers are declared in the shipped registry rather than the database. Nothing about a provider is project data. |
 | 6 | End-to-end wiring | Filled | Proven by journey: doctor reports eight of eight providers ready, each skill names the provider at the moment it applies, and validator RT-002 refuses a provider no skill names. |
 | 7 | State machines | Not Applicable | N/A - A provider is either installed and ready or it is absent, which doctor reports; there is no lifecycle in between. |
-| 8 | Events | Open | Not recorded |
+| 8 | Events | Filled | Provider orchestration emits no event type of its own. What a provider produces becomes an ordinary record, and the write that records it appends the matching activity event: specification_changed for a specification a provider drafted, tasks_derived when planning produces tasks, decision_created for a decision. Attribution travels on the record through its actor rather than through a separate provider event, so a reader asks what changed and sees who changed it in one place. Provider availability is checked, never installed, and a missing provider is reported at init rather than raised as an event. |
 | 9 | Edge cases | Filled | Four recorded, including a provider that is absent, one whose output is offered as authoritative without screening, and a capability no installed provider covers. |
 | 10 | UI states | Not Applicable | N/A - This module renders nothing. Provider work is routed from the skills and runs in the provider's own process. |
 | 11 | Telemetry | Not Applicable | N/A - Superdev is local-first with no network egress; the design direction requires telemetry to be explicitly approved and it never has been. |
