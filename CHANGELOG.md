@@ -9,6 +9,20 @@ The CLI and the plugin share one version. A release moves both.
 
 
 
+# [0.12.0](https://github.com/superdev-ai/superdev/compare/v0.11.0...v0.12.0) (2026-08-05)
+
+
+### Bug Fixes
+
+* **readiness:** count a feature only at a depth that requires it ([4b2e6f0](https://github.com/superdev-ai/superdev/commit/4b2e6f02a60448334987262433615b0e1118283a))
+
+
+### Features
+
+* **modules:** settle a completeness step, and settle all eleven ([d1a0346](https://github.com/superdev-ai/superdev/commit/d1a034697f599ce86120c8239591d2c836f8d319))
+* **validate:** declare the state column check as a feature of its own ([58034c1](https://github.com/superdev-ai/superdev/commit/58034c158af5992147506a61b47665a7f8c6c5e2))
+* **validate:** refuse a state column nothing can move off its opening value ([667396e](https://github.com/superdev-ai/superdev/commit/667396eb24175cbc5104a60dfa025715ba58dafa))
+
 # [0.11.0](https://github.com/superdev-ai/superdev/compare/v0.10.1...v0.11.0) (2026-07-29)
 
 
