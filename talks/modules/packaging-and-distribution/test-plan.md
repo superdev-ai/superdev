@@ -1,4 +1,4 @@
-<!-- superdev:generated source=MOD-0011 revision=4091 hash=cd87c7288033224cdc541d36b369c86ba98906e36917f9db2bef15f7d560f2f8 -->
+<!-- superdev:generated source=MOD-0011 revision=4104 hash=45aa571820755b3359efc69087580a4254277d76bdaa86003c796f8732508bb9 -->
 # Packaging and Distribution - Test Plan
 
 - **Test tooling in use:** Deterministic validators and real journeys rather than an internal suite, which section 20.1 requires
@@ -15,8 +15,8 @@
 | Resolve sync conflicts | superdev sync --resolve applies conflict resolution and leaves local and remote consistent | Run superdev sync --resolve and record what was observed. | Met |
 | Refuse a record type the interface shows and nothing can write | A record type the depth gate requires with no writer fails the build | Run the validator against the current tree and read what it names | Met |
 | Refuse a record type the interface shows and nothing can write | Adding a writer clears that finding without editing the validator | Add a write path and re-run it | Met |
-| Refuse a state column nothing can move off its opening value | A state column with no writer and no recorded reason fails the build:Remove an entry from IMMOVABLE and confirm the run reports an error | Checked by hand against the running product. | Unmet |
-| Refuse a state column nothing can move off its opening value | A column the creator computes is not reported:Confirm source material screening and non-functional requirement status are absent from the findings | Checked by hand against the running product. | Unmet |
+| Refuse a state column nothing can move off its opening value | A state column with no writer and no recorded reason fails the build:Remove an entry from IMMOVABLE and confirm the run reports an error | Checked by hand against the running product. | Met |
+| Refuse a state column nothing can move off its opening value | A column the creator computes is not reported:Confirm source material screening and non-functional requirement status are absent from the findings | Checked by hand against the running product. | Met |
 
 ## Coverage map
 
@@ -44,3 +44,6 @@ A claim of tested cites a run. Tests claimed but absent is a parity finding, not
 | sync --resolve CONF-0001 --keep remote changed the local purpose to the remote value and marked the conflict resolved. The next sync on both copies reported zero conflicts, so they were left consistent. | manual_check | pass | - | Current |
 | The validator names every record type the product asks for and cannot write | manual_check | pass | - | Current |
 | Adding a write path clears the finding without editing the validator | manual_check | pass | - | Current |
+| superdev-cli 0.12.0 tagged, pushed and released. The publish workflow completed in 23 seconds and npm serves 0.12.0. The three plugin manifests, the changelog and both package files moved together. | manual_check | pass | - | Current |
+| Removing the changes.status entry from IMMOVABLE escalated it from a warning to [AU-003] error and the run exited 1; restoring it returned the run to 8 warnings and no errors. | manual_check | pass | - | Current |
+| source_material.screening_status and non_functional_requirements.status are both set at creation from a computed value and neither appears in the 8 findings, though a hand-written list had named the second as stuck. | manual_check | pass | - | Current |

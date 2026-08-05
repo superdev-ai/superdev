@@ -1,4 +1,4 @@
-<!-- superdev:generated source=PRJ-0001 revision=4091 hash=828578f497dd273c6cbc100eac02f35de54af50722fc399d7f0ffd7faed195d6 -->
+<!-- superdev:generated source=PRJ-0001 revision=4104 hash=dd52d7cb6b92ac34fb9c89dd420893482620a5fc2da037642137746f7c48fe21 -->
 <!-- REGENERATED - do not hand-edit. Rebuild it with `superdev docs generate`. -->
 
 # Superdev - Changelog
@@ -7,6 +7,17 @@ Specification, decision and task changes, newest first, taken from the append-on
 
 | # | Date | Change | Actor |
 |---|---|---|---|
+| 4104 | 2026-08-05 | Linked memory MEM-0149 to feature FEAT-0103 | superdev |
+| 4103 | 2026-08-05 | Linked memory MEM-0149 to task TASK-0058 | superdev |
+| 4102 | 2026-08-05 | Remembered outcome: TASK-0058 complete: Cut release 0.12.0 | superdev |
+| 4101 | 2026-08-05 | Refuse a state column nothing can move off its opening value is complete: its contract is satisfied | superdev |
+| 4100 | 2026-08-05 | TASK-0058 completed, assignment released. | superdev |
+| 4099 | 2026-08-05 | Task TASK-0058 moved to complete | superdev |
+| 4098 | 2026-08-05 | Acceptance criterion AC-0125 is met, evidenced by EV-0187. | superdev |
+| 4097 | 2026-08-05 | Passing evidence recorded for TASK-0058: source_material.screening_status and non_functional_requirements.status are both set at creation from a computed value and neither appears in the 8 findings, though a hand-written list had named the second as stuck. | superdev |
+| 4096 | 2026-08-05 | Acceptance criterion AC-0124 is met, evidenced by EV-0186. | superdev |
+| 4095 | 2026-08-05 | Passing evidence recorded for TASK-0058: Removing the changes.status entry from IMMOVABLE escalated it from a warning to [AU-003] error and the run exited 1; restoring it returned the run to 8 warnings and no errors. | superdev |
+| 4094 | 2026-08-05 | Passing evidence recorded for TASK-0058: superdev-cli 0.12.0 tagged, pushed and released. The publish workflow completed in 23 seconds and npm serves 0.12.0. The three plugin manifests, the changelog and both package files moved together. | superdev |
 | 4091 | 2026-08-05 | Task TASK-0058 moved to in progress | superdev |
 | 4090 | 2026-08-05 | TASK-0058 claimed. | superdev |
 | 4089 | 2026-08-05 | TASK-0058 now implements acceptance_criterion AC-0124. | superdev |
@@ -196,14 +207,3 @@ Specification, decision and task changes, newest first, taken from the append-on
 | 3889 | 2026-07-29 | Memory System: API surface specified | superdev |
 | 3888 | 2026-07-29 | Memory System: Actions specified | superdev |
 | 3887 | 2026-07-29 | Memory System: Pages and surfaces specified | superdev |
-| 3886 | 2026-07-29 | Database and Persistence: Discoverability and SEO recorded as not applicable | superdev |
-| 3885 | 2026-07-29 | Database and Persistence: Feature flags recorded as not applicable | superdev |
-| 3884 | 2026-07-29 | Database and Persistence: Internationalization recorded as not applicable | superdev |
-| 3883 | 2026-07-29 | Database and Persistence: Telemetry recorded as not applicable | superdev |
-| 3882 | 2026-07-29 | Database and Persistence: Compliance and product tests specified | superdev |
-| 3881 | 2026-07-29 | Database and Persistence: Performance specified | superdev |
-| 3880 | 2026-07-29 | Database and Persistence: User-facing copy specified | superdev |
-| 3879 | 2026-07-29 | Database and Persistence: Accessibility specified | superdev |
-| 3878 | 2026-07-29 | Database and Persistence: Edge cases specified | superdev |
-| 3877 | 2026-07-29 | Database and Persistence: Events specified | superdev |
-| 3876 | 2026-07-29 | Database and Persistence: End-to-end wiring specified | superdev |
